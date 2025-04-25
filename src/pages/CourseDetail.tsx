@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -48,7 +47,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-import { courseService, CourseDetail } from "@/services/courseService";
+import { courseService, CourseDetailResponse, CourseEnrolledResponse, CourseFiles, CourseGroups } from "@/services/courseService";
 import { LoadingState } from "@/components/LoadingState";
 import { formatFileSize } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -111,17 +110,16 @@ const CourseDetailPage: React.FC = () => {
     });
   };
 
-  const filteredUsers = course?.users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = course?.data.enrolledUsers.filter(user => 
+    user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredFiles = course?.files.filter(file => 
-    file.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFiles = course?.data.files.filter(file => 
+    file.fileUrl.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredGroups = course?.groups.filter(group => 
-    group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredGroups = course?.data.groups.filter(group => 
+    group.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     group.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -211,27 +209,25 @@ const CourseDetailPage: React.FC = () => {
                     <TableRow>
                       <TableHead className="w-[200px]">User</TableHead>
                       <TableHead>Role</TableHead>
-                      <TableHead>Progress status</TableHead>
+                      <TableHead>Progress</TableHead>
                       <TableHead>Enrollment date</TableHead>
                       <TableHead>Completion date</TableHead>
-                      <TableHead>Expiration date</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers && filteredUsers.length > 0 ? (
                       filteredUsers.map((user) => (
                         <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.name}</TableCell>
-                          <TableCell className="capitalize">{user.role}</TableCell>
+                          <TableCell className="font-medium">{user.userName}</TableCell>
+                          <TableCell className="capitalize">{user.userRole}</TableCell>
                           <TableCell>{user.progress}%</TableCell>
-                          <TableCell>{new Date(user.enrollmentDate).toLocaleDateString()}</TableCell>
+                          <TableCell>{new Date(user.enrolledAt).toLocaleDateString()}</TableCell>
                           <TableCell>{user.completionDate ? new Date(user.completionDate).toLocaleDateString() : "-"}</TableCell>
-                          <TableCell>{user.expirationDate ? new Date(user.expirationDate).toLocaleDateString() : "-"}</TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
+                        <TableCell colSpan={5} className="h-24 text-center">
                           No users found
                         </TableCell>
                       </TableRow>
@@ -246,9 +242,8 @@ const CourseDetailPage: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[300px]">File name</TableHead>
+                      <TableHead className="w-[300px]">File URL</TableHead>
                       <TableHead>Size</TableHead>
-                      <TableHead>Uploaded by</TableHead>
                       <TableHead>Upload date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -257,10 +252,9 @@ const CourseDetailPage: React.FC = () => {
                     {filteredFiles && filteredFiles.length > 0 ? (
                       filteredFiles.map((file) => (
                         <TableRow key={file.id}>
-                          <TableCell className="font-medium">{file.name}</TableCell>
-                          <TableCell>{formatFileSize(file.size)}</TableCell>
-                          <TableCell>{file.uploadedBy}</TableCell>
-                          <TableCell>{new Date(file.uploadedAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-medium">{file.fileUrl}</TableCell>
+                          <TableCell>{formatFileSize(file.fileSize)}</TableCell>
+                          <TableCell>{new Date(file.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right">
                             <TooltipProvider>
                               <Tooltip>
@@ -279,7 +273,7 @@ const CourseDetailPage: React.FC = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={4} className="h-24 text-center">
                           No files found
                         </TableCell>
                       </TableRow>
@@ -304,9 +298,9 @@ const CourseDetailPage: React.FC = () => {
                     {filteredGroups && filteredGroups.length > 0 ? (
                       filteredGroups.map((group) => (
                         <TableRow key={group.id}>
-                          <TableCell className="font-medium">{group.name}</TableCell>
+                          <TableCell className="font-medium">{group.groupName}</TableCell>
                           <TableCell>{group.description}</TableCell>
-                          <TableCell>{group.membersCount}</TableCell>
+                          <TableCell>{group.groupMembers}</TableCell>
                           <TableCell>{new Date(group.createdAt).toLocaleDateString()}</TableCell>
                         </TableRow>
                       ))

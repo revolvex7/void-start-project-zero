@@ -155,13 +155,42 @@ export interface Course {
 	updatedAt: string;
 }
 
-export interface CourseDetail {
+export interface CourseEnrolledResponse {
   id: string;
-  name: string;
+  progress: number;
+  completionDate: string | null;
+  enrolledAt: string;
+  userName: string;
+  userRole: string;
+}
+
+export interface CourseFiles {
+  id: string;
+  courseId: string;
+  userId: string;
+  fileUrl: string;
+  fileSize: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseGroups {
+  id: string;
+  courseId: string;
+  groupName: string;
   description: string;
-  enrolledUsers: CourseUser[];
-  files: CourseFile[];
-  groups: CourseGroup[];
+  groupCreatorId: string;
+  groupMembers: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseDetailResponse {
+  data: {
+    enrolledUsers: CourseEnrolledResponse[];
+    files: CourseFiles[];
+    groups: CourseGroups[];
+  };
 }
 
 export const courseService = {
@@ -235,10 +264,10 @@ export const courseService = {
 		}
 	},
 
-	async getCourseDetail(courseId: string): Promise<CourseDetail> {
+	async getCourseDetail(courseId: string): Promise<CourseDetailResponse> {
 		try {
-			const response = await api.get(`/user/course-details/${courseId}`);
-			return response.data.data;
+			const response = await api.get(`/user/course/${courseId}`);
+			return response.data;
 		} catch (error) {
 			console.error("Error fetching course detail:", error);
 			throw error;
