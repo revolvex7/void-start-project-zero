@@ -1,10 +1,17 @@
 
 import React, { useState } from "react";
-import { PlusCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Eye, PlusCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EnrollCoursesDialog } from "@/components/courses/EnrollCoursesDialog";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EnrolledCourse {
   id: string;
@@ -19,13 +26,18 @@ interface EnrolledCourse {
 interface UserCoursesTabProps {
   userId: string;
   courses: EnrolledCourse[];
+  onEnrollmentUpdate: () => void;
 }
 
-export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({ userId, courses }) => {
+export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({ 
+  userId, 
+  courses,
+  onEnrollmentUpdate 
+}) => {
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
   const handleCourseEnrollment = () => {
-    // This will be handled by the parent component refreshing the user details
+    onEnrollmentUpdate();
     setIsEnrollDialogOpen(false);
   };
 
@@ -49,16 +61,75 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({ userId, courses 
                   <TableHead>Enrollment Date</TableHead>
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {courses.map((course) => (
-                  <TableRow key={course.id}>
-                    <TableCell>{course.courseId}</TableCell>
+                  <TableRow 
+                    key={course.id}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    <TableCell className="font-medium">{course.courseId}</TableCell>
                     <TableCell>{new Date(course.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>{parseFloat(course.progress).toFixed(2)}%</TableCell>
                     <TableCell>
-                      {course.completionDate ? 'Completed' : 'In Progress'}
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-24 rounded-full bg-secondary">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{ width: `${parseFloat(course.progress)}%` }}
+                          />
+                        </div>
+                        <span>{parseFloat(course.progress).toFixed(2)}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        course.completionDate 
+                          ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' 
+                          : 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20'
+                      }`}>
+                        {course.completionDate ? 'Completed' : 'In Progress'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <TooltipProvider>
+                        <div className="flex items-center justify-end gap-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <Link to={`/courses/${course.courseId}`}>
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View course</span>
+                                </Link>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View course</p>
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <XCircle className="h-4 w-4" />
+                                <span className="sr-only">Unenroll</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Unenroll from course</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TooltipProvider>
                     </TableCell>
                   </TableRow>
                 ))}

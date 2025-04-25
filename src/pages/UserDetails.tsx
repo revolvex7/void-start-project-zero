@@ -48,6 +48,11 @@ const UserDetails = () => {
     setActiveTab(tab);
   };
 
+  const handleCourseEnrollment = async () => {
+    const detailsData = await userService.getUserDetailsById(userId || "");
+    setUserDetails(detailsData);
+  };
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -85,7 +90,6 @@ const UserDetails = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link to="/users" aria-label="Back to users">
@@ -109,8 +113,7 @@ const UserDetails = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="info" value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <Tabs defaultValue="info" value={activeTab} onValueChange={handleTabChange}>
         <div className="border-b">
           <TabsList className="bg-transparent h-auto p-0 w-full flex justify-start">
             <TabsTrigger 
@@ -142,11 +145,15 @@ const UserDetails = () => {
           <UserCoursesTab 
             userId={user.id} 
             courses={userDetails?.data?.courses || []}
+            onEnrollmentUpdate={handleCourseEnrollment}
           />
         </TabsContent>
         
         <TabsContent value="groups" className="mt-6">
-          <UserGroupsTab userId={user.id} />
+          <UserGroupsTab 
+            userId={user.id}
+            groups={userDetails?.data?.groups || []}
+          />
         </TabsContent>
       </Tabs>
     </div>

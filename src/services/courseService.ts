@@ -156,9 +156,12 @@ export interface Course {
 }
 
 export interface CourseDetail {
-  enrolledUsers: any[];  // You can create a proper type if you have the exact structure
-  files: any[];
-  groups: any[];
+  id: string;
+  name: string;
+  description: string;
+  enrolledUsers: CourseUser[];
+  files: CourseFile[];
+  groups: CourseGroup[];
 }
 
 export const courseService = {
