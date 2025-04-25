@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -140,7 +139,10 @@ const UserDetails = () => {
         </TabsContent>
         
         <TabsContent value="courses" className="mt-6">
-          <UserCoursesTab userId={user.id} />
+          <UserCoursesTab 
+            userId={user.id} 
+            courses={userDetails?.data?.courses || []}
+          />
         </TabsContent>
         
         <TabsContent value="groups" className="mt-6">
@@ -152,4 +154,3 @@ const UserDetails = () => {
 };
 
 export default UserDetails;
-

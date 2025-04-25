@@ -1,38 +1,33 @@
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EnrollCoursesDialog } from "@/components/courses/EnrollCoursesDialog";
-import { courseService } from "@/services/courseService";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { LoadingState } from "@/components/LoadingState";
+
+interface EnrolledCourse {
+  id: string;
+  courseId: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  progress: string;
+  completionDate: string | null;
+}
 
 interface UserCoursesTabProps {
   userId: string;
+  courses: EnrolledCourse[];
 }
 
-export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({ userId }) => {
+export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({ userId, courses }) => {
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
-  const { data: courses, isLoading, refetch } = useQuery({
-    queryKey: ["user-courses", userId],
-    queryFn: async () => {
-      // You might need to create a new endpoint to fetch courses for a specific user
-      const response = await courseService.getCourseDetail(userId);
-      return response.enrolledUsers || [];
-    },
-  });
-
   const handleCourseEnrollment = () => {
-    refetch();
+    // This will be handled by the parent component refreshing the user details
     setIsEnrollDialogOpen(false);
   };
-
-  if (isLoading) {
-    return <LoadingState message="Loading courses..." />;
-  }
 
   return (
     <div className="space-y-6">
@@ -50,17 +45,21 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({ userId }) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Course Name</TableHead>
+                  <TableHead>Course ID</TableHead>
                   <TableHead>Enrollment Date</TableHead>
+                  <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {courses.map((course: any) => (
+                {courses.map((course) => (
                   <TableRow key={course.id}>
-                    <TableCell>{course.name}</TableCell>
-                    <TableCell>{new Date(course.enrollmentDate).toLocaleDateString()}</TableCell>
-                    <TableCell>{course.status}</TableCell>
+                    <TableCell>{course.courseId}</TableCell>
+                    <TableCell>{new Date(course.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{parseFloat(course.progress).toFixed(2)}%</TableCell>
+                    <TableCell>
+                      {course.completionDate ? 'Completed' : 'In Progress'}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
