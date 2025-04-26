@@ -60,7 +60,7 @@ const CourseDetailPage: React.FC = () => {
   } = useQuery({
     queryKey: ["courseDetail", courseId],
     queryFn: async () => {
-      const response = await courseService.getCourseDetail(courseId || "");
+      const response = await courseService.getCourseDetails(courseId || "");
       return response.data;
     },
     enabled: !!courseId,
