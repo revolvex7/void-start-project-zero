@@ -61,13 +61,16 @@ const CourseDetailPage: React.FC = () => {
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
   const {
-    data: course,
+    data: courseDetails,
     isLoading,
     error,
     refetch
   } = useQuery({
     queryKey: ["courseDetail", courseId],
-    queryFn: () => courseService.getCourseDetails(courseId || ""),
+    queryFn: async () => {
+      const response = await courseService.getCourseDetails(courseId || "");
+      return response;
+    },
     enabled: !!courseId,
     meta: {
       onError: () => {
@@ -79,14 +82,10 @@ const CourseDetailPage: React.FC = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-        <LoadingState message="Loading course details..." />
-      </div>
-    );
+    return <LoadingState message="Loading course details..." />;
   }
 
-  if (error || !course) {
+  if (error || !courseDetails) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
@@ -110,15 +109,15 @@ const CourseDetailPage: React.FC = () => {
     });
   };
 
-  const filteredUsers = course?.data.enrolledUsers.filter(user => 
+  const filteredUsers = courseDetails.data.enrolledUsers.filter(user => 
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredFiles = course?.data.files.filter(file => 
+  const filteredFiles = courseDetails.data.files.filter(file => 
     file.fileUrl.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredGroups = course?.data.groups.filter(group => 
+  const filteredGroups = courseDetails.data.groups.filter(group => 
     group.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     group.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -138,11 +137,11 @@ const CourseDetailPage: React.FC = () => {
               </div>
             </Link>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">{course.name}</h1>
-          <p className="text-sm text-muted-foreground">{course.description}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{courseDetails.name}</h1>
+          <p className="text-sm text-muted-foreground">{courseDetails.description}</p>
         </div>
         
-        <Button onClick={() => navigate(`/course/${course.id}/edit`)}>
+        <Button onClick={() => navigate(`/course/${courseDetails.id}/edit`)}>
           <Pencil className="mr-2 h-4 w-4" /> Edit course
         </Button>
       </div>
@@ -323,6 +322,7 @@ const CourseDetailPage: React.FC = () => {
         isOpen={isEnrollDialogOpen}
         onClose={() => setIsEnrollDialogOpen(false)}
         courseId={courseId || ""}
+        enrolledUsers={courseDetails.data.enrolledUsers}
         onEnrollment={handleUserEnrollment}
       />
     </div>

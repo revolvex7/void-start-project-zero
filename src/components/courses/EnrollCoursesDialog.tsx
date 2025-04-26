@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -30,6 +29,7 @@ interface EnrollCoursesDialogProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  enrolledCourses: { courseId: string }[];
   onEnrollment: () => void;
 }
 
@@ -37,6 +37,7 @@ export function EnrollCoursesDialog({
   isOpen,
   onClose,
   userId,
+  enrolledCourses,
   onEnrollment,
 }: EnrollCoursesDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +49,8 @@ export function EnrollCoursesDialog({
     enabled: isOpen,
   });
 
-  const filteredCourses = courses.filter(course => 
+  const availableCourses = courses.filter(course => 
+    !enrolledCourses.some(enrolled => enrolled.courseId === course.id) &&
     course.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -73,7 +75,7 @@ export function EnrollCoursesDialog({
         <DialogHeader>
           <DialogTitle>Enroll to course</DialogTitle>
           <DialogDescription>
-            Find courses and enroll the user to them.
+            Find courses and enroll to them.
           </DialogDescription>
         </DialogHeader>
         
@@ -99,14 +101,12 @@ export function EnrollCoursesDialog({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-24">
-                    <div className="flex justify-center items-center">
-                      <LoadingState message="Loading courses..." />
-                    </div>
+                  <TableCell colSpan={3}>
+                    <LoadingState message="Loading available courses..." />
                   </TableCell>
                 </TableRow>
-              ) : filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
+              ) : availableCourses.length > 0 ? (
+                availableCourses.map((course) => (
                   <TableRow key={course.id}>
                     <TableCell className="font-medium">{course.name}</TableCell>
                     <TableCell>{course.category}</TableCell>
@@ -135,7 +135,7 @@ export function EnrollCoursesDialog({
               ) : (
                 <TableRow>
                   <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                    No courses found
+                    No available courses found
                   </TableCell>
                 </TableRow>
               )}
