@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface ClassData {
@@ -293,6 +292,20 @@ export const courseService = {
 			await api.delete(`/user/course/${courseId}`);
 		} catch (error) {
 			console.error("Error deleting course:", error);
+			throw error;
+		}
+	},
+
+	async unenrollUserFromCourse(courseId: string, userId: string): Promise<void> {
+		try {
+			await api.delete(`/user/unenroll-user-from-course`, {
+				data: {
+					courseId,
+					userId
+				}
+			});
+		} catch (error) {
+			console.error("Error unenrolling user from course:", error);
 			throw error;
 		}
 	}

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +10,9 @@ import {
   FileText, 
   Users, 
   Pencil, 
-  Download
+  Download,
+  Eye,
+  X
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,6 @@ const CourseDetailPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
-  // Get detailed course information with enrolledUsers, files, groups
   const {
     data: courseDetails,
     isLoading: isLoadingDetails,
@@ -73,7 +73,6 @@ const CourseDetailPage: React.FC = () => {
     }
   });
 
-  // Get basic course information
   const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
     queryKey: ["course-basic-info", courseId],
     queryFn: async () => {
@@ -113,6 +112,18 @@ const CourseDetailPage: React.FC = () => {
     toast.success("User enrolled successfully", {
       description: "The user has been added to the course"
     });
+  };
+
+  const handleUnenrollUser = async (userId: string) => {
+    try {
+      await courseService.unenrollUserFromCourse(courseId || "", userId);
+      await refetch();
+      toast.success("User unenrolled successfully");
+    } catch (error) {
+      toast.error("Failed to unenroll user", {
+        description: "An error occurred while removing the user from the course"
+      });
+    }
   };
 
   const filteredUsers = courseDetails.enrolledUsers.filter(user => 
@@ -217,6 +228,7 @@ const CourseDetailPage: React.FC = () => {
                       <TableHead>Progress</TableHead>
                       <TableHead>Enrollment date</TableHead>
                       <TableHead>Completion date</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -228,11 +240,48 @@ const CourseDetailPage: React.FC = () => {
                           <TableCell>{user.progress}%</TableCell>
                           <TableCell>{new Date(user.enrolledAt).toLocaleDateString()}</TableCell>
                           <TableCell>{user.completionDate ? new Date(user.completionDate).toLocaleDateString() : "-"}</TableCell>
+                          <TableCell className="text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => navigate(`/users/${user.id}`)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>View user</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() => handleUnenrollUser(user.id)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Unenroll user</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={6} className="h-24 text-center">
                           No users found
                         </TableCell>
                       </TableRow>
