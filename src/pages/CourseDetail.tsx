@@ -52,17 +52,9 @@ const CourseDetailPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
-  const {
-    data: courseDetails,
-    isLoading: isLoadingDetails,
-    error: detailsError,
-    refetch
-  } = useQuery({
+  const { data: courseDetails, refetch } = useQuery({
     queryKey: ["courseDetail", courseId],
-    queryFn: async () => {
-      const response = await courseService.getCourseDetails(courseId || "");
-      return response.data;
-    },
+    queryFn: () => courseService.getCourseDetails(courseId || ""),
     enabled: !!courseId,
     meta: {
       onError: () => {
@@ -116,25 +108,25 @@ const CourseDetailPage: React.FC = () => {
 
   const handleUnenrollUser = async (userId: string) => {
     try {
-      await courseService.unenrollUserFromCourse(courseId || "", userId);
-      await refetch();
+      await courseService.unenrollFromCourse(courseId || "", userId);
       toast.success("User unenrolled successfully");
+      await refetch();
     } catch (error) {
       toast.error("Failed to unenroll user", {
-        description: "An error occurred while removing the user from the course"
+        description: "An error occurred while removing the user from the course",
       });
     }
   };
 
-  const filteredUsers = courseDetails.enrolledUsers.filter(user => 
+  const filteredUsers = courseDetails.data.enrolledUsers.filter(user => 
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredFiles = courseDetails.files.filter(file => 
+  const filteredFiles = courseDetails.data.files.filter(file => 
     file.fileUrl.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredGroups = courseDetails.groups.filter(group => 
+  const filteredGroups = courseDetails.data.groups.filter(group => 
     group.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     group.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -377,7 +369,7 @@ const CourseDetailPage: React.FC = () => {
         isOpen={isEnrollDialogOpen}
         onClose={() => setIsEnrollDialogOpen(false)}
         courseId={courseId || ""}
-        enrolledUsers={courseDetails.enrolledUsers}
+        enrolledUsers={courseDetails.data.enrolledUsers}
         onEnrollment={handleUserEnrollment}
       />
     </div>

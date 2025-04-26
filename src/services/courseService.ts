@@ -146,13 +146,18 @@ export interface CourseGroup {
 }
 
 export interface Course {
-	id: string;
-	name: string;
-	description: string;
-	category: string;
-	price?: number;
-	createdAt: string;
-	updatedAt: string;
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  price?: number;
+  currency?: string;
+  categoryId: string;
+  categoryName: string;
+  courseCode: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
 }
 
 export interface CourseEnrolledResponse {
@@ -194,119 +199,131 @@ export interface CourseDetailResponse {
 }
 
 export const courseService = {
-	async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
-		try {
-			const response = await api.get<CourseDetailsResponse>(
-				`/user/course-details/${courseId}`
-			);
-			return response.data;
-		} catch (error) {
-			console.error("Error fetching course details:", error);
-			throw error;
-		}
-	},
+  async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
+    try {
+      const response = await api.get<CourseDetailsResponse>(
+        `/user/course-details/${courseId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course details:", error);
+      throw error;
+    }
+  },
 
-	async updateModuleTitle(moduleId: string, title: string): Promise<any> {
-		try {
-			// This is a placeholder for an actual API call that would update the module title
-			// In a real application, you would implement this endpoint
-			const response = await api.patch(`/user/module/${moduleId}`, { title });
-			return response.data;
-		} catch (error) {
-			console.error("Error updating module title:", error);
-			throw error;
-		}
-	},
+  async updateModuleTitle(moduleId: string, title: string): Promise<any> {
+    try {
+      // This is a placeholder for an actual API call that would update the module title
+      // In a real application, you would implement this endpoint
+      const response = await api.patch(`/user/module/${moduleId}`, { title });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating module title:", error);
+      throw error;
+    }
+  },
 
-	async getClassDetails(classId: string): Promise<ClassDetailsResponse> {
-		try {
-			const response = await api.get<ClassDetailsResponse>(
-				`/user/class/${classId}`
-			);
-			return response.data;
-		} catch (error) {
-			console.error("Error fetching class details:", error);
-			throw error;
-		}
-	},
+  async getClassDetails(classId: string): Promise<ClassDetailsResponse> {
+    try {
+      const response = await api.get<ClassDetailsResponse>(
+        `/user/class/${classId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching class details:", error);
+      throw error;
+    }
+  },
 
-	async getQuizQuestions(classId: string): Promise<QuizQuestionWithOptions[]> {
-		try {
-			const response = await api.get(`/user/quiz/${classId}`);
-			if (response.data && response.data.data) {
-				return response.data.data;
-			}
-			return [];
-		} catch (error) {
-			console.error("Error fetching quiz questions:", error);
-			// Return an empty array instead of throwing to avoid breaking the UI
-			return [];
-		}
-	},
+  async getQuizQuestions(classId: string): Promise<QuizQuestionWithOptions[]> {
+    try {
+      const response = await api.get(`/user/quiz/${classId}`);
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching quiz questions:", error);
+      // Return an empty array instead of throwing to avoid breaking the UI
+      return [];
+    }
+  },
 
-	async submitQuizAnswers(payload: QuizSubmissionRequest): Promise<QuizSubmissionResponse> {
-		try {
-			const response = await api.post<QuizSubmissionResponse>(`/user/submit-quiz`, payload);
-			return response.data;
-		} catch (error) {
-			console.error("Error submitting quiz answers:", error);
-			throw error;
-		}
-	},
+  async submitQuizAnswers(payload: QuizSubmissionRequest): Promise<QuizSubmissionResponse> {
+    try {
+      const response = await api.post<QuizSubmissionResponse>(`/user/submit-quiz`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error submitting quiz answers:", error);
+      throw error;
+    }
+  },
 
-	async getCourses(): Promise<Course[]> {
-		try {
-			const response = await api.get('/user/courses');
-			return response.data.data;
-		} catch (error) {
-			console.error("Error fetching courses:", error);
-			throw error;
-		}
-	},
+  async getCourses(): Promise<Course[]> {
+    try {
+      const response = await api.get('/user/courses');
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      throw error;
+    }
+  },
 
-	async enrollUserToCourse(courseId: string, userId: string): Promise<void> {
-		try {
-			await api.post('/user/enroll-user-to-course', {
-				courseId,
-				userId
-			});
-		} catch (error) {
-			console.error("Error enrolling user to course:", error);
-			throw error;
-		}
-	},
+  async enrollUserToCourse(courseId: string, userId: string): Promise<void> {
+    try {
+      await api.post('/user/enroll-user-to-course', {
+        courseId,
+        userId
+      });
+    } catch (error) {
+      console.error("Error enrolling user to course:", error);
+      throw error;
+    }
+  },
 
-	async getCourseDetail(courseId: string): Promise<CourseDetailResponse> {
-		try {
-			const response = await api.get<CourseDetailResponse>(`/user/course/${courseId}`);
-			return response.data;
-		} catch (error) {
-			console.error("Error fetching course detail:", error);
-			throw error;
-		}
-	},
+  async getCourseDetail(courseId: string): Promise<CourseDetailResponse> {
+    try {
+      const response = await api.get<CourseDetailResponse>(`/user/course/${courseId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course detail:", error);
+      throw error;
+    }
+  },
 
-	async deleteCourse(courseId: string): Promise<void> {
-		try {
-			// Call the API to delete the course
-			await api.delete(`/user/course/${courseId}`);
-		} catch (error) {
-			console.error("Error deleting course:", error);
-			throw error;
-		}
-	},
+  async deleteCourse(courseId: string): Promise<void> {
+    try {
+      // Call the API to delete the course
+      await api.delete(`/user/course/${courseId}`);
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      throw error;
+    }
+  },
 
-	async unenrollUserFromCourse(courseId: string, userId: string): Promise<void> {
-		try {
-			await api.delete(`/user/unenroll-user-from-course`, {
-				data: {
-					courseId,
-					userId
-				}
-			});
-		} catch (error) {
-			console.error("Error unenrolling user from course:", error);
-			throw error;
-		}
-	}
+  async unenrollUserFromCourse(courseId: string, userId: string): Promise<void> {
+    try {
+      await api.delete(`/user/unenroll-user-from-course`, {
+        data: {
+          courseId,
+          userId
+        }
+      });
+    } catch (error) {
+      console.error("Error unenrolling user from course:", error);
+      throw error;
+    }
+  },
+
+  async unenrollFromCourse(courseId: string, userId: string): Promise<void> {
+    try {
+      await api.post(`/unenroll-course`, {
+        courseId,
+        userId
+      });
+    } catch (error) {
+      console.error("Error unenrolling from course:", error);
+      throw error;
+    }
+  }
 };
