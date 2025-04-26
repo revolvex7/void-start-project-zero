@@ -302,23 +302,9 @@ export const courseService = {
     }
   },
 
-  async unenrollUserFromCourse(courseId: string, userId: string): Promise<void> {
-    try {
-      await api.delete(`/user/unenroll-user-from-course`, {
-        data: {
-          courseId,
-          userId
-        }
-      });
-    } catch (error) {
-      console.error("Error unenrolling user from course:", error);
-      throw error;
-    }
-  },
-
   async unenrollFromCourse(courseId: string, userId: string): Promise<void> {
     try {
-      await api.post(`/unenroll-course`, {
+      await api.post(`/user/unenroll-course`, {
         courseId,
         userId
       });

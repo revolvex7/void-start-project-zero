@@ -69,7 +69,6 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
       </div>
       
       <Card>
-        <CardContent>
           {courses && courses.length > 0 ? (
             <Table>
               <TableHeader>
@@ -115,11 +114,11 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="outline"
-                                size="sm"
-                                asChild
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 p-0"
                               >
-                                <Link to={`/courses/${course.courseId}`}>
+                                <Link to={`/course/${course.courseId}`}>
                                   <Eye className="h-4 w-4" />
                                   <span className="sr-only">View course</span>
                                 </Link>
@@ -133,9 +132,9 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-destructive hover:text-destructive"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                                 onClick={() => handleUnenroll(course.courseId)}
                               >
                                 <XCircle className="h-4 w-4" />
@@ -165,7 +164,6 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
               </Button>
             </div>
           )}
-        </CardContent>
       </Card>
 
       <EnrollCoursesDialog 

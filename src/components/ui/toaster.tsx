@@ -30,7 +30,7 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <ToastClose />
+            {/* <ToastClose /> */}
           </Toast>
         )
       })}

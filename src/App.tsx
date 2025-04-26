@@ -14,7 +14,6 @@ import Dashboard from "./pages/Dashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import UploadSyllabus from "./pages/UploadSyllabus";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";

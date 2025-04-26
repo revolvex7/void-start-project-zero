@@ -13,7 +13,7 @@ import {
   Pencil, 
   Download,
   Eye,
-  X
+  XCircle
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ const CourseDetailPage: React.FC = () => {
   // Query for detailed course info (enrolled users, files, groups)
   const { data: courseDetail, isLoading: isLoadingDetail, error: detailError, refetch } = useQuery({
     queryKey: ["courseDetail", courseId],
-    queryFn: () => courseService.getCourseDetail(courseId || ""),
+    queryFn: () => courseService.getCourseDetails(courseId || ""),
     enabled: !!courseId,
     meta: {
       onError: () => {
@@ -244,7 +244,7 @@ const CourseDetailPage: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 p-0"
-                                    onClick={() => navigate(`/users/${user.id}`)}
+                                    onClick={() => navigate(`/users/${user.userId}`)}
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
@@ -262,9 +262,9 @@ const CourseDetailPage: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    onClick={() => handleUnenrollUser(user.id)}
+                                    onClick={() => handleUnenrollUser(user.userId)}
                                   >
-                                    <X className="h-4 w-4" />
+                                    <XCircle className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
