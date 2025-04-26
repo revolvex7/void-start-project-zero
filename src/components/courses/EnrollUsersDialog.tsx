@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -23,9 +24,8 @@ import {
 } from "@/components/ui/table";
 import { LoadingState } from "@/components/LoadingState";
 
-import { courseService } from "@/services/courseService";
+import { courseService, CourseEnrolledResponse } from "@/services/courseService";
 import { userService, ApiUser } from "@/services/userService";
-import { useQuery } from "@tanstack/react-query";
 
 interface EnrollUsersDialogProps {
   isOpen: boolean;

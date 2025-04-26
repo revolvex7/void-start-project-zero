@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface ClassData {
@@ -272,6 +273,16 @@ export const courseService = {
 			});
 		} catch (error) {
 			console.error("Error enrolling user to course:", error);
+			throw error;
+		}
+	},
+
+	async getCourseDetail(courseId: string): Promise<CourseDetailResponse> {
+		try {
+			const response = await api.get<CourseDetailResponse>(`/user/course/${courseId}`);
+			return response.data;
+		} catch (error) {
+			console.error("Error fetching course detail:", error);
 			throw error;
 		}
 	},

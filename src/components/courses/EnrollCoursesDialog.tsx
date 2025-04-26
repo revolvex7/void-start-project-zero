@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -21,7 +22,7 @@ import {
   TableBody, 
   TableCell 
 } from "@/components/ui/table";
-import { LoadingState } from "@/components/LoadingState";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 import { courseService } from "@/services/courseService";
 
@@ -29,7 +30,7 @@ interface EnrollCoursesDialogProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
-  enrolledCourses: { courseId: string }[];
+  enrolledCourses?: { courseId: string }[];
   onEnrollment: () => void;
 }
 
@@ -37,7 +38,7 @@ export function EnrollCoursesDialog({
   isOpen,
   onClose,
   userId,
-  enrolledCourses,
+  enrolledCourses = [],
   onEnrollment,
 }: EnrollCoursesDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -102,7 +103,7 @@ export function EnrollCoursesDialog({
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={3}>
-                    <LoadingState message="Loading available courses..." />
+                    <LoadingSpinner message="Loading available courses..." />
                   </TableCell>
                 </TableRow>
               ) : availableCourses.length > 0 ? (

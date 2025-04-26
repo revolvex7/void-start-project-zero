@@ -41,6 +41,11 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
     setIsEnrollDialogOpen(false);
   };
 
+  // Transform courses to the format expected by EnrollCoursesDialog
+  const enrolledCoursesForDialog = courses.map(course => ({
+    courseId: course.courseId
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
@@ -154,6 +159,7 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
         isOpen={isEnrollDialogOpen}
         onClose={() => setIsEnrollDialogOpen(false)}
         userId={userId}
+        enrolledCourses={enrolledCoursesForDialog}
         onEnrollment={handleCourseEnrollment}
       />
     </div>

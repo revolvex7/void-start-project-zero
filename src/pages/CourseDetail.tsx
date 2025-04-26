@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -32,25 +33,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   TooltipProvider,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-import { courseService, CourseDetailResponse, CourseEnrolledResponse, CourseFiles, CourseGroups } from "@/services/courseService";
-import { LoadingState } from "@/components/LoadingState";
+import { courseService, CourseDetailResponse, CourseEnrolledResponse } from "@/services/courseService";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { formatFileSize } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { EnrollUsersDialog } from "@/components/courses/EnrollUsersDialog";
 
 const CourseDetailPage: React.FC = () => {
@@ -69,7 +60,7 @@ const CourseDetailPage: React.FC = () => {
     queryKey: ["courseDetail", courseId],
     queryFn: async () => {
       const response = await courseService.getCourseDetails(courseId || "");
-      return response;
+      return response.data;
     },
     enabled: !!courseId,
     meta: {
@@ -81,8 +72,20 @@ const CourseDetailPage: React.FC = () => {
     }
   });
 
+  // Get basic course information
+  const { data: courseBasicInfo } = useQuery({
+    queryKey: ["course-basic-info", courseId],
+    queryFn: async () => {
+      const courses = await courseService.getCourses();
+      return courses.find(c => c.id === courseId);
+    },
+    enabled: !!courseId
+  });
+
   if (isLoading) {
-    return <LoadingState message="Loading course details..." />;
+    return <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
+      <LoadingSpinner message="Loading course details..." />
+    </div>;
   }
 
   if (error || !courseDetails) {
@@ -109,15 +112,15 @@ const CourseDetailPage: React.FC = () => {
     });
   };
 
-  const filteredUsers = courseDetails.data.enrolledUsers.filter(user => 
+  const filteredUsers = courseDetails.enrolledUsers.filter(user => 
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredFiles = courseDetails.data.files.filter(file => 
+  const filteredFiles = courseDetails.files.filter(file => 
     file.fileUrl.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredGroups = courseDetails.data.groups.filter(group => 
+  const filteredGroups = courseDetails.groups.filter(group => 
     group.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     group.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -137,11 +140,11 @@ const CourseDetailPage: React.FC = () => {
               </div>
             </Link>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">{courseDetails.name}</h1>
-          <p className="text-sm text-muted-foreground">{courseDetails.description}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{courseBasicInfo?.name || "Course"}</h1>
+          <p className="text-sm text-muted-foreground">{courseBasicInfo?.description || "Course Details"}</p>
         </div>
         
-        <Button onClick={() => navigate(`/course/${courseDetails.id}/edit`)}>
+        <Button onClick={() => navigate(`/course/${courseId}/edit`)}>
           <Pencil className="mr-2 h-4 w-4" /> Edit course
         </Button>
       </div>
@@ -322,7 +325,7 @@ const CourseDetailPage: React.FC = () => {
         isOpen={isEnrollDialogOpen}
         onClose={() => setIsEnrollDialogOpen(false)}
         courseId={courseId || ""}
-        enrolledUsers={courseDetails.data.enrolledUsers}
+        enrolledUsers={courseDetails.enrolledUsers}
         onEnrollment={handleUserEnrollment}
       />
     </div>
