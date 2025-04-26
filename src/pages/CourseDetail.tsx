@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -52,9 +53,20 @@ const CourseDetailPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
-  const { data: courseDetails, refetch } = useQuery({
+  // Query for course basic info
+  const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
+    queryKey: ["course-basic-info", courseId],
+    queryFn: async () => {
+      const courses = await courseService.getCourses();
+      return courses.find(c => c.id === courseId);
+    },
+    enabled: !!courseId
+  });
+
+  // Query for detailed course info (enrolled users, files, groups)
+  const { data: courseDetail, isLoading: isLoadingDetail, error: detailError, refetch } = useQuery({
     queryKey: ["courseDetail", courseId],
-    queryFn: () => courseService.getCourseDetails(courseId || ""),
+    queryFn: () => courseService.getCourseDetail(courseId || ""),
     enabled: !!courseId,
     meta: {
       onError: () => {
@@ -65,16 +77,7 @@ const CourseDetailPage: React.FC = () => {
     }
   });
 
-  const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
-    queryKey: ["course-basic-info", courseId],
-    queryFn: async () => {
-      const courses = await courseService.getCourses();
-      return courses.find(c => c.id === courseId);
-    },
-    enabled: !!courseId
-  });
-
-  const isLoading = isLoadingDetails || isLoadingBasicInfo;
+  const isLoading = isLoadingBasicInfo || isLoadingDetail;
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
@@ -82,7 +85,7 @@ const CourseDetailPage: React.FC = () => {
     </div>;
   }
 
-  if (detailsError || !courseDetails) {
+  if (detailError || !courseDetail) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
@@ -118,15 +121,16 @@ const CourseDetailPage: React.FC = () => {
     }
   };
 
-  const filteredUsers = courseDetails.data.enrolledUsers.filter(user => 
+  // Filter users, files, and groups based on search term
+  const filteredUsers = courseDetail.data.enrolledUsers.filter(user => 
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredFiles = courseDetails.data.files.filter(file => 
+  const filteredFiles = courseDetail.data.files.filter(file => 
     file.fileUrl.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredGroups = courseDetails.data.groups.filter(group => 
+  const filteredGroups = courseDetail.data.groups.filter(group => 
     group.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     group.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -369,7 +373,7 @@ const CourseDetailPage: React.FC = () => {
         isOpen={isEnrollDialogOpen}
         onClose={() => setIsEnrollDialogOpen(false)}
         courseId={courseId || ""}
-        enrolledUsers={courseDetails.data.enrolledUsers}
+        enrolledUsers={courseDetail.data.enrolledUsers}
         onEnrollment={handleUserEnrollment}
       />
     </div>
