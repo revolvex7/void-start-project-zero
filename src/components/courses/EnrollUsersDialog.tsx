@@ -22,7 +22,7 @@ import {
   TableBody, 
   TableCell 
 } from "@/components/ui/table";
-import { LoadingState } from "@/components/LoadingState";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 import { courseService, CourseEnrolledResponse } from "@/services/courseService";
 import { userService, ApiUser } from "@/services/userService";
@@ -105,7 +105,7 @@ export function EnrollUsersDialog({
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={3}>
-                    <LoadingState message="Loading available users..." />
+                    <LoadingSpinner message="Loading available users..." />
                   </TableCell>
                 </TableRow>
               ) : availableUsers && availableUsers.length > 0 ? (

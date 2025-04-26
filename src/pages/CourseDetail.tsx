@@ -51,15 +51,16 @@ const CourseDetailPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
+  // Get detailed course information with enrolledUsers, files, groups
   const {
     data: courseDetails,
-    isLoading,
-    error,
+    isLoading: isLoadingDetails,
+    error: detailsError,
     refetch
   } = useQuery({
     queryKey: ["courseDetail", courseId],
     queryFn: async () => {
-      const response = await courseService.getCourseDetails(courseId || "");
+      const response = await courseService.getCourseDetail(courseId || "");
       return response.data;
     },
     enabled: !!courseId,
@@ -73,7 +74,7 @@ const CourseDetailPage: React.FC = () => {
   });
 
   // Get basic course information
-  const { data: courseBasicInfo } = useQuery({
+  const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
     queryKey: ["course-basic-info", courseId],
     queryFn: async () => {
       const courses = await courseService.getCourses();
@@ -82,13 +83,15 @@ const CourseDetailPage: React.FC = () => {
     enabled: !!courseId
   });
 
+  const isLoading = isLoadingDetails || isLoadingBasicInfo;
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
       <LoadingSpinner message="Loading course details..." />
     </div>;
   }
 
-  if (error || !courseDetails) {
+  if (detailsError || !courseDetails) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
