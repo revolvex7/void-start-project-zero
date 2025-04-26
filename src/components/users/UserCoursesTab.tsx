@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, PlusCircle, XCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EnrollCoursesDialog } from "@/components/courses/EnrollCoursesDialog";
@@ -12,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { courseService } from "@/services/courseService";
 
 interface EnrolledCourse {
   id: string;
@@ -39,6 +41,16 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
   const handleCourseEnrollment = () => {
     onEnrollmentUpdate();
     setIsEnrollDialogOpen(false);
+  };
+
+  const handleUnenroll = async (courseId: string) => {
+    try {
+      await courseService.unenrollFromCourse(courseId, userId);
+      toast.success("Successfully unenrolled from course");
+      onEnrollmentUpdate();
+    } catch (error) {
+      toast.error("Failed to unenroll from course");
+    }
   };
 
   // Transform courses to the format expected by EnrollCoursesDialog
@@ -124,6 +136,7 @@ export const UserCoursesTab: React.FC<UserCoursesTabProps> = ({
                                 variant="outline"
                                 size="sm"
                                 className="text-destructive hover:text-destructive"
+                                onClick={() => handleUnenroll(course.courseId)}
                               >
                                 <XCircle className="h-4 w-4" />
                                 <span className="sr-only">Unenroll</span>
