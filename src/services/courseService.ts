@@ -264,16 +264,6 @@ export const courseService = {
 		}
 	},
 
-	async getCourseDetail(courseId: string): Promise<CourseDetailResponse> {
-		try {
-			const response = await api.get(`/user/course/${courseId}`);
-			return response.data;
-		} catch (error) {
-			console.error("Error fetching course detail:", error);
-			throw error;
-		}
-	},
-
 	async enrollUserToCourse(courseId: string, userId: string): Promise<void> {
 		try {
 			await api.post('/user/enroll-user-to-course', {
