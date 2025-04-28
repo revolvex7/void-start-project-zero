@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface ClassData {
@@ -294,8 +293,7 @@ export const courseService = {
 
   async deleteCourse(courseId: string): Promise<void> {
     try {
-      // Call the API to delete the course
-      await api.delete(`/user/course/${courseId}`);
+      await api.delete(`/course/${courseId}`);
     } catch (error) {
       console.error("Error deleting course:", error);
       throw error;
