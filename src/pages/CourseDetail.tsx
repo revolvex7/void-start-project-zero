@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +12,8 @@ import {
   Pencil, 
   Download,
   Eye,
-  XCircle
+  XCircle,
+  Upload
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,6 @@ const CourseDetailPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
-  // Query for course basic info
   const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
     queryKey: ["course-basic-info", courseId],
     queryFn: async () => {
@@ -63,7 +62,6 @@ const CourseDetailPage: React.FC = () => {
     enabled: !!courseId
   });
 
-  // Query for detailed course info (enrolled users, files, groups)
   const { data: courseDetail, isLoading: isLoadingDetail, error: detailError, refetch } = useQuery({
     queryKey: ["courseDetail", courseId],
     queryFn: () => courseService.getCourseDetails(courseId || ""),
@@ -121,7 +119,6 @@ const CourseDetailPage: React.FC = () => {
     }
   };
 
-  // Filter users, files, and groups based on search term
   const filteredUsers = courseDetail.data.enrolledUsers.filter(user => 
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -323,8 +320,18 @@ const CourseDetailPage: React.FC = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                          No files found
+                        <TableCell colSpan={4} className="h-32">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <FileText className="h-8 w-8 text-muted-foreground mb-3" />
+                            <p className="text-lg font-medium mb-1">No files uploaded yet</p>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Upload course materials, resources, or documents for your learners
+                            </p>
+                            <Button>
+                              <Upload className="mr-2 h-4 w-4" />
+                              Upload Files
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
@@ -356,8 +363,18 @@ const CourseDetailPage: React.FC = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                          No groups found
+                        <TableCell colSpan={4} className="h-32">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <Users className="h-8 w-8 text-muted-foreground mb-3" />
+                            <p className="text-lg font-medium mb-1">No study groups created</p>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Create groups to enable collaborative learning and discussions
+                            </p>
+                            <Button>
+                              <UserPlus className="mr-2 h-4 w-4" />
+                              Create Study Group
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
