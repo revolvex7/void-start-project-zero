@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
-import { Upload, X, FileText, CheckCircle2 } from 'lucide-react';
+import { Upload, X, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,10 +26,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setFile(acceptedFiles[0]);
+      setError(null);
     }
   }, []);
 
@@ -55,6 +57,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const resetUploader = () => {
     setFile(null);
     setUploadProgress(0);
+    setError(null);
   };
 
   const handleUpload = async () => {
@@ -63,6 +66,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     try {
       setIsUploading(true);
       setUploadProgress(10);
+      setError(null);
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
@@ -94,9 +98,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       }, 500);
 
     } catch (error) {
+      setError("Failed to upload file. Please try again.");
       toast.error("Failed to upload file", {
         description: "Please try again later"
       });
+      console.error("Upload error:", error);
     } finally {
       setIsUploading(false);
     }
@@ -168,6 +174,13 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
                 <CheckCircle2 className="h-4 w-4" />
                 Upload complete!
+              </div>
+            )}
+            
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-red-600 font-medium">
+                <AlertCircle className="h-4 w-4" />
+                {error}
               </div>
             )}
           </div>

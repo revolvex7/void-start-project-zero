@@ -201,6 +201,20 @@ export interface CourseDetailResponse {
   };
 }
 
+export interface CourseFileUploadResponse {
+  data: {
+    name: string;
+    size: number;
+    url: string;
+  };
+}
+
+export interface CourseFilePayload {
+  fileUrl: string;
+  fileSize: number;
+  fileName: string;
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -311,6 +325,37 @@ export const courseService = {
       });
     } catch (error) {
       console.error("Error unenrolling from course:", error);
+      throw error;
+    }
+  },
+
+  async uploadFile(fileToUpload: File): Promise<CourseFileUploadResponse> {
+    try {
+      const formData = new FormData();
+      formData.append('fileToUpload', fileToUpload);
+      
+      const response = await api.post<CourseFileUploadResponse>(
+        '/common/upload-file',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      throw error;
+    }
+  },
+
+  async addFileToCourse(courseId: string, payload: CourseFilePayload): Promise<any> {
+    try {
+      const response = await api.post(`/user/files/${courseId}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding file to course:", error);
       throw error;
     }
   }
