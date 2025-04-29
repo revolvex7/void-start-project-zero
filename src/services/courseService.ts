@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface ClassData {
@@ -356,6 +357,15 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error adding file to course:", error);
+      throw error;
+    }
+  },
+  
+  async deleteFile(fileId: string): Promise<void> {
+    try {
+      await api.delete(`/user/files/${fileId}`);
+    } catch (error) {
+      console.error("Error deleting file:", error);
       throw error;
     }
   }

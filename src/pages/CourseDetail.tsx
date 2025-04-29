@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +14,8 @@ import {
   Eye,
   XCircle,
   Upload,
-  FilePlus
+  FilePlus,
+  Trash2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,20 @@ const CourseDetailPage: React.FC = () => {
     toast.success("File uploaded successfully", {
       description: "The file has been added to the course"
     });
+  };
+
+  const handleDeleteFile = async (fileId: string) => {
+    try {
+      await courseService.deleteFile(fileId);
+      await refetch();
+      toast.success("File deleted successfully", {
+        description: "The file has been removed from the course"
+      });
+    } catch (error) {
+      toast.error("Failed to delete file", {
+        description: "An error occurred while removing the file from the course",
+      });
+    }
   };
 
   const filteredUsers = courseDetail.data.enrolledUsers.filter(user => 
@@ -320,7 +334,7 @@ const CourseDetailPage: React.FC = () => {
                           <TableCell className="font-medium">{file.fileUrl.split('/').pop()}</TableCell>
                           <TableCell>{formatFileSize(file.fileSize)}</TableCell>
                           <TableCell>{new Date(file.createdAt).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right space-x-2">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -335,6 +349,24 @@ const CourseDetailPage: React.FC = () => {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>Download</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() => handleDeleteFile(file.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
