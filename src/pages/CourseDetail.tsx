@@ -69,7 +69,7 @@ const CourseDetailPage: React.FC = () => {
 
   const { data: courseDetail, isLoading: isLoadingDetail, error: detailError, refetch } = useQuery({
     queryKey: ["courseDetail", courseId],
-    queryFn: () => courseService.getCourseDetail(courseId || ""),
+    queryFn: () => courseService.getCourseDetails(courseId || ""),
     enabled: !!courseId,
     meta: {
       onError: () => {

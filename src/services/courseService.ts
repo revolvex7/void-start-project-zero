@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface ClassData {
@@ -22,6 +21,9 @@ export interface ModuleData {
 
 export interface CourseDetailsResponse {
 	data: {
+    groups: any;
+    files: any;
+    enrolledUsers: any;
 		id: string;
 		name: string;
 		createdAt: string;
@@ -168,7 +170,6 @@ export interface CourseEnrolledResponse {
   enrolledAt: string;
   userName: string;
   userRole: string;
-  userId: string;
 }
 
 export interface CourseFiles {
@@ -198,20 +199,6 @@ export interface CourseDetailResponse {
     files: CourseFiles[];
     groups: CourseGroups[];
   };
-}
-
-export interface FileUploadResponse {
-  data: {
-    name: string;
-    size: number;
-    url: string;
-  };
-}
-
-export interface CourseFilePayload {
-  fileUrl: string;
-  fileSize: number;
-  fileName: string;
 }
 
 export const courseService = {
@@ -324,33 +311,6 @@ export const courseService = {
       });
     } catch (error) {
       console.error("Error unenrolling from course:", error);
-      throw error;
-    }
-  },
-
-  async uploadFile(file: File): Promise<FileUploadResponse> {
-    try {
-      const formData = new FormData();
-      formData.append('fileToUpload', file);  // Changed from 'file' to 'fileToUpload'
-      
-      const response = await api.post<FileUploadResponse>('/common/upload-file', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      throw error;
-    }
-  },
-
-  async addFileToCourse(courseId: string, payload: CourseFilePayload): Promise<void> {
-    try {
-      await api.post(`/user/files/${courseId}`, payload);
-    } catch (error) {
-      console.error("Error adding file to course:", error);
       throw error;
     }
   }
