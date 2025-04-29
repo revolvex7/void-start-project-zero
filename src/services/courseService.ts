@@ -331,7 +331,7 @@ export const courseService = {
   async uploadFile(file: File): Promise<FileUploadResponse> {
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('fileToUpload', file);  // Changed from 'file' to 'fileToUpload'
       
       const response = await api.post<FileUploadResponse>('/common/upload-file', formData, {
         headers: {
