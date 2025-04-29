@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -53,14 +54,14 @@ import {
 
 import api from '@/services/api';
 import { LoadingState } from '@/components/LoadingState';
-import { courseService } from '@/services/courseService';
+import { courseService, Course } from '@/services/courseService';
 
 const Courses: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<keyof SyllabusData>("name");
+  const [sortBy, setSortBy] = useState<keyof Course>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
@@ -125,7 +126,7 @@ const Courses: React.FC = () => {
     setViewMode(viewMode === "grid" ? "list" : "grid");
   };
 
-  const handleSort = (column: keyof SyllabusData) => {
+  const handleSort = (column: keyof Course) => {
     if (sortBy === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
