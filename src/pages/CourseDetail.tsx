@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,7 +14,8 @@ import {
   Download,
   Eye,
   XCircle,
-  Upload
+  Upload,
+  FilePlus
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,10 +43,11 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-import { courseService, CourseDetailResponse, CourseEnrolledResponse } from "@/services/courseService";
+import { courseService, CourseDetailResponse } from "@/services/courseService";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { formatFileSize } from "@/lib/utils";
 import { EnrollUsersDialog } from "@/components/courses/EnrollUsersDialog";
+import { FileUploader } from "@/components/courses/FileUploader";
 
 const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -52,6 +55,8 @@ const CourseDetailPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
+  const [isFileUploaderOpen, setIsFileUploaderOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
     queryKey: ["course-basic-info", courseId],
@@ -64,7 +69,7 @@ const CourseDetailPage: React.FC = () => {
 
   const { data: courseDetail, isLoading: isLoadingDetail, error: detailError, refetch } = useQuery({
     queryKey: ["courseDetail", courseId],
-    queryFn: () => courseService.getCourseDetails(courseId || ""),
+    queryFn: () => courseService.getCourseDetail(courseId || ""),
     enabled: !!courseId,
     meta: {
       onError: () => {
@@ -117,6 +122,14 @@ const CourseDetailPage: React.FC = () => {
         description: "An error occurred while removing the user from the course",
       });
     }
+  };
+
+  const handleFileUploadSuccess = async () => {
+    await refetch();
+    setIsFileUploaderOpen(false);
+    toast.success("File uploaded successfully", {
+      description: "The file has been added to the course"
+    });
   };
 
   const filteredUsers = courseDetail.data.enrolledUsers.filter(user => 
@@ -209,6 +222,11 @@ const CourseDetailPage: React.FC = () => {
                   <UserPlus className="mr-2 h-4 w-4" /> Enroll to course
                 </Button>
               )}
+              {activeTab === "files" && (
+                <Button onClick={() => setIsFileUploaderOpen(true)}>
+                  <FilePlus className="mr-2 h-4 w-4" /> Upload File
+                </Button>
+              )}
             </div>
 
             <TabsContent value="users" className="space-y-4">
@@ -289,7 +307,7 @@ const CourseDetailPage: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[300px]">File URL</TableHead>
+                      <TableHead className="w-[300px]">File Name</TableHead>
                       <TableHead>Size</TableHead>
                       <TableHead>Upload date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -299,14 +317,19 @@ const CourseDetailPage: React.FC = () => {
                     {filteredFiles && filteredFiles.length > 0 ? (
                       filteredFiles.map((file) => (
                         <TableRow key={file.id}>
-                          <TableCell className="font-medium">{file.fileUrl}</TableCell>
+                          <TableCell className="font-medium">{file.fileUrl.split('/').pop()}</TableCell>
                           <TableCell>{formatFileSize(file.fileSize)}</TableCell>
                           <TableCell>{new Date(file.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button size="icon" variant="outline" className="h-8 w-8">
+                                  <Button 
+                                    size="icon" 
+                                    variant="outline" 
+                                    className="h-8 w-8"
+                                    onClick={() => window.open(file.fileUrl, '_blank')}
+                                  >
                                     <Download className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
@@ -327,7 +350,7 @@ const CourseDetailPage: React.FC = () => {
                             <p className="text-sm text-muted-foreground mb-4">
                               Upload course materials, resources, or documents for your learners
                             </p>
-                            <Button>
+                            <Button onClick={() => setIsFileUploaderOpen(true)}>
                               <Upload className="mr-2 h-4 w-4" />
                               Upload Files
                             </Button>
@@ -392,6 +415,13 @@ const CourseDetailPage: React.FC = () => {
         courseId={courseId || ""}
         enrolledUsers={courseDetail.data.enrolledUsers}
         onEnrollment={handleUserEnrollment}
+      />
+
+      <FileUploader
+        isOpen={isFileUploaderOpen}
+        onClose={() => setIsFileUploaderOpen(false)}
+        courseId={courseId || ""}
+        onFileUpload={handleFileUploadSuccess}
       />
     </div>
   );
