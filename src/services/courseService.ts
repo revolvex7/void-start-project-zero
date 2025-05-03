@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface ClassData {
@@ -391,9 +392,13 @@ export const courseService = {
     }
   },
 
-  async generateCourse(payload: GenerateCoursesPayload): Promise<GenerateCourseResponse> {
+  async generateCourse(payload: FormData): Promise<GenerateCourseResponse> {
     try {
-      const response = await api.post<GenerateCourseResponse>('/user/generate-courses', payload);
+      const response = await api.post<GenerateCourseResponse>('/user/generate-courses', payload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error generating course:", error);

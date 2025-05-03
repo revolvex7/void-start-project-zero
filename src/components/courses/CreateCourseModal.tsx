@@ -185,18 +185,31 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
     try {
       setIsSubmitting(true);
 
-      const payload = {
-        noOfClasses: data.classCount,
-        socketId: socketId,
-        classNo: data.classNo.toString(),
-        classTitle: data.classTitle,
-        description: data.description,
-        price: data.price,
-        isPublished: false,
-        image: coverImageUrl || undefined, // Include image URL if available
-      };
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('noOfClasses', data.classCount.toString());
+      formData.append('socketId', socketId);
+      formData.append('classNo', data.classNo.toString());
+      formData.append('classTitle', data.classTitle);
+      formData.append('description', data.description);
+      formData.append('isPublished', 'false');
       
-      const response = await courseService.generateCourse(payload);
+      // Add price if it exists
+      if (data.price !== null) {
+        formData.append('price', data.price.toString());
+      }
+      
+      // Add image URL if it exists
+      if (coverImageUrl) {
+        formData.append('image', coverImageUrl);
+      }
+      
+      // Add PDF file
+      if (syllabusPdf) {
+        formData.append('pdfFile', syllabusPdf);
+      }
+      
+      const response = await courseService.generateCourse(formData);
       
       toast.success("Course generation started", {
         description: "You'll be redirected to the edit page once complete"
