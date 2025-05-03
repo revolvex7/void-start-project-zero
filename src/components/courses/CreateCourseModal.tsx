@@ -216,7 +216,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       });
       
       // Redirect to the edit page
-      navigate(`/course/${response.data.id}/edit`);
+      navigate(`/course/${response.data}/edit`);
       
       // Call onSuccess to update any parent components
       onSuccess();
