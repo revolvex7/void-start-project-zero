@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -66,25 +67,42 @@ const CourseEditor: React.FC = () => {
 	const [isPublishing, setIsPublishing] = useState(false);
 	const [generatedClasses, setGeneratedClasses] = useState<GeneratedClassData[]>([]);
 
-	// Get socket connection for real-time updates
+	// Get socket connection for real-time updates - prevent disconnection by setting dependencies to []
 	const { socket, isConnected, progressData } = useSocketProgress();
 
 	// Listen for socket events for course generation
 	useEffect(() => {
-		if (!socket || !isConnected) return;
+		if (!socket || !isConnected) {
+			console.log("Socket not connected in CourseEditor, waiting...");
+			return;
+		}
+		
+		console.log("Setting up class_data listener in CourseEditor");
 		
 		// Listen for class data generation
 		socket.on('class_data', (data: GeneratedClassData) => {
-			console.log(data);
+			console.log("Received class data:", data);
 			
-			setGeneratedClasses(prev => [...prev, data]);
+			setGeneratedClasses(prev => {
+				// Check if we already have this class (prevent duplicates)
+				const exists = prev.some(c => c.classId === data.classId);
+				if (exists) {
+					return prev;
+				}
+				return [...prev, data];
+			});
+			
 			toast.success(`Class ${data.classNo} generated`, {
 				description: data.classTitle
 			});
 		});
 		
 		return () => {
-			socket.off('class_data');
+			// Only remove the event listener, but don't disconnect the socket
+			if (socket) {
+				console.log("Removing class_data listener");
+				socket.off('class_data');
+			}
 		};
 	}, [socket, isConnected]);
 

@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -54,6 +55,7 @@ export function useSyllabusGenerator() {
 	
 	// Use our socket progress hook
 	const { 
+		socket, 
 		socketId, 
 		isConnected, 
 		progressPercent, 
@@ -73,35 +75,44 @@ export function useSyllabusGenerator() {
 			return;
 		}
 
-		// Check for socket connection
-		if (!isConnected) {
-			toast.error("Unable to connect to server. Attempting to reconnect...");
-			// Wait a bit before checking again
-			setTimeout(() => {
-				if (!isConnected) {
-					toast.error("Still unable to connect. Please refresh the page and try again.");
-					return;
-				} else if (!socketId) {
-					toast.error("Connection established but socket ID is missing. Please refresh the page.");
+		// Retry counter for socket connection
+		let retries = 0;
+		const maxRetries = 3;
+		const retryDelay = 1000; // 1 second
+		
+		const attemptGeneration = async () => {
+			// Check for socket connection
+			if (!isConnected) {
+				if (retries < maxRetries) {
+					retries++;
+					toast.info(`Connecting to server... (Attempt ${retries}/${maxRetries})`);
+					// Wait before retrying
+					setTimeout(attemptGeneration, retryDelay);
 					return;
 				} else {
-					// We have a connection and ID now, proceed
-					toast.success("Connection established. Proceeding with syllabus generation.");
-					continueSyllabusGeneration();
+					toast.error("Unable to connect to server after multiple attempts. Please refresh the page and try again.");
+					return;
 				}
-			}, 2000);
-			return;
-		}
+			}
 
-		if (!socketId) {
-			toast.error("Socket connection established but ID is missing. Please wait a moment and try again.");
-			return;
-		}
+			if (!socketId) {
+				if (retries < maxRetries) {
+					retries++;
+					toast.info(`Waiting for socket connection... (Attempt ${retries}/${maxRetries})`);
+					// Wait before retrying
+					setTimeout(attemptGeneration, retryDelay);
+					return;
+				} else {
+					toast.error("Socket connection established but ID is missing after multiple attempts. Please refresh the page.");
+					return;
+				}
+			}
 
-		// Proceed with syllabus generation immediately if we have everything
-		continueSyllabusGeneration();
+			// Proceed with syllabus generation since we have everything
+			continueGeneration();
+		};
 		
-		async function continueSyllabusGeneration() {
+		const continueGeneration = async () => {
 			setStatus("analyzing");
 			setError(null);
 
@@ -140,7 +151,11 @@ export function useSyllabusGenerator() {
 				setStatus("error");
 				toast.error("Failed to generate syllabus. Please try again.");
 			}
-		}
+		};
+		
+		// Start the attempt process
+		attemptGeneration();
+		
 	}, [file, numClasses, socketId, isConnected]);
 
 	// Watch for status changes from socket
