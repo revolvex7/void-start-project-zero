@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface ClassData {
@@ -216,6 +215,27 @@ export interface CourseFilePayload {
   fileName: string;
 }
 
+export interface GenerateCoursesPayload {
+  noOfClasses: number;
+  socketId: string;
+  classNo: string;
+  description: string;
+  price: number | null;
+  isPublished: boolean;
+}
+
+export interface GenerateCourseResponse {
+  data: {
+    id: string;
+    name: string;
+    // other course fields
+  };
+}
+
+export interface UpdateModulePayload {
+  title: string;
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -231,9 +251,8 @@ export const courseService = {
 
   async updateModuleTitle(moduleId: string, title: string): Promise<any> {
     try {
-      // This is a placeholder for an actual API call that would update the module title
-      // In a real application, you would implement this endpoint
-      const response = await api.patch(`/user/module/${moduleId}`, { title });
+      const payload: UpdateModulePayload = { title };
+      const response = await api.patch(`/user/module/${moduleId}`, payload);
       return response.data;
     } catch (error) {
       console.error("Error updating module title:", error);
@@ -368,5 +387,15 @@ export const courseService = {
       console.error("Error deleting file:", error);
       throw error;
     }
-  }
+  },
+
+  async generateCourse(payload: GenerateCoursesPayload): Promise<GenerateCourseResponse> {
+    try {
+      const response = await api.post<GenerateCourseResponse>('/user/generate-courses', payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error generating course:", error);
+      throw error;
+    }
+  },
 };

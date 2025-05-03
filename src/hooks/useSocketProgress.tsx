@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { ProgressToast } from '@/components/ProgressToast';
@@ -13,7 +14,7 @@ export interface ProgressUpdate {
 }
 
 // Replace with your actual WebSocket server URL
-const SOCKET_URL = 'https://lms-backend-l6o9.onrender.com';
+const SOCKET_URL = 'https://dev-api.ilmee.ai';
 
 export function useSocketProgress() {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -25,13 +26,23 @@ export function useSocketProgress() {
   });
   const [isConnected, setIsConnected] = useState(false);
   const toastIdRef = useRef<string | number | undefined>(undefined);
+  const location = useLocation();
 
-  // Connect to the socket server
+  // Check if we're on a course-related page or the course editor page
+  const isCourseRelatedPage = location.pathname.includes('/course/');
+  const isCourseEditorPage = location.pathname.includes('/course/') && location.pathname.includes('/edit');
+
+  // Connect to the socket server when on course pages
   useEffect(() => {
+    // Only connect if we're on a course-related page
+    if (!isCourseRelatedPage) {
+      return;
+    }
+
     const socketConnection = io(SOCKET_URL, {
       transports: ['websocket'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 15,
       reconnectionDelay: 1000,
     });
 
@@ -56,10 +67,19 @@ export function useSocketProgress() {
 
     setSocket(socketConnection);
 
+    // Cleanup function is only called when component unmounts
+    // or when isCourseRelatedPage changes to false
     return () => {
-      socketConnection.disconnect();
+      // Only disconnect if we're navigating away from course pages
+      // and not logging out or going to another course page
+      if (!location.pathname.includes('/login') && !isCourseRelatedPage) {
+        console.log('Disconnecting socket');
+        socketConnection.disconnect();
+      } else {
+        console.log('Preserving socket connection');
+      }
     };
-  }, []);
+  }, [isCourseRelatedPage, location.pathname]);
 
   // Get numeric progress for progress bar
   const getNumericProgress = useCallback((): number => {
@@ -74,6 +94,11 @@ export function useSocketProgress() {
   // Update or create progress toast
   const updateProgressToast = useCallback((data: ProgressUpdate) => {
     const numericProgress = parseFloat(data.progress.match(/(\d+)%/)?.[1] || '0');
+    
+    // Don't show toasts on the editor page as we have our own progress UI
+    if (isCourseEditorPage) {
+      return;
+    }
     
     // Dismiss any existing toasts if we're idle
     if (data.status === 'idle') {
@@ -142,7 +167,7 @@ export function useSocketProgress() {
         );
       }
     }
-  }, []);
+  }, [isCourseEditorPage]);
 
   return {
     socket,

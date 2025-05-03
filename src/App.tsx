@@ -21,7 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ClassDetails from "./pages/ClassDetails";
 import Courses from "./pages/Courses";
-import CourseDetails from "./pages/CourseDetails";
+import CourseEditor from "./pages/CourseEditor";
 import CourseDetail from "./pages/CourseDetail";
 import Quiz from "./pages/Quiz";
 import Profile from "./pages/Profile";
@@ -33,6 +33,8 @@ import Step3Industry from "./pages/onboarding/Step3Industry";
 import Categories from "./pages/Categories";
 import ParentDashboard from "./pages/ParentDashboard";
 import ChildDetails from "./pages/ChildDetails";
+import Groups from "./pages/Groups";
+import GroupDetails from "./pages/GroupDetails";
 
 const queryClient = new QueryClient();
 
@@ -41,8 +43,8 @@ const App = () => {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AuthProvider>
-            <RoleProvider>
+          <RoleProvider>
+            <AuthProvider>
               <OnboardingProvider>
                 <TooltipProvider>
                   <Sonner 
@@ -68,8 +70,8 @@ const App = () => {
                   <AppRoutes />
                 </TooltipProvider>
               </OnboardingProvider>
-            </RoleProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </RoleProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
@@ -92,15 +94,20 @@ const AppRoutes = () => {
           <Route path="/courses" element={<Courses />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/course/:courseId" element={<CourseDetail />} />
-          <Route path="/course/:courseId/edit" element={<CourseDetails />} />
           <Route path="/class/:moduleId/:classId" element={<ClassDetails />} />
           <Route path="/quiz/:classId" element={<Quiz />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/users" element={<Users />} />
           <Route path="/users/:userId" element={<UserDetails />} />
+          {/* Add the new routes for groups */}
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/groups/:groupId" element={<GroupDetails />} />
         </Route>
         
-        {/* New routes outside MainLayout for sidebar-less parent pages */}
+        {/* Route for course editor - outside MainLayout because we want a custom sidebar */}
+        <Route path="/course/:courseId/edit" element={<PrivateRoute><CourseEditor /></PrivateRoute>} />
+        
+        {/* Routes outside MainLayout for sidebar-less parent pages */}
         <Route path="/parent/child/:childId" element={<PrivateRoute><ChildDetails /></PrivateRoute>} />
         
         <Route path="/onboarding/step1" element={<PrivateRoute><Step1Goals /></PrivateRoute>} />

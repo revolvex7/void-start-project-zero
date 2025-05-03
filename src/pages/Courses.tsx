@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -55,6 +54,7 @@ import {
 import api from '@/services/api';
 import { LoadingState } from '@/components/LoadingState';
 import { courseService, Course } from '@/services/courseService';
+import { CreateCourseModal } from '@/components/courses/CreateCourseModal';
 
 const Courses: React.FC = () => {
   const navigate = useNavigate();
@@ -65,6 +65,7 @@ const Courses: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   const { data: courses, isLoading: coursesLoading, error: coursesError, refetch } = useQuery({
     queryKey: ['courses'],
@@ -135,7 +136,7 @@ const Courses: React.FC = () => {
     }
   };
   
-  const handlePreviewCourse = (courseId: string) => {
+  const handleViewCourse = (courseId: string) => {
     navigate(`/course/${courseId}`);
   };
 
@@ -237,11 +238,9 @@ const Courses: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
-        <Link to="/upload-syllabus">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Add course
-          </Button>
-        </Link>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add course
+        </Button>
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -354,7 +353,7 @@ const Courses: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 p-0"
-                                    onClick={() => handlePreviewCourse(course.id)}
+                                    onClick={() => handleViewCourse(course.id)}
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
@@ -450,7 +449,7 @@ const Courses: React.FC = () => {
                         variant="ghost" 
                         size="sm" 
                         className="text-xs"
-                        onClick={() => handlePreviewCourse(course.id)}
+                        onClick={() => handleViewCourse(course.id)}
                       >
                         <Eye className="mr-1 h-3 w-3" /> Preview
                       </Button>
@@ -544,7 +543,7 @@ const Courses: React.FC = () => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8 p-0"
-                                      onClick={() => handlePreviewCourse(course.id)}
+                                      onClick={() => handleViewCourse(course.id)}
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>
@@ -640,7 +639,7 @@ const Courses: React.FC = () => {
                           variant="ghost" 
                           size="sm" 
                           className="text-xs"
-                          onClick={() => handlePreviewCourse(course.id)}
+                          onClick={() => handleViewCourse(course.id)}
                         >
                           <Eye className="mr-1 h-3 w-3" /> Preview
                         </Button>
@@ -688,6 +687,14 @@ const Courses: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <CreateCourseModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSuccess={() => {
+          refetch();
+        }} 
+      />
     </div>
   );
 };
