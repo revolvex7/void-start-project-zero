@@ -222,6 +222,7 @@ export interface GenerateCoursesPayload {
   description: string;
   price: number | null;
   isPublished: boolean;
+  image?: string; // Added the image field as optional
 }
 
 export interface GenerateCourseResponse {

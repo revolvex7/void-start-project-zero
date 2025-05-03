@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Upload, Image, FileText, X } from "lucide-react";
+import { Upload, Image, FileText, X, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -37,6 +37,7 @@ import {
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { courseService } from "@/services/courseService";
 import { useSocketProgress } from "@/hooks/useSocketProgress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Course categories - fetch these from an API in a real app
 const COURSE_CATEGORIES = [
@@ -97,6 +98,8 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
   const { socketId } = useSocketProgress();
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [syllabusPdf, setSyllabusPdf] = useState<File | null>(null);
   const [syllabusStatus, setSyllabusStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [syllabusProgress, setSyllabusProgress] = useState(0);
@@ -114,7 +117,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
     },
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     
     if (!file) return;
@@ -132,14 +135,30 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       });
       return;
     }
-    
-    setCoverImage(file);
-    const imageUrl = URL.createObjectURL(file);
-    setCoverImagePreview(imageUrl);
+
+    try {
+      setUploadingImage(true);
+      setCoverImage(file);
+      const imageUrl = URL.createObjectURL(file);
+      setCoverImagePreview(imageUrl);
+
+      // Upload the image to the server
+      const response = await courseService.uploadFile(file);
+      setCoverImageUrl(response.data.url);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload image", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+      resetCoverImage();
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const resetCoverImage = () => {
     setCoverImage(null);
+    setCoverImageUrl(null);
     if (coverImagePreview) {
       URL.revokeObjectURL(coverImagePreview);
       setCoverImagePreview(null);
@@ -158,8 +177,6 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       return;
     }
 
-    // Image is now optional
-    
     if (!socketId) {
       toast.error("Socket connection not established");
       return;
@@ -171,10 +188,11 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       const payload = {
         noOfClasses: data.classCount,
         socketId: socketId,
-        classNo: data.classNo.toString(), // Using classNo as a string as expected by the API
+        classNo: data.classNo.toString(), 
         description: data.description,
         price: data.price,
-        isPublished: false, // As specified in the requirements
+        isPublished: false,
+        image: coverImageUrl || undefined, // Include image URL if available
       };
       
       const response = await courseService.generateCourse(payload);
@@ -221,19 +239,24 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Cover Image Upload - Now Optional */}
-        <div className="relative w-full">
-          {coverImagePreview ? (
-            <div className="relative w-full h-48 overflow-hidden rounded-lg">
-              <img
-                src={coverImagePreview}
-                alt="Course cover"
-                className="w-full h-full object-cover"
-              />
+        {/* Cover Image Upload - Redesigned to be circular and centered */}
+        <div className="flex justify-center items-center w-full mb-6">
+          {uploadingImage ? (
+            <div className="w-40 h-40 rounded-full flex items-center justify-center bg-slate-100 animate-pulse">
+              <span className="text-sm text-gray-500">Uploading...</span>
+            </div>
+          ) : coverImagePreview ? (
+            <div className="relative">
+              <Avatar className="w-40 h-40 border-4 border-purple-100">
+                <AvatarImage src={coverImagePreview} alt="Course cover" className="object-cover" />
+                <AvatarFallback className="bg-purple-100 text-purple-500">
+                  <Image className="w-10 h-10" />
+                </AvatarFallback>
+              </Avatar>
               <Button
                 variant="destructive"
                 size="icon"
-                className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-80 hover:opacity-100"
+                className="absolute -top-2 -right-2 h-8 w-8 rounded-full opacity-80 hover:opacity-100"
                 onClick={resetCoverImage}
               >
                 <X className="h-4 w-4" />
@@ -242,23 +265,21 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
           ) : (
             <label
               htmlFor="cover-image"
-              className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="relative cursor-pointer"
             >
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <Image className="w-10 h-10 mb-3 text-gray-400" />
-                <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> or drag and drop
-                </p>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG or JPEG (Max 5MB) - Optional
-                </p>
-              </div>
+              <Avatar className="w-40 h-40 border-4 border-dashed border-purple-200 hover:border-purple-300 transition-colors bg-slate-50">
+                <AvatarFallback className="bg-transparent flex flex-col items-center justify-center">
+                  <Camera className="w-12 h-12 text-purple-300" />
+                  <span className="text-xs text-gray-500 mt-2">Add course image</span>
+                </AvatarFallback>
+              </Avatar>
               <Input
                 id="cover-image"
                 type="file"
                 accept="image/png, image/jpeg, image/jpg"
                 className="hidden"
                 onChange={handleImageUpload}
+                disabled={uploadingImage}
               />
             </label>
           )}
@@ -422,11 +443,14 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                disabled={isSubmitting}
+                disabled={isSubmitting || uploadingImage}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || !socketId}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || uploadingImage || !socketId}
+              >
                 {isSubmitting ? "Creating..." : "Create Course"}
               </Button>
             </DialogFooter>
