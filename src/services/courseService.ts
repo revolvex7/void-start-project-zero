@@ -219,6 +219,7 @@ export interface GenerateCoursesPayload {
   noOfClasses: number;
   socketId: string;
   classNo: string;
+  classTitle: string,
   description: string;
   price: number | null;
   isPublished: boolean;

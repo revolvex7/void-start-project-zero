@@ -58,7 +58,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 
 // Form schema
 const courseSchema = z.object({
-  title: z.string()
+  classTitle: z.string()
     .min(3, "Title must be at least 3 characters")
     .max(100, "Title cannot exceed 100 characters"),
   classNo: z.coerce.number()
@@ -108,7 +108,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
-      title: "",
+      classTitle: "",
       classNo: 1,
       description: "",
       category: "",
@@ -188,7 +188,8 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       const payload = {
         noOfClasses: data.classCount,
         socketId: socketId,
-        classNo: data.classNo.toString(), 
+        classNo: data.classNo.toString(),
+        classTitle: data.classTitle,
         description: data.description,
         price: data.price,
         isPublished: false,
@@ -290,7 +291,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="title"
+                name="classTitle"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Course Title</FormLabel>
