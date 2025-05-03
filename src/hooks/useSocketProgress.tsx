@@ -29,14 +29,28 @@ export function useSocketProgress() {
   const location = useLocation();
 
   // Check if we're on a course-related page or the course editor page
-  const isCourseRelatedPage = location.pathname.includes('/course/');
+  const isCourseRelatedPage = location.pathname.includes('/course/') || 
+                             location.pathname.includes('/upload-syllabus') ||
+                             location.pathname === '/courses';
   const isCourseEditorPage = location.pathname.includes('/course/') && location.pathname.includes('/edit');
 
-  // Connect to the socket server when on course pages
+  // Use ref to track connection attempts
+  const connectionAttemptsRef = useRef(0);
+  const maxConnectionAttempts = 3;
+
+  // Connect to the socket server when on relevant pages
   useEffect(() => {
     // Only connect if we're on a course-related page
     if (!isCourseRelatedPage) {
+      console.log('Not on course page, skipping socket connection');
       return;
+    }
+
+    console.log('Attempting to connect socket on:', location.pathname);
+    
+    // Force reconnection if previously failed
+    if (connectionAttemptsRef.current > 0 && connectionAttemptsRef.current < maxConnectionAttempts) {
+      console.log(`Reconnection attempt ${connectionAttemptsRef.current} of ${maxConnectionAttempts}`);
     }
 
     const socketConnection = io(SOCKET_URL, {
@@ -44,12 +58,28 @@ export function useSocketProgress() {
       reconnection: true,
       reconnectionAttempts: 15,
       reconnectionDelay: 1000,
+      timeout: 20000, // Increase timeout for slow connections
+      forceNew: connectionAttemptsRef.current > 0, // Force new connection on retry
     });
 
     socketConnection.on('connect', () => {
       setIsConnected(true);
       setSocketId(socketConnection.id);
       console.log('Socket connected with ID:', socketConnection.id);
+      // Reset connection attempts on successful connection
+      connectionAttemptsRef.current = 0;
+    });
+
+    socketConnection.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      connectionAttemptsRef.current += 1;
+      
+      if (connectionAttemptsRef.current >= maxConnectionAttempts) {
+        console.error('Maximum connection attempts reached');
+        toast.error('Unable to establish socket connection', {
+          description: 'Please refresh the page and try again',
+        });
+      }
     });
 
     socketConnection.on('disconnect', () => {

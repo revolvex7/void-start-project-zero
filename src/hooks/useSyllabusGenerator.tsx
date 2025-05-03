@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -74,46 +73,73 @@ export function useSyllabusGenerator() {
 			return;
 		}
 
-		if (!socketId || !isConnected) {
-			toast.error("Unable to connect to server. Please try again later.");
+		// Check for socket connection
+		if (!isConnected) {
+			toast.error("Unable to connect to server. Attempting to reconnect...");
+			// Wait a bit before checking again
+			setTimeout(() => {
+				if (!isConnected) {
+					toast.error("Still unable to connect. Please refresh the page and try again.");
+					return;
+				} else if (!socketId) {
+					toast.error("Connection established but socket ID is missing. Please refresh the page.");
+					return;
+				} else {
+					// We have a connection and ID now, proceed
+					toast.success("Connection established. Proceeding with syllabus generation.");
+					continueSyllabusGeneration();
+				}
+			}, 2000);
 			return;
 		}
 
-		setStatus("analyzing");
-		setError(null);
+		if (!socketId) {
+			toast.error("Socket connection established but ID is missing. Please wait a moment and try again.");
+			return;
+		}
 
-		try {
-			const formData = new FormData();
-			formData.append("pdfFile", file);
-			formData.append("noOfClasses", numClasses.toString());
-			formData.append("socketId", socketId);
+		// Proceed with syllabus generation immediately if we have everything
+		continueSyllabusGeneration();
+		
+		async function continueSyllabusGeneration() {
+			setStatus("analyzing");
+			setError(null);
 
-			// Show initial toast notification
-			toast.info("Starting to process your document", {
-				description: "You'll see progress updates as we work on your syllabus",
-				duration: 3000,
-			});
+			try {
+				const formData = new FormData();
+				formData.append("pdfFile", file);
+				formData.append("noOfClasses", numClasses.toString());
+				formData.append("socketId", socketId as string);
 
-			// Make the initial request to start processing
-			const response = await api.post("/user/generate-content", formData, {
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-			});
+				console.log("Sending request with socketId:", socketId);
 
-			if (response.data.message) {
-				toast.info(response.data.message);
-				setStatus("generating");
+				// Show initial toast notification
+				toast.info("Starting to process your document", {
+					description: "You'll see progress updates as we work on your syllabus",
+					duration: 3000,
+				});
+
+				// Make the initial request to start processing
+				const response = await api.post("/user/generate-content", formData, {
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				});
+
+				if (response.data.message) {
+					toast.info(response.data.message);
+					setStatus("generating");
+				}
+
+				// The socket will handle progress updates from here
+			} catch (err) {
+				console.error("Error generating syllabus:", err);
+				setError(
+					err instanceof Error ? err.message : "An unknown error occurred"
+				);
+				setStatus("error");
+				toast.error("Failed to generate syllabus. Please try again.");
 			}
-
-			// The socket will handle progress updates from here
-		} catch (err) {
-			console.error("Error generating syllabus:", err);
-			setError(
-				err instanceof Error ? err.message : "An unknown error occurred"
-			);
-			setStatus("error");
-			toast.error("Failed to generate syllabus. Please try again.");
 		}
 	}, [file, numClasses, socketId, isConnected]);
 
