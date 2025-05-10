@@ -474,7 +474,6 @@ const CourseEditor: React.FC = () => {
 
   // Function to toggle edit mode for title and concepts
   const toggleEditMode = () => {
-	debugger
     if (isEditingTitleConcepts) {
       // Save changes
       if (!selectedClass) return;
