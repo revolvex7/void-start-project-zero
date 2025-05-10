@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface ClassData {
@@ -57,15 +56,34 @@ export interface QuizQuestion {
 }
 
 export interface QuizQuestionWithOptions {
-	id: number;
+	id: string | number;
 	question: string;
 	option1: string;
 	option2: string;
 	option3: string;
 	option4: string;
-	classId: number;
+	classId: string | number;
 	createdAt: string;
 	updatedAt: string;
+	correctOption: string;
+}
+
+export interface AddQuizPayload {
+  question: string;
+  option1: string;
+  option2: string;
+  option3: string;
+  option4: string;
+  correctOption: string;
+}
+
+export interface UpdateQuizPayload {
+  question?: string;
+  option1?: string;
+  option2?: string;
+  option3?: string;
+  option4?: string;
+  correctOption?: string;
 }
 
 export interface QuizAnswer {
@@ -151,7 +169,7 @@ export interface CourseGroup {
 
 export interface Course {
   id: string;
-  name: string;
+  courseTitle: string;
   description?: string;
   category: string;
   price?: number;
@@ -162,6 +180,18 @@ export interface Course {
   createdAt: string;
   updatedAt: string;
   userId: string;
+}
+
+export interface CategoryResponse {
+  data: Category[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CourseEnrolledResponse {
@@ -220,11 +250,12 @@ export interface GenerateCoursesPayload {
   noOfClasses: number;
   socketId: string;
   classNo: string;
-  classTitle: string,
+  courseTitle: string,
   description: string;
   price: number | null;
   isPublished: boolean;
   image?: string; // Added the image field as optional
+  category?: string; // Added category field
 }
 
 export interface GenerateCourseResponse {
@@ -239,6 +270,64 @@ export interface UpdateModulePayload {
   title: string;
 }
 
+// New interface for course details response from the API
+export interface CourseEditorDetailsResponse {
+  data: any;
+  course: {
+    id: string;
+    courseTitle: string;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    courseCode: string;
+    price: number | null;
+    categoryId: string;
+    description: string | null;
+    image: string | null;
+    isPublished: boolean | null;
+  };
+  enrolledUsers: Array<{
+    id: string;
+    progress: string;
+    completionDate: string | null;
+    enrolledAt: string;
+    userName: string;
+    userRole: string;
+    userId: string;
+  }>;
+  files: Array<any>;
+  groups: Array<any>;
+}
+
+export interface UpdateCoursePayload {
+  courseTitle: string;
+  description: string | null;
+  price: number | null;
+  categoryId: string;
+  isPublished?: boolean;
+  image?: string | null;
+  courseCode?: string;  // Added courseCode field
+}
+
+export interface AddSlidePayload {
+  title: string;
+  content: string;
+  visualPrompt?: string;
+  voiceoverScript?: string;
+  example?: string;
+  imageUrl?: string;
+}
+
+export interface UpdateSlidePayload {
+  title?: string;
+  slideNo?: number;
+  content?: string;
+  example?: string;
+  voiceScript?: string;
+  imageUrl?: string;
+  visualPrompt?: string;
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -248,6 +337,30 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching course details:", error);
+      throw error;
+    }
+  },
+
+  // New function to get course details for the editor
+  async getCourseEditorDetails(courseId: string): Promise<CourseEditorDetailsResponse> {
+    try {
+      const response = await api.get<CourseEditorDetailsResponse>(
+        `https://dev-api.ilmee.ai/api/v_1/internal/user/course-details/${courseId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course editor details:", error);
+      throw error;
+    }
+  },
+  
+  // New function to update course details
+  async updateCourse(courseId: string, payload: UpdateCoursePayload): Promise<any> {
+    try {
+      const response = await api.patch(`/user/courses/${courseId}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating course:", error);
       throw error;
     }
   },
@@ -289,6 +402,36 @@ export const courseService = {
     }
   },
 
+  async addQuizQuestion(classId: string, quizData: AddQuizPayload): Promise<any> {
+    try {
+      const response = await api.post(`/user/class/${classId}/quiz`, quizData);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding quiz question:", error);
+      throw error;
+    }
+  },
+
+  async updateQuizQuestion(quizId: string, quizData: UpdateQuizPayload): Promise<any> {
+    try {
+      const response = await api.put(`/user/quiz/${quizId}`, quizData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating quiz question:", error);
+      throw error;
+    }
+  },
+
+  async deleteQuizQuestion(quizId: string): Promise<any> {
+    try {
+      const response = await api.delete(`/user/quiz/${quizId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting quiz question:", error);
+      throw error;
+    }
+  },
+
   async submitQuizAnswers(payload: QuizSubmissionRequest): Promise<QuizSubmissionResponse> {
     try {
       const response = await api.post<QuizSubmissionResponse>(`/user/submit-quiz`, payload);
@@ -306,6 +449,16 @@ export const courseService = {
     } catch (error) {
       console.error("Error fetching courses:", error);
       throw error;
+    }
+  },
+  
+  async getCategories(): Promise<Category[]> {
+    try {
+      const response = await api.get<CategoryResponse>('https://dev-api.ilmee.ai/api/v_1/internal/administrator/categories');
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      return []; // Return empty array instead of throwing
     }
   },
 
@@ -333,7 +486,7 @@ export const courseService = {
 
   async deleteCourse(courseId: string): Promise<void> {
     try {
-      await api.delete(`/course/${courseId}`);
+      await api.delete(`/user/courses/${courseId}`);
     } catch (error) {
       console.error("Error deleting course:", error);
       throw error;
@@ -402,6 +555,26 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error generating course:", error);
+      throw error;
+    }
+  },
+
+  async addSlide(classId: string, slideData: AddSlidePayload): Promise<any> {
+    try {
+      const response = await api.post(`/user/class/${classId}/slide`, slideData);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding slide:", error);
+      throw error;
+    }
+  },
+
+  async updateSlide(slideId: string, slideData: UpdateSlidePayload): Promise<any> {
+    try {
+      const response = await api.put(`/user/slide/${slideId}`, slideData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating slide:", error);
       throw error;
     }
   },

@@ -1,10 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Upload, Image, FileText, X, Camera } from "lucide-react";
+import { Upload, Image, FileText, X, Camera, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -35,30 +35,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DocumentUpload } from "@/components/DocumentUpload";
-import { courseService } from "@/services/courseService";
+import { courseService, Category } from "@/services/courseService";
 import { useSocketProgress } from "@/hooks/useSocketProgress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-// Course categories - fetch these from an API in a real app
-const COURSE_CATEGORIES = [
-  "Mathematics",
-  "Science",
-  "Language Arts",
-  "Social Studies",
-  "Computer Science",
-  "Arts",
-  "Music",
-  "Physical Education",
-  "Foreign Languages",
-  "Business",
-];
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 // Form schema
 const courseSchema = z.object({
-  classTitle: z.string()
+  courseTitle: z.string()
     .min(3, "Title must be at least 3 characters")
     .max(100, "Title cannot exceed 100 characters"),
   classNo: z.coerce.number()
@@ -78,6 +64,7 @@ const courseSchema = z.object({
   price: z.coerce.number()
     .nullable()
     .default(null),
+  courseCode: z.string().optional(),
   // We'll handle image and syllabus validation separately
 });
 
@@ -104,18 +91,52 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
   const [syllabusStatus, setSyllabusStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [syllabusProgress, setSyllabusProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [courseCode, setCourseCode] = useState<string>("");
 
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
-      classTitle: "",
+      courseTitle: "",
       classNo: 1,
       description: "",
       category: "",
       classCount: 1,
       price: null,
+      courseCode: "",
     },
   });
+
+  // Generate course code on mount
+  useEffect(() => {
+    if (isOpen) {
+      // Generate a random course code in the format CS-XXX where X is a number
+      const randomCode = `CS-${Math.floor(100 + Math.random() * 900)}`;
+      setCourseCode(randomCode);
+      form.setValue("courseCode", randomCode);
+    }
+  }, [isOpen, form]);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const categoriesData = await courseService.getCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        toast.error("Failed to load categories");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -190,9 +211,11 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       formData.append('noOfClasses', data.classCount.toString());
       formData.append('socketId', socketId);
       formData.append('classNo', data.classNo.toString());
-      formData.append('classTitle', data.classTitle);
+      formData.append('courseTitle', data.courseTitle);
       formData.append('description', data.description);
       formData.append('isPublished', 'false');
+      formData.append('category', data.category); // Add category to payload
+      formData.append('courseCode', courseCode); // Add course code to payload
       
       // Add price if it exists
       if (data.price !== null) {
@@ -304,7 +327,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="classTitle"
+                name="courseTitle"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Course Title</FormLabel>
@@ -349,18 +372,30 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      disabled={loadingCategories}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder={loadingCategories ? "Loading categories..." : "Select a category"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {COURSE_CATEGORIES.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
+                        {loadingCategories ? (
+                          <div className="flex items-center justify-center py-2">
+                            <Loader className="h-4 w-4 animate-spin mr-2" />
+                            <span>Loading categories...</span>
+                          </div>
+                        ) : categories.length > 0 ? (
+                          categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-categories" disabled>
+                            No categories available
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -390,6 +425,27 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="courseCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Course Code</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={courseCode}
+                      disabled
+                      className="bg-slate-50 cursor-not-allowed"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Unique identifier for the course (automatically generated)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

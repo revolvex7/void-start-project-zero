@@ -15,7 +15,7 @@ export function Toaster() {
   const { theme } = useTheme()
 
   return (
-    <ToastProvider>
+    <ToastProvider duration={5000}>
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast 
@@ -30,7 +30,7 @@ export function Toaster() {
               )}
             </div>
             {action}
-            {/* <ToastClose /> */}
+            <ToastClose />
           </Toast>
         )
       })}

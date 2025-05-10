@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { authService } from '@/services/authService';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,18 +23,41 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LoadingState } from '@/components/LoadingState';
+import { FormItem, FormLabel, FormControl, FormField, Form } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isLoading: authLoading, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   
+  // Extract subdomain from URL if present
+  const getSubdomainFromUrl = () => {
+    const hostname = window.location.hostname;
+    // Check if we're on localhost (for development)
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      // Try to get subdomain from URL parameters for local development
+      const searchParams = new URLSearchParams(location.search);
+      return searchParams.get('domain') || 'ilmee';
+    }
+    
+    // For production, extract from hostname
+    const parts = hostname.split('.');
+    if (parts.length > 2) {
+      return parts[0];
+    }
+    return 'ilmee'; // Default domain
+  };
+  
+  const defaultDomain = getSubdomainFromUrl();
+  
   const { values, errors, touched, handleChange, handleBlur, validateForm, setValues } = useFormValidation({
     emailOrUsername: '',
     password: '',
-    domain: 'ilmee.com',
+    domain: defaultDomain,
   });
 
   useEffect(() => {
@@ -49,7 +73,15 @@ const Login = () => {
     if (savedEmail) {
       setValues(prev => ({ ...prev, emailOrUsername: savedEmail }));
     }
-  }, [setValues]);
+    
+    // Set the domain from URL/subdomain
+    setValues(prev => ({ ...prev, domain: defaultDomain }));
+    
+    // Update document title with subdomain
+    if (defaultDomain && defaultDomain !== 'ilmee') {
+      document.title = `${defaultDomain} | Ilmee`;
+    }
+  }, [setValues, defaultDomain]);
   
   // Determine if domain field should be shown
   const shouldShowDomain = values.emailOrUsername && !values.emailOrUsername.includes('@');
@@ -82,7 +114,22 @@ const Login = () => {
       );
       
       if (success) {
-        navigate('/');
+        // After successful login, redirect to the proper subdomain
+        const userDomain = localStorage.getItem('userDomain') || 'ilmee';
+        
+        if (window.location.hostname !== 'localhost' && 
+            window.location.hostname !== '127.0.0.1' && 
+            !window.location.hostname.startsWith(`${userDomain}.`)) {
+              
+          // Get base domain (e.g., ilmee.com)
+          const parts = window.location.hostname.split('.');
+          const baseDomain = parts.length > 1 ? parts.slice(-2).join('.') : window.location.hostname;
+          
+          // Redirect to subdomain
+          window.location.href = `${window.location.protocol}//${userDomain}.${baseDomain}/`;
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       console.error('Login submission error:', error);
@@ -194,17 +241,25 @@ const Login = () => {
           
           {shouldShowDomain && (
             <div className="space-y-2">
-              <div className="relative">
-                <Building className="absolute left-3 top-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                <Input
-                  id="domain"
-                  name="domain"
-                  type="text"
-                  className="pl-10 py-5 rounded-lg border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-[#1B68B3] focus:border-transparent"
-                  value={values.domain}
-                  onChange={handleDomainChange}
-                  disabled={isLoading}
-                />
+              <label htmlFor="domain" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Domain
+              </label>
+              <div className="relative flex rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1B68B3] focus-within:border-transparent overflow-hidden">
+                <div className="relative flex-grow">
+                  <Building className="absolute left-3 top-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <Input
+                    id="domain"
+                    name="domain"
+                    type="text"
+                    className="border-0 pl-10 py-5 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    value={values.domain}
+                    onChange={handleDomainChange}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="flex items-center bg-gray-100 dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400 text-sm font-medium">
+                  .ilmee.ai
+                </div>
               </div>
             </div>
           )}

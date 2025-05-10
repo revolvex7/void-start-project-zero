@@ -52,7 +52,7 @@ export function EnrollCoursesDialog({
 
   const availableCourses = courses.filter(course => 
     !enrolledCourses.some(enrolled => enrolled.courseId === course.id) &&
-    course.name.toLowerCase().includes(searchTerm.toLowerCase())
+    course.courseTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleEnrollCourse = async (courseId: string) => {
@@ -109,7 +109,7 @@ export function EnrollCoursesDialog({
               ) : availableCourses.length > 0 ? (
                 availableCourses.map((course) => (
                   <TableRow key={course.id}>
-                    <TableCell className="font-medium">{course.name}</TableCell>
+                    <TableCell className="font-medium">{course.courseTitle}</TableCell>
                     <TableCell>{course.category}</TableCell>
                     <TableCell className="text-right">
                       <Button

@@ -61,7 +61,7 @@ const Courses: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<keyof Course>("name");
+  const [sortBy, setSortBy] = useState<keyof Course>("courseTitle");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
@@ -92,7 +92,7 @@ const Courses: React.FC = () => {
     if (!courses) return [];
     
     let filtered = courses.filter((course) => 
-      course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.courseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (course.courseCode && course.courseCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (course.categoryName && course.categoryName.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -104,7 +104,7 @@ const Courses: React.FC = () => {
     }
     
     return [...filtered].sort((a, b) => {
-      if (sortBy === "name" || sortBy === "courseCode" || sortBy === "categoryName") {
+      if (sortBy === "courseTitle" || sortBy === "courseCode" || sortBy === "categoryName") {
         const aValue = a[sortBy] || "";
         const bValue = b[sortBy] || "";
         return sortDirection === "asc" 
@@ -299,7 +299,7 @@ const Courses: React.FC = () => {
                     <TableHead className="w-[25%]">
                       <Button 
                         variant="ghost" 
-                        onClick={() => handleSort("name")}
+                        onClick={() => handleSort("courseTitle")}
                         className="font-medium flex items-center gap-1 px-0 hover:bg-transparent"
                       >
                         Course Name
@@ -340,7 +340,7 @@ const Courses: React.FC = () => {
                   ) : (
                     filteredAndSortedCourses.map((course) => (
                       <TableRow key={course.id}>
-                        <TableCell className="font-medium">{course.name}</TableCell>
+                        <TableCell className="font-medium">{course.courseTitle}</TableCell>
                         <TableCell>{course.courseCode}</TableCell>
                         <TableCell>{course.categoryName}</TableCell>
                         <TableCell>{format(new Date(course.updatedAt), 'MMM d, yyyy')}</TableCell>
@@ -430,7 +430,7 @@ const Courses: React.FC = () => {
                         </div>
                       </div>
                       <CardTitle className="text-xl mt-4 group-hover:text-blue-600 transition-colors">
-                        {course.name}
+                        {course.courseTitle}
                       </CardTitle>
                       <CardDescription>
                         {course.categoryName || "Uncategorized"}
@@ -489,7 +489,7 @@ const Courses: React.FC = () => {
                       <TableHead className="w-[25%]">
                         <Button 
                           variant="ghost" 
-                          onClick={() => handleSort("name")}
+                          onClick={() => handleSort("courseTitle")}
                           className="font-medium flex items-center gap-1 px-0 hover:bg-transparent"
                         >
                           Course Name
@@ -530,7 +530,7 @@ const Courses: React.FC = () => {
                     ) : (
                       filteredAndSortedCourses.map((course) => (
                         <TableRow key={course.id}>
-                          <TableCell className="font-medium">{course.name}</TableCell>
+                          <TableCell className="font-medium">{course.courseTitle}</TableCell>
                           <TableCell>{course.courseCode}</TableCell>
                           <TableCell>{course.categoryName}</TableCell>
                           <TableCell>{format(new Date(course.updatedAt), 'MMM d, yyyy')}</TableCell>
@@ -620,7 +620,7 @@ const Courses: React.FC = () => {
                           </div>
                         </div>
                         <CardTitle className="text-xl mt-4 group-hover:text-blue-600 transition-colors">
-                          {course.name}
+                          {course.courseTitle}
                         </CardTitle>
                         <CardDescription>
                           {course.categoryName || "Uncategorized"}

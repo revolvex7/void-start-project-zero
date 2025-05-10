@@ -163,65 +163,70 @@ export function useSocketProgress() {
       }
       return;
     }
-    
-    // For all other statuses, manage the toast
-    if (toastIdRef.current) {
-      // If process completed or errored, dismiss after delay
-      if (data.status === 'completed' || data.status === 'error') {
-        toast.custom(
-          (id) => (
-            <ProgressToast
-              progress={numericProgress}
-              status={data.status}
-              message={data.message}
-            />
-          ),
-          {
-            id: toastIdRef.current,
-            duration: 5000, // Auto-dismiss after 5 seconds
-          }
-        );
-        
-        // Reset the toast ID after dismissal
-        setTimeout(() => {
-          toastIdRef.current = undefined;
-        }, 5000);
-      } else {
-        // Just update the existing toast
-        toast.custom(
-          (id) => (
-            <ProgressToast
-              progress={numericProgress}
-              status={data.status}
-              message={data.message}
-            />
-          ),
-          {
-            id: toastIdRef.current,
-            duration: Infinity, // Keep showing while processing
-          }
-        );
-      }
-    } else {
-      // Create a new toast if none exists and status is not idle
-      if (data.status === 'starting' || data.status === 'processing' || 
-          data.status === 'completed' || data.status === 'error') {
-        toastIdRef.current = toast.custom(
-          (id) => (
-            <ProgressToast
-              progress={numericProgress}
-              status={data.status}
-              message={data.message}
-            />
-          ),
-          {
-            id: undefined,
-            duration: Infinity,
-            position: 'top-right',
-          }
-        );
-      }
+    if (data.status === 'completed') {
+    toast.success(`Processing Complete`, {
+            description: `Course successfully created`,
+            duration: 5000
+    });
     }
+    // For all other statuses, manage the toast
+    // if (toastIdRef.current) {
+    //   // If process completed or errored, dismiss after delay
+    //   if (data.status === 'completed' || data.status === 'error') {
+    //     toast.custom(
+    //       (id) => (
+    //         <ProgressToast
+    //           progress={numericProgress}
+    //           status={data.status}
+    //           message={data.message}
+    //         />
+    //       ),
+    //       {
+    //         id: toastIdRef.current,
+    //         duration: 5000, // Auto-dismiss after 5 seconds
+    //       }
+    //     );
+        
+    //     // Reset the toast ID after dismissal
+    //     setTimeout(() => {
+    //       toastIdRef.current = undefined;
+    //     }, 5000);
+    //   } else {
+    //     // Just update the existing toast
+    //     toast.custom(
+    //       (id) => (
+    //         <ProgressToast
+    //           progress={numericProgress}
+    //           status={data.status}
+    //           message={data.message}
+    //         />
+    //       ),
+    //       {
+    //         id: toastIdRef.current,
+    //         duration: Infinity, // Keep showing while processing
+    //       }
+    //     );
+    //   }
+    // } else {
+    //   // Create a new toast if none exists and status is not idle
+    //   if (data.status === 'starting' || data.status === 'processing' || 
+    //       data.status === 'completed' || data.status === 'error') {
+    //     toastIdRef.current = toast.custom(
+    //       (id) => (
+    //         <ProgressToast
+    //           progress={numericProgress}
+    //           status={data.status}
+    //           message={data.message}
+    //         />
+    //       ),
+    //       {
+    //         id: undefined,
+    //         duration: Infinity,
+    //         position: 'top-right',
+    //       }
+    //     );
+    //   }
+    // }
   }, [isCourseEditorPage]);
   
   // Expose a method to manually disconnect the socket if needed

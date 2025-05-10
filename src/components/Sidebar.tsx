@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, FileText, Menu, X, BookOpen, GraduationCap } from 'lucide-react';
+import { ChevronDown, ChevronRight, FileText, Menu, X, BookOpen, GraduationCap, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 interface SidebarItem {
   id: string;
@@ -18,9 +20,21 @@ interface SidebarProps {
   items: SidebarItem[];
   onSelect: (id: string) => void;
   selectedId?: string;
+  isGenerating?: boolean;
+  generationProgress?: number;
+  generationMessage?: string;
+  isFirstClassLoading?: boolean;
 }
 
-export const Sidebar = ({ items, onSelect, selectedId }: SidebarProps) => {
+export const Sidebar = ({ 
+  items, 
+  onSelect, 
+  selectedId, 
+  isGenerating = false,
+  generationProgress = 0,
+  generationMessage = "",
+  isFirstClassLoading = false
+}: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [sidebarWidth, setSidebarWidth] = useState<number>(300); // Default width in pixels
@@ -132,6 +146,36 @@ export const Sidebar = ({ items, onSelect, selectedId }: SidebarProps) => {
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
+  const renderContent = () => {
+    if (isFirstClassLoading) {
+      return (
+        <div className="text-center text-sm text-white/70 mt-8 px-4">
+          <Loader2 className="w-8 h-8 mx-auto text-white/50 mb-3 animate-spin" />
+          <p className="font-medium mb-1">Creating first class</p>
+          <p className="text-xs opacity-70 mb-4">The first class will appear shortly</p>
+          <Progress value={generationProgress} className="h-1.5 mb-2" />
+          <p className="text-xs opacity-70 mt-1">{generationMessage || "Processing..."}</p>
+        </div>
+      );
+    }
+
+    if (items.length > 0) {
+      return (
+        <div className="animate-fade-in">
+          {renderItems(items)}
+        </div>
+      );
+    } 
+    
+    return (
+      <div className="text-center py-8 px-6 text-white/70 text-sm animate-fade-in">
+        <GraduationCap className="w-12 h-12 mx-auto text-white/30 mb-2" />
+        <p>No syllabus content yet.</p>
+        <p className="mt-1 text-xs">Generate a syllabus to see the structure here.</p>
+      </div>
+    );
+  };
+
   return (
     <>
       {isMobile && (
@@ -168,16 +212,24 @@ export const Sidebar = ({ items, onSelect, selectedId }: SidebarProps) => {
         </div>
         
         <div className="overflow-y-auto flex-grow py-4 px-2 custom-scrollbar">
-          {items.length > 0 ? (
-            renderItems(items)
-          ) : (
-            <div className="text-center py-8 px-6 text-white/70 text-sm">
-              <GraduationCap className="w-12 h-12 mx-auto text-white/30 mb-2" />
-              <p>No syllabus content yet.</p>
-              <p className="mt-1 text-xs">Generate a syllabus to see the structure here.</p>
-            </div>
-          )}
+          {renderContent()}
         </div>
+
+        {/* Loader in sidebar when generating next classes */}
+        {!isFirstClassLoading && isGenerating && (
+          <div className="p-4 bg-talentlms-darkBlue/50 border-t border-talentlms-navBlue animate-fade-in">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-white/90">Generating next class</span>
+              <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-200 border-blue-700/30">
+                {generationProgress}%
+              </Badge>
+            </div>
+            <Progress value={generationProgress} className="h-1.5 bg-blue-900/30" />
+            <p className="text-xs text-white/60 mt-2 text-center italic">
+              {generationMessage || "Processing..."}
+            </p>
+          </div>
+        )}
 
         {/* Resize handle */}
         {!isMobile && (

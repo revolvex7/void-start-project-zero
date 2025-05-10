@@ -84,7 +84,7 @@ const Register = () => {
       // Trim spaces and normalize domain prefix - convert to lowercase
       const domainPrefix = values.domainPrefix.trim().toLowerCase();
       // Use a default domain if domainPrefix is empty
-      const domain = domainPrefix ? `${domainPrefix}.ilmee.com` : 'ilmee.com';
+      const domain = domainPrefix ? `${domainPrefix}.ilmee.ai` : 'ilmee.ai';
       
       // Create registration data object
       const registrationData: {
@@ -298,7 +298,7 @@ const Register = () => {
                   onBlur={handleBlur}
                 />
                 <div className="inline-flex items-center px-4 border border-l-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-r-lg">
-                  .ilmee.com
+                  .ilmee.ai
                 </div>
               </div>
             </div>
