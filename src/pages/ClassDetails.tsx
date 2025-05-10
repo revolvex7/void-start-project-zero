@@ -143,14 +143,10 @@ const ClassDetails = () => {
 
 		setIsSaving(true);
 		try {
-			const response = await api.patch(`/user/class/${classId}`, {
+			await api.patch(`/user/class/${classId}`, {
 				classTitle: editedTitle,
 				concepts: editedConcepts,
 			});
-
-			if (!response.ok) {
-				throw new Error('Failed to update class');
-			}
 
 			// Update the local state
 			if (currentClass) {
