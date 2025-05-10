@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Presentation, BookText, Play, FileQuestion, Trophy, Save } from "lucide-react";
@@ -9,7 +10,6 @@ import { SlideData, FAQ, UserTest } from "@/services/courseService";
 import ChatBot from "@/components/syllabus/ChatBot";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import api from "@/services/api";
 
 const ClassDetails = () => {
 	const { moduleId, classId } = useParams<{
@@ -20,7 +20,7 @@ const ClassDetails = () => {
 	const [isPresentationMode, setIsPresentationMode] = useState(false);
 	const { toast } = useToast();
 
-	// State for editing functionality
+	// New state for editing functionality
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedTitle, setEditedTitle] = useState("");
 	const [editedConcepts, setEditedConcepts] = useState<string[]>([]);
@@ -137,16 +137,27 @@ const ClassDetails = () => {
 		}
 	};
 
-	// Function to save changes using the API
+	// Function to save changes
 	const handleSaveChanges = async () => {
 		if (!classId) return;
 
 		setIsSaving(true);
 		try {
-			await api.patch(`/user/class/${classId}`, {
-				classTitle: editedTitle,
-				concepts: editedConcepts,
+			const response = await fetch(`https://dev-api.ilmee.ai/api/v_1/internal/user/class/${classId}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					'access-token': localStorage.getItem('token') || '',
+				},
+				body: JSON.stringify({
+					classTitle: editedTitle,
+					concepts: editedConcepts,
+				}),
 			});
+
+			if (!response.ok) {
+				throw new Error('Failed to update class');
+			}
 
 			// Update the local state
 			if (currentClass) {
