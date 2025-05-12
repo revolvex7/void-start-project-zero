@@ -817,4 +817,389 @@ const CourseEditor: React.FC = () => {
                   </div>
                 </div>
 								<div className="flex items-center gap-3 mt-2">
-                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none dark:bg-indigo-900/30 dark:
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none dark:bg-indigo-900/30 dark:text-indigo-300">
+                    Class {selectedClass.classNo}
+                  </Badge>
+                  <Badge variant="outline" className="text-slate-600 dark:text-slate-300">
+                    {selectedClass.slides.length} slides
+                  </Badge>
+                </div>
+							</div>
+
+              {/* Key Concepts Section */}
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-yellow-500" />
+                      Key Concepts
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${openSections.concepts ? 'rotate-180' : ''} transition-transform duration-200`}
+                      onClick={() => toggleSection('concepts')}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                {openSections.concepts && (
+                  <CardContent>
+                    {isEditingTitleConcepts ? (
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          {editedConcepts.map((concept, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="secondary"
+                              className="flex items-center gap-1 pl-3 pr-2 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600"
+                            >
+                              {concept}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 ml-1 hover:bg-slate-300 dark:hover:bg-slate-500 rounded-full p-0"
+                                onClick={() => handleRemoveConcept(index)}
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex mt-3">
+                          <Input 
+                            placeholder="Add a new concept"
+                            value={newConceptInput}
+                            onChange={(e) => setNewConceptInput(e.target.value)}
+                            onKeyDown={handleNewConceptKeyDown}
+                            className="mr-2"
+                          />
+                          <Button 
+                            onClick={handleAddConcept}
+                            disabled={!newConceptInput.trim()}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedClass.concepts.map((concept, index) => (
+                          <Badge key={index} variant="secondary" className="bg-slate-100 dark:bg-slate-700">
+                            {concept}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+
+              {/* Slides Section */}
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-500" />
+                      Slides
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={toggleSlideView}
+                            >
+                              {slideView === 'grid' ? (
+                                <LayoutList className="h-4 w-4" />
+                              ) : (
+                                <LayoutGrid className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Toggle slide view</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-8 w-8 p-0 ${openSections.slides ? 'rotate-180' : ''} transition-transform duration-200`}
+                        onClick={() => toggleSection('slides')}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                {openSections.slides && (
+                  <CardContent>
+                    <div className="mb-4 flex justify-end">
+                      <Button onClick={openAddSlideModal} className="bg-indigo-600 hover:bg-indigo-700">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Slide
+                      </Button>
+                    </div>
+                    {selectedClass.slides.length > 0 ? (
+                      <div className={slideView === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
+                        {selectedClass.slides.map((slide, index) => (
+                          <div 
+                            key={index} 
+                            className={`border rounded-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 bg-white dark:bg-slate-800 shadow-sm hover:shadow ${slideView === 'grid' ? '' : 'p-4 flex'}`}
+                            onMouseEnter={() => setHovered(`slide-${index}`)}
+                            onMouseLeave={() => setHovered(null)}
+                          >
+                            {slideView === 'grid' ? (
+                              <>
+                                <div className="p-3 bg-slate-50 dark:bg-slate-700/50 border-b flex justify-between items-center">
+                                  <span className="font-medium text-sm">Slide {slide.slideNo}</span>
+                                  {hovered === `slide-${index}` && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 rounded-full hover:bg-indigo-100 hover:text-indigo-600 dark:hover:bg-indigo-900/30"
+                                      onClick={() => openEditSlideModal(slide)}
+                                    >
+                                      <Edit className="h-3.5 w-3.5" />
+                                    </Button>
+                                  )}
+                                </div>
+                                <div className="p-4">
+                                  <h3 className="font-medium mb-2 truncate">{slide.slideTitle}</h3>
+                                  <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3">
+                                    {slide.content}
+                                  </p>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex-shrink-0 w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-md flex items-center justify-center mr-4 text-slate-500 dark:text-slate-400">
+                                  <span className="font-medium">{slide.slideNo}</span>
+                                </div>
+                                <div className="flex-grow">
+                                  <h3 className="font-medium mb-1">{slide.slideTitle}</h3>
+                                  <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                                    {slide.content}
+                                  </p>
+                                </div>
+                                {hovered === `slide-${index}` && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="flex-shrink-0 self-start h-7 w-7 p-0 rounded-full hover:bg-indigo-100 hover:text-indigo-600 dark:hover:bg-indigo-900/30"
+                                    onClick={() => openEditSlideModal(slide)}
+                                  >
+                                    <Edit className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 border border-dashed rounded-md bg-slate-50 dark:bg-slate-800/50">
+                        <FileText className="h-12 w-12 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                        <h3 className="text-lg font-medium mb-2 text-slate-700 dark:text-slate-300">No slides yet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-md mx-auto">
+                          Add slides to this class to provide learning content for your students.
+                        </p>
+                        <Button onClick={openAddSlideModal} className="bg-indigo-600 hover:bg-indigo-700">
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add First Slide
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+
+              {/* Quiz Section */}
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-green-500" />
+                      Quiz Questions
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${openSections.quizzes ? 'rotate-180' : ''} transition-transform duration-200`}
+                      onClick={() => toggleSection('quizzes')}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                {openSections.quizzes && (
+                  <CardContent>
+                    <QuizManager 
+                      classId={selectedClass.classId} 
+                      quizzes={selectedClass.quizzes || []} 
+                      onChange={(newQuizzes) => handleQuizChange(selectedClass.classId, newQuizzes)} 
+                    />
+                  </CardContent>
+                )}
+              </Card>
+              
+              {/* FAQs Section */}
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-purple-500" />
+                      FAQs
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${openSections.faqs ? 'rotate-180' : ''} transition-transform duration-200`}
+                      onClick={() => toggleSection('faqs')}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                {openSections.faqs && (
+                  <CardContent>
+                    {selectedClass.faqs && selectedClass.faqs.length > 0 ? (
+                      <Accordion type="single" collapsible className="w-full">
+                        {selectedClass.faqs.map((faq, index) => (
+                          <AccordionItem key={index} value={`item-${index}`}>
+                            <AccordionTrigger className="text-left">
+                              {faq.question}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <p className="text-slate-600 dark:text-slate-300">
+                                {faq.answer}
+                              </p>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          No FAQs available for this class.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+						</div>
+					) : (
+						<div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-800/30 shadow-sm animate-fade-in">
+							<GraduationCap className="h-16 w-16 text-slate-300 dark:text-slate-600 mb-4" />
+							<h3 className="text-xl font-medium mb-2 text-slate-700 dark:text-slate-300">Select a Class</h3>
+							<p className="text-sm text-slate-500 dark:text-slate-400 max-w-md text-center">
+								Choose a class from the sidebar to view and edit its content.
+							</p>
+						</div>
+					)}
+				</div>
+			</div>
+
+      {/* Add/Edit Slide Dialog */}
+      <Dialog open={addSlideDialogOpen} onOpenChange={setAddSlideDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{isEditingSlide ? 'Edit Slide' : 'Add New Slide'}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Slide Title</Label>
+              <Input
+                id="title"
+                name="title"
+                value={slideFormData.title}
+                onChange={handleInputChange}
+                placeholder="Enter slide title"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="content">Content</Label>
+              <Textarea
+                id="content"
+                name="content"
+                value={slideFormData.content}
+                onChange={handleInputChange}
+                placeholder="Enter slide content"
+                className="min-h-[100px]"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="visualPrompt">Visual Prompt</Label>
+              <Textarea
+                id="visualPrompt"
+                name="visualPrompt"
+                value={slideFormData.visualPrompt}
+                onChange={handleInputChange}
+                placeholder="Describe what should be shown visually"
+                className="min-h-[80px]"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="voiceoverScript">Voiceover Script</Label>
+              <Textarea
+                id="voiceoverScript"
+                name="voiceoverScript"
+                value={slideFormData.voiceoverScript}
+                onChange={handleInputChange}
+                placeholder="Script for audio narration"
+                className="min-h-[80px]"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="example">Example</Label>
+              <Textarea
+                id="example"
+                name="example"
+                value={slideFormData.example}
+                onChange={handleInputChange}
+                placeholder="Provide an example for this concept"
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddSlideDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddSlide} 
+              disabled={isSubmittingSlide || !slideFormData.title || !slideFormData.content}
+            >
+              {isSubmittingSlide && <Spinner size="sm" className="mr-2" />}
+              {isEditingSlide ? 'Save Changes' : 'Add Slide'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Course Settings Modal */}
+      <EditCourseModal
+        open={isSettingsModalOpen}
+        onOpenChange={setIsSettingsModalOpen}
+        courseId={courseId || ''}
+        onUpdate={handleCourseUpdate}
+      />
+		</div>
+	);
+};
+
+export default CourseEditor;
