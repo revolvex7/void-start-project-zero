@@ -510,11 +510,8 @@ const CourseEditor: React.FC = () => {
       toast.success("Class details updated successfully");
     } catch (error) {
       console.error('Error updating class:', error);
-      toast({
-        title: "Failed to update class",
-        description: "Please try again",
-        variant: "destructive"
-      });
+	  toast.error("Faild to update class");
+
       
       // Reset to original values if update failed
       if (selectedClass) {
