@@ -359,10 +359,10 @@ export const courseService = {
     }
   },
   
-  // New function to update course details
+  // Updated function to use PUT request for updating course details
   async updateCourse(courseId: string, payload: UpdateCoursePayload): Promise<any> {
     try {
-      const response = await api.patch(`/user/courses/${courseId}`, payload);
+      const response = await api.put(`/user/courses/${courseId}`, payload);
       return response.data;
     } catch (error) {
       console.error("Error updating course:", error);

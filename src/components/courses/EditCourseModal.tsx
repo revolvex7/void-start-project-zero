@@ -59,15 +59,15 @@ export function EditCourseModal({
 
   // Update courseData when courseDetails changes
   useEffect(() => {
-    if (courseDetails?.data?.course) {
+    if (courseDetails?.course) {
       setCourseData({
-        courseTitle: courseDetails.data?.course.courseTitle || "",
-        description: courseDetails.data?.course.description || "",
-        price: courseDetails.data?.course.price,
-        categoryId: courseDetails.data?.course.categoryId || "",
-        isPublished: courseDetails.data?.course.isPublished || false,
-        image: courseDetails.data?.course.image || null,
-        courseCode: courseDetails.data?.course.courseCode || "",
+        courseTitle: courseDetails.course.courseTitle || "",
+        description: courseDetails.course.description || "",
+        price: courseDetails.course.price,
+        categoryId: courseDetails.course.categoryId || "",
+        isPublished: courseDetails.course.isPublished || false,
+        image: courseDetails.course.image || null,
+        courseCode: courseDetails.course.courseCode || "",
       });
     }
   }, [courseDetails]);
@@ -103,6 +103,7 @@ export function EditCourseModal({
     setIsSaving(true);
 
     try {
+      // Using PUT method as specified by the API
       await courseService.updateCourse(courseId, courseData);
       toast.success("Course updated successfully");
       onCourseUpdate();
