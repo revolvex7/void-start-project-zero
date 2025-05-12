@@ -1,64 +1,37 @@
-
 import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter, 
-  DialogClose 
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
-import { QuizQuestionWithOptions, AddQuizPayload, UpdateQuizPayload, courseService } from '@/services/courseService';
+import { Plus, Edit, Trash2, Check } from 'lucide-react';
+import { courseService, QuizQuestionWithOptions } from '@/services/courseService';
 
-interface QuizManagerProps {
+export interface QuizManagerProps {
   classId: string;
   quizzes: QuizQuestionWithOptions[];
-  onQuizChange: (quizzes: QuizQuestionWithOptions[]) => void;
+  onQuizChange: (newQuizzes: QuizQuestionWithOptions[]) => void;
 }
 
 const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChange }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const [selectedQuiz, setSelectedQuiz] = useState<QuizQuestionWithOptions | null>(null);
-  
-  const [formData, setFormData] = useState<AddQuizPayload>({
-    question: "",
-    option1: "",
-    option2: "",
-    option3: "",
-    option4: "",
-    correctOption: "a"
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentQuiz, setCurrentQuiz] = useState<QuizQuestionWithOptions | null>(null);
+  const [formData, setFormData] = useState({
+    question: '',
+    option1: '',
+    option2: '',
+    option3: '',
+    option4: '',
+    correctOption: 'option1'
   });
 
-  const resetForm = () => {
-    setFormData({
-      question: "",
-      option1: "",
-      option2: "",
-      option3: "",
-      option4: "",
-      correctOption: "a"
-    });
-    setSelectedQuiz(null);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -66,11 +39,23 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
     }));
   };
 
-  const handleCorrectOptionChange = (value: string) => {
+  const handleRadioChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
       correctOption: value
     }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      question: '',
+      option1: '',
+      option2: '',
+      option3: '',
+      option4: '',
+      correctOption: 'option1'
+    });
+    setCurrentQuiz(null);
   };
 
   const openAddDialog = () => {
@@ -79,7 +64,7 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
   };
 
   const openEditDialog = (quiz: QuizQuestionWithOptions) => {
-    setSelectedQuiz(quiz);
+    setCurrentQuiz(quiz);
     setFormData({
       question: quiz.question,
       option1: quiz.option1,
@@ -92,18 +77,18 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
   };
 
   const openDeleteDialog = (quiz: QuizQuestionWithOptions) => {
-    setSelectedQuiz(quiz);
+    setCurrentQuiz(quiz);
     setIsDeleteDialogOpen(true);
   };
 
   const handleAddQuiz = async () => {
     if (!validateForm()) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const response = await courseService.addQuizQuestion(classId, formData);
       
-      // Create a new quiz object with the response data
+      // Create a new quiz with the response data
       const newQuiz: QuizQuestionWithOptions = {
         id: response.data?.id || `temp-${Date.now()}`,
         question: formData.question,
@@ -122,70 +107,71 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
       onQuizChange(updatedQuizzes);
       
       toast.success("Quiz question added successfully");
-      resetForm();
       setIsAddDialogOpen(false);
+      resetForm();
     } catch (error) {
       console.error("Error adding quiz question:", error);
       toast.error("Failed to add quiz question");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleUpdateQuiz = async () => {
-    if (!selectedQuiz || !validateForm()) return;
+  const handleEditQuiz = async () => {
+    if (!validateForm() || !currentQuiz) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
-      const updateData: UpdateQuizPayload = {
-        question: formData.question,
-        option1: formData.option1,
-        option2: formData.option2,
-        option3: formData.option3,
-        option4: formData.option4,
-        correctOption: formData.correctOption
-      };
+      await courseService.updateQuizQuestion(currentQuiz.id.toString(), formData);
       
-      await courseService.updateQuizQuestion(String(selectedQuiz.id), updateData);
-      
-      // Update the quizzes array
+      // Update the quiz in the quizzes array
       const updatedQuizzes = quizzes.map(quiz => 
-        quiz.id === selectedQuiz.id 
-          ? { ...quiz, ...formData }
+        quiz.id === currentQuiz.id
+          ? {
+              ...quiz,
+              question: formData.question,
+              option1: formData.option1,
+              option2: formData.option2,
+              option3: formData.option3,
+              option4: formData.option4,
+              correctOption: formData.correctOption,
+              updatedAt: new Date().toISOString()
+            }
           : quiz
       );
       
       onQuizChange(updatedQuizzes);
       
       toast.success("Quiz question updated successfully");
-      resetForm();
       setIsEditDialogOpen(false);
+      resetForm();
     } catch (error) {
       console.error("Error updating quiz question:", error);
       toast.error("Failed to update quiz question");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteQuiz = async () => {
-    if (!selectedQuiz) return;
+    if (!currentQuiz) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
-      await courseService.deleteQuizQuestion(String(selectedQuiz.id));
+      await courseService.deleteQuizQuestion(currentQuiz.id.toString());
       
-      // Update the quizzes array
-      const updatedQuizzes = quizzes.filter(quiz => quiz.id !== selectedQuiz.id);
+      // Remove the quiz from the quizzes array
+      const updatedQuizzes = quizzes.filter(quiz => quiz.id !== currentQuiz.id);
       onQuizChange(updatedQuizzes);
       
       toast.success("Quiz question deleted successfully");
       setIsDeleteDialogOpen(false);
+      resetForm();
     } catch (error) {
       console.error("Error deleting quiz question:", error);
       toast.error("Failed to delete quiz question");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -194,8 +180,7 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
       toast.error("Question is required");
       return false;
     }
-    if (!formData.option1.trim() || !formData.option2.trim() || 
-        !formData.option3.trim() || !formData.option4.trim()) {
+    if (!formData.option1.trim() || !formData.option2.trim() || !formData.option3.trim() || !formData.option4.trim()) {
       toast.error("All options are required");
       return false;
     }
@@ -203,27 +188,123 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
   };
 
   return (
-    <div>
-      {/* Add Quiz Dialog */}
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium">Quiz Questions</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={openAddDialog}
+          className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add Question
+        </Button>
+      </div>
+      
+      {quizzes.length === 0 ? (
+        <Card className="border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <p className="text-slate-500 dark:text-slate-400 mb-4">No quiz questions yet</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={openAddDialog}
+              className="bg-white dark:bg-slate-800"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Your First Question
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {quizzes.map((quiz, index) => (
+            <Card key={quiz.id} className="bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-base font-medium">
+                    <span className="text-indigo-600 dark:text-indigo-400 mr-2">Q{index + 1}.</span>
+                    {quiz.question}
+                  </CardTitle>
+                  <div className="flex space-x-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+                      onClick={() => openEditDialog(quiz)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
+                      onClick={() => openDeleteDialog(quiz)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className={`p-2 rounded-md ${quiz.correctOption === 'option1' ? 'bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/50' : ''}`}>
+                    <div className="flex items-center">
+                      {quiz.correctOption === 'option1' && (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
+                      )}
+                      <span className="font-medium mr-1">A:</span> {quiz.option1}
+                    </div>
+                  </div>
+                  <div className={`p-2 rounded-md ${quiz.correctOption === 'option2' ? 'bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/50' : ''}`}>
+                    <div className="flex items-center">
+                      {quiz.correctOption === 'option2' && (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
+                      )}
+                      <span className="font-medium mr-1">B:</span> {quiz.option2}
+                    </div>
+                  </div>
+                  <div className={`p-2 rounded-md ${quiz.correctOption === 'option3' ? 'bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/50' : ''}`}>
+                    <div className="flex items-center">
+                      {quiz.correctOption === 'option3' && (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
+                      )}
+                      <span className="font-medium mr-1">C:</span> {quiz.option3}
+                    </div>
+                  </div>
+                  <div className={`p-2 rounded-md ${quiz.correctOption === 'option4' ? 'bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/50' : ''}`}>
+                    <div className="flex items-center">
+                      {quiz.correctOption === 'option4' && (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
+                      )}
+                      <span className="font-medium mr-1">D:</span> {quiz.option4}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+      
+      {/* Add Question Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Add New Quiz Question</DialogTitle>
+            <DialogTitle>Add Quiz Question</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="question">Question</Label>
-              <Textarea 
+              <Input 
                 id="question" 
                 name="question"
                 value={formData.question} 
                 onChange={handleInputChange} 
-                placeholder="Enter quiz question"
-                className="min-h-[80px]"
-                required
+                placeholder="Enter your question"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="option1">Option A</Label>
               <Input 
@@ -231,11 +312,9 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option1"
                 value={formData.option1} 
                 onChange={handleInputChange} 
-                placeholder="Enter option A"
-                required
+                placeholder="First option"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="option2">Option B</Label>
               <Input 
@@ -243,11 +322,9 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option2"
                 value={formData.option2} 
                 onChange={handleInputChange} 
-                placeholder="Enter option B"
-                required
+                placeholder="Second option"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="option3">Option C</Label>
               <Input 
@@ -255,11 +332,9 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option3"
                 value={formData.option3} 
                 onChange={handleInputChange} 
-                placeholder="Enter option C"
-                required
+                placeholder="Third option"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="option4">Option D</Label>
               <Input 
@@ -267,54 +342,61 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option4"
                 value={formData.option4} 
                 onChange={handleInputChange} 
-                placeholder="Enter option D"
-                required
+                placeholder="Fourth option"
               />
             </div>
-            
             <div className="grid gap-2">
-              <Label htmlFor="correctOption">Correct Option</Label>
-              <Select 
+              <Label>Correct Answer</Label>
+              <RadioGroup 
                 value={formData.correctOption} 
-                onValueChange={handleCorrectOptionChange}
+                onValueChange={handleRadioChange}
+                className="flex flex-col space-y-1"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select the correct option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="a">A</SelectItem>
-                  <SelectItem value="b">B</SelectItem>
-                  <SelectItem value="c">C</SelectItem>
-                  <SelectItem value="d">D</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option1" id="option1-radio" />
+                  <Label htmlFor="option1-radio">Option A</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option2" id="option2-radio" />
+                  <Label htmlFor="option2-radio">Option B</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option3" id="option3-radio" />
+                  <Label htmlFor="option3-radio">Option C</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option4" id="option4-radio" />
+                  <Label htmlFor="option4-radio">Option D</Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
           <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsAddDialogOpen(false)}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
-              variant="default" 
               onClick={handleAddQuiz}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
                   Adding...
                 </>
-              ) : "Add Quiz Question"}
+              ) : (
+                'Add Question'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Edit Quiz Dialog */}
+      
+      {/* Edit Question Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -323,17 +405,14 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-question">Question</Label>
-              <Textarea 
+              <Input 
                 id="edit-question" 
                 name="question"
                 value={formData.question} 
                 onChange={handleInputChange} 
-                placeholder="Enter quiz question"
-                className="min-h-[80px]"
-                required
+                placeholder="Enter your question"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="edit-option1">Option A</Label>
               <Input 
@@ -341,11 +420,9 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option1"
                 value={formData.option1} 
                 onChange={handleInputChange} 
-                placeholder="Enter option A"
-                required
+                placeholder="First option"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="edit-option2">Option B</Label>
               <Input 
@@ -353,11 +430,9 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option2"
                 value={formData.option2} 
                 onChange={handleInputChange} 
-                placeholder="Enter option B"
-                required
+                placeholder="Second option"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="edit-option3">Option C</Label>
               <Input 
@@ -365,11 +440,9 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option3"
                 value={formData.option3} 
                 onChange={handleInputChange} 
-                placeholder="Enter option C"
-                required
+                placeholder="Third option"
               />
             </div>
-            
             <div className="grid gap-2">
               <Label htmlFor="edit-option4">Option D</Label>
               <Input 
@@ -377,172 +450,101 @@ const QuizManager: React.FC<QuizManagerProps> = ({ classId, quizzes, onQuizChang
                 name="option4"
                 value={formData.option4} 
                 onChange={handleInputChange} 
-                placeholder="Enter option D"
-                required
+                placeholder="Fourth option"
               />
             </div>
-            
             <div className="grid gap-2">
-              <Label htmlFor="edit-correctOption">Correct Option</Label>
-              <Select 
+              <Label>Correct Answer</Label>
+              <RadioGroup 
                 value={formData.correctOption} 
-                onValueChange={handleCorrectOptionChange}
+                onValueChange={handleRadioChange}
+                className="flex flex-col space-y-1"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select the correct option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="a">A</SelectItem>
-                  <SelectItem value="b">B</SelectItem>
-                  <SelectItem value="c">C</SelectItem>
-                  <SelectItem value="d">D</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option1" id="edit-option1-radio" />
+                  <Label htmlFor="edit-option1-radio">Option A</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option2" id="edit-option2-radio" />
+                  <Label htmlFor="edit-option2-radio">Option B</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option3" id="edit-option3-radio" />
+                  <Label htmlFor="edit-option3-radio">Option C</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="option4" id="edit-option4-radio" />
+                  <Label htmlFor="edit-option4-radio">Option D</Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
           <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsEditDialogOpen(false)}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
-              variant="default" 
-              onClick={handleUpdateQuiz}
-              disabled={isLoading}
+              onClick={handleEditQuiz}
+              disabled={isSubmitting}
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
                   Updating...
                 </>
-              ) : "Update Quiz Question"}
+              ) : (
+                'Update Question'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Quiz Dialog */}
+      
+      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle>Delete Quiz Question</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-slate-600 dark:text-slate-300">
               Are you sure you want to delete this quiz question? This action cannot be undone.
             </p>
-            <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
-              <p className="text-sm font-medium">{selectedQuiz?.question}</p>
-            </div>
+            {currentQuiz && (
+              <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                <p className="font-medium text-slate-900 dark:text-slate-100">{currentQuiz.question}</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsDeleteDialogOpen(false)}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
-              variant="destructive" 
+              variant="destructive"
               onClick={handleDeleteQuiz}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
                   Deleting...
                 </>
-              ) : "Delete Question"}
+              ) : (
+                'Delete Question'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Quiz Manager UI */}
-      <div className="flex justify-between items-center mb-4">
-        <Button 
-          onClick={openAddDialog}
-          variant="outline" 
-          size="sm" 
-          className="text-xs flex items-center gap-1 bg-white dark:bg-slate-800"
-        >
-          <span className="text-lg font-bold">+</span> Add Quiz Question
-        </Button>
-      </div>
-
-      <div className="space-y-3">
-        {quizzes.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4 border border-dashed border-slate-300 dark:border-slate-600 rounded-md bg-slate-50 dark:bg-slate-800/50">
-            No quiz questions available for this class. Click the button above to add one.
-          </p>
-        ) : (
-          quizzes.map((quiz, index) => (
-            <div 
-              key={quiz.id}
-              className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-sm transition-shadow group"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div className="px-2 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-medium dark:bg-orange-900/30 dark:text-orange-300">
-                    Q{index + 1}
-                  </div>
-                  <h5 className="font-medium text-sm">{quiz.question}</h5>
-                </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 w-8 p-0"
-                    onClick={() => openEditDialog(quiz)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil">
-                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                      <path d="m15 5 4 4"/>
-                    </svg>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    onClick={() => openDeleteDialog(quiz)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2">
-                      <path d="M3 6h18"/>
-                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                      <line x1="10" x2="10" y1="11" y2="17"/>
-                      <line x1="14" x2="14" y1="11" y2="17"/>
-                    </svg>
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className={`flex items-center space-x-2 p-2 rounded-md ${quiz.correctOption === "a" ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30" : "bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700"}`}>
-                  <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-medium">A</div>
-                  <span className="truncate">{quiz.option1}</span>
-                </div>
-                <div className={`flex items-center space-x-2 p-2 rounded-md ${quiz.correctOption === "b" ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30" : "bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700"}`}>
-                  <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-medium">B</div>
-                  <span className="truncate">{quiz.option2}</span>
-                </div>
-                <div className={`flex items-center space-x-2 p-2 rounded-md ${quiz.correctOption === "c" ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30" : "bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700"}`}>
-                  <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-medium">C</div>
-                  <span className="truncate">{quiz.option3}</span>
-                </div>
-                <div className={`flex items-center space-x-2 p-2 rounded-md ${quiz.correctOption === "d" ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30" : "bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700"}`}>
-                  <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-medium">D</div>
-                  <span className="truncate">{quiz.option4}</span>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 };

@@ -1,123 +1,110 @@
-
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { X } from "lucide-react";
-
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { courseService, UpdateCoursePayload } from "@/services/courseService";
+import { Category } from "@/services/courseService";
 import { Spinner } from "@/components/ui/spinner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-import { courseService, Category, UpdateCoursePayload, CourseEditorDetailsResponse } from "@/services/courseService";
-
-interface EditCourseModalProps {
+export interface EditCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
   courseId: string;
   onCourseUpdate: () => void;
 }
 
-export function EditCourseModal({
-  isOpen,
-  onClose,
-  courseId,
-  onCourseUpdate,
-}: EditCourseModalProps) {
-  const [courseData, setCourseData] = useState<UpdateCoursePayload>({
-    courseTitle: "",
-    description: "",
-    price: null,
-    categoryId: "",
-    isPublished: false,
-    image: null,
-  });
-  const [isSaving, setIsSaving] = useState(false);
+export const EditCourseModal: React.FC<EditCourseModalProps> = ({ isOpen, onClose, courseId, onCourseUpdate }) => {
+  const [courseTitle, setCourseTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState<number | null>(null);
+  const [categoryId, setCategoryId] = useState("");
+  const [image, setImage] = useState<string | null>(null);
+  const [isPublished, setIsPublished] = useState(false);
+  const [courseCode, setCourseCode] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
 
   // Fetch course details
-  const { data: courseDetails, isLoading: isLoadingCourse } = useQuery({
-    queryKey: ["course-editor-details", courseId],
+  const { data: courseDetails, isLoading: isCourseLoading } = useQuery({
+    queryKey: ["course-details", courseId],
     queryFn: () => courseService.getCourseEditorDetails(courseId),
-    enabled: isOpen && !!courseId
-  });
-
-  // Update courseData when courseDetails changes
-  useEffect(() => {
-    if (courseDetails?.data?.course) {
-      setCourseData({
-        courseTitle: courseDetails.data?.course.courseTitle || "",
-        description: courseDetails.data?.course.description || "",
-        price: courseDetails.data?.course.price,
-        categoryId: courseDetails.data?.course.categoryId || "",
-        isPublished: courseDetails.data?.course.isPublished || false,
-        image: courseDetails.data?.course.image || null,
-        courseCode: courseDetails.data?.course.courseCode || "",
-      });
-    }
-  }, [courseDetails]);
-
-  // Fetch categories for dropdown
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => courseService.getCategories(),
     enabled: isOpen,
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setCourseData((prev) => ({ ...prev, [name]: value }));
-  };
+  // Fetch categories
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => courseService.getCategories(),
+  });
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === "" ? null : Number(e.target.value);
-    setCourseData((prev) => ({ ...prev, price: value }));
-  };
+  const categories: Category[] = categoriesData || [];
 
-  const handleCategoryChange = (value: string) => {
-    setCourseData((prev) => ({ ...prev, categoryId: value }));
-  };
+  useEffect(() => {
+    if (courseDetails?.course) {
+      setCourseTitle(courseDetails.course.courseTitle || "");
+      setDescription(courseDetails.course.description || "");
+      setPrice(courseDetails.course.price);
+      setCategoryId(courseDetails.course.categoryId || "");
+      setImage(courseDetails.course.image || null);
+      setIsPublished(courseDetails.course.isPublished || false);
+      setCourseCode(courseDetails.course.courseCode || "");
+    }
+  }, [courseDetails, isOpen]);
 
-  const handleCourseCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setCourseData((prev) => ({ ...prev, courseCode: value }));
-  };
+  const updateCourseMutation = useMutation({
+    mutationFn: (payload: UpdateCoursePayload) => courseService.updateCourse(courseId, payload),
+    onSuccess: () => {
+      toast.success("Course updated successfully!");
+      queryClient.invalidateQueries(["course-details", courseId]);
+      onCourseUpdate();
+      onClose();
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to update course: ${error.message || "An error occurred"}`);
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
+    setIsSubmitting(true);
 
-    try {
-      await courseService.updateCourse(courseId, courseData);
-      toast.success("Course updated successfully");
-      onCourseUpdate();
-      onClose();
-    } catch (error) {
-      toast.error("Failed to update course", {
-        description: "An error occurred while updating the course details"
-      });
-      console.error("Error updating course:", error);
-    } finally {
-      setIsSaving(false);
-    }
+    const payload: UpdateCoursePayload = {
+      courseTitle,
+      description,
+      price,
+      categoryId,
+      isPublished,
+      image,
+      courseCode,
+    };
+
+    updateCourseMutation.mutate(payload);
   };
 
-  const isLoading = isLoadingCourse || isLoadingCategories;
+  if (isCourseLoading || isCategoriesLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px] flex items-center justify-center">
+          <Spinner size="lg" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -125,100 +112,84 @@ export function EditCourseModal({
         <DialogHeader>
           <DialogTitle>Edit Course Details</DialogTitle>
           <DialogDescription>
-            Update the information for your course
+            Make changes to your course details here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <Spinner size="lg" />
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="courseTitle">Course Title</Label>
-                <Input
-                  id="courseTitle"
-                  name="courseTitle"
-                  value={courseData.courseTitle}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={courseData.description || ""}
-                  onChange={handleInputChange}
-                  placeholder="Course description"
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  value={courseData.price === null ? "" : courseData.price}
-                  onChange={handlePriceChange}
-                  placeholder="Leave empty for free course"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select 
-                  value={courseData.categoryId} 
-                  onValueChange={handleCategoryChange}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category: Category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="courseCode">Course Code</Label>
-                <Input
-                  id="courseCode"
-                  name="courseCode"
-                  value={courseData.courseCode || ""}
-                  onChange={handleCourseCodeChange}
-                  className="bg-white"
-                />
-                <p className="text-xs text-muted-foreground">Enter a unique course code</p>
-              </div>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="courseTitle">Course Title</Label>
+              <Input
+                id="courseTitle"
+                value={courseTitle}
+                onChange={(e) => setCourseTitle(e.target.value)}
+                placeholder="Course title"
+                required
+              />
             </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    Saving...
-                  </>
-                ) : "Save Changes"}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Course description"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="price">Price</Label>
+              <Input
+                type="number"
+                id="price"
+                value={price !== null ? price.toString() : ""}
+                onChange={(e) => setPrice(e.target.value ? parseFloat(e.target.value) : null)}
+                placeholder="Course price"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="courseCode">Course Code</Label>
+              <Input
+                type="text"
+                id="courseCode"
+                value={courseCode}
+                onChange={(e) => setCourseCode(e.target.value)}
+                placeholder="Course Code"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="categoryId">Category</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Add more fields as necessary, e.g., for image, isPublished, etc. */}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Updating...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
-}
+};

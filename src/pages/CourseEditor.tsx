@@ -57,7 +57,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
-import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions } from "@/services/courseService";
+import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
 
 interface SlideData {
@@ -135,6 +135,7 @@ const CourseEditor: React.FC = () => {
   const [isSubmittingSlide, setIsSubmittingSlide] = useState(false);
   const [generationNotifications, setGenerationNotifications] = useState<Array<{id: string, message: string}>>([]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // New state for editing functionality
   const [isEditingTitleConcepts, setIsEditingTitleConcepts] = useState(false);
@@ -476,7 +477,30 @@ const CourseEditor: React.FC = () => {
   const toggleEditMode = () => {
     if (isEditingTitleConcepts) {
       // Save changes
-      if (!selectedClass) return;
+      handleSaveChanges();
+    } else {
+      // Enter edit mode
+      if (selectedClass) {
+        setEditedClassTitle(selectedClass.classTitle);
+        setEditedConcepts([...selectedClass.concepts]);
+      }
+    }
+    
+    setIsEditingTitleConcepts(!isEditingTitleConcepts);
+  };
+  
+  // Function to handle saving class title and concepts
+  const handleSaveChanges = async () => {
+    if (!selectedClass) return;
+    setIsSaving(true);
+    
+    try {
+      const payload: UpdateClassPayload = {
+        classTitle: editedClassTitle,
+        concepts: editedConcepts
+      };
+      
+      await courseService.updateClassDetails(selectedClass.classId, payload);
       
       // Update the class title and concepts in generatedClasses
       setGeneratedClasses(prev => 
@@ -498,15 +522,14 @@ const CourseEditor: React.FC = () => {
       });
       
       toast.success("Class details updated successfully");
-    } else {
-      // Enter edit mode
-      if (selectedClass) {
-        setEditedClassTitle(selectedClass.classTitle);
-        setEditedConcepts([...selectedClass.concepts]);
-      }
+    } catch (error) {
+      console.error("Error saving class details:", error);
+      toast.error("Failed to update class details", {
+        description: "An error occurred while saving your changes"
+      });
+    } finally {
+      setIsSaving(false);
     }
-    
-    setIsEditingTitleConcepts(!isEditingTitleConcepts);
   };
   
   // Function to cancel editing without saving changes
@@ -767,11 +790,21 @@ const CourseEditor: React.FC = () => {
                         <Button 
                           variant="default" 
                           size="sm" 
-                          onClick={toggleEditMode}
+                          onClick={handleSaveChanges}
+                          disabled={isSaving}
                           className="bg-green-600 hover:bg-green-700 text-white"
                         >
-                          <Save className="h-4 w-4 mr-1" />
-                          Save
+                          {isSaving ? (
+                            <>
+                              <Spinner size="sm" className="mr-2" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-1" />
+                              Save
+                            </>
+                          )}
                         </Button>
                       </>
                     ) : (
@@ -1176,7 +1209,7 @@ const CourseEditor: React.FC = () => {
       {courseId && (
         <EditCourseModal 
           isOpen={isSettingsModalOpen}
-          onClose={() => setIsSettingsModalOpen(false)}
+          onOpenChange={setIsSettingsModalOpen}
           courseId={courseId}
           onCourseUpdate={handleCourseUpdate}
         />
