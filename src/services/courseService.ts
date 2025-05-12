@@ -328,6 +328,11 @@ export interface UpdateSlidePayload {
   visualPrompt?: string;
 }
 
+export interface UpdateClassPayload {
+  classTitle?: string;
+  concepts?: string[];
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -575,6 +580,17 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error updating slide:", error);
+      throw error;
+    }
+  },
+
+  // Add this new function for updating class details
+  async updateClassDetails(classId: string, payload: UpdateClassPayload): Promise<any> {
+    try {
+      const response = await api.put(`/user/class/${classId}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating class details:", error);
       throw error;
     }
   },

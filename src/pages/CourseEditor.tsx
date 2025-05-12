@@ -57,7 +57,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
-import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions } from "@/services/courseService";
+import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
 
 interface SlideData {
@@ -472,11 +472,21 @@ const CourseEditor: React.FC = () => {
     progressData.status === 'starting' || 
     (sessionStorage.getItem('processingActive') === 'true' && progressData.status !== 'completed');
 
-  // Function to toggle edit mode for title and concepts
-  const toggleEditMode = () => {
-    if (isEditingTitleConcepts) {
-      // Save changes
-      if (!selectedClass) return;
+  // Function to save changes
+  const handleSaveChanges = async () => {
+    if (!selectedClass) return;
+    
+    setIsEditingTitleConcepts(false);
+    
+    // Show loading indicator
+    const payload: UpdateClassPayload = {
+      classTitle: editedClassTitle,
+      concepts: editedConcepts
+    };
+    
+    try {
+      // Call the API to update the class
+      await courseService.updateClassDetails(selectedClass.classId, payload);
       
       // Update the class title and concepts in generatedClasses
       setGeneratedClasses(prev => 
@@ -498,6 +508,27 @@ const CourseEditor: React.FC = () => {
       });
       
       toast.success("Class details updated successfully");
+    } catch (error) {
+      console.error('Error updating class:', error);
+      toast({
+        title: "Failed to update class",
+        description: "Please try again",
+        variant: "destructive"
+      });
+      
+      // Reset to original values if update failed
+      if (selectedClass) {
+        setEditedClassTitle(selectedClass.classTitle);
+        setEditedConcepts([...selectedClass.concepts]);
+      }
+    }
+  };
+
+  // Function to toggle edit mode for title and concepts
+  const toggleEditMode = () => {
+    if (isEditingTitleConcepts) {
+      // Save changes
+      handleSaveChanges();
     } else {
       // Enter edit mode
       if (selectedClass) {

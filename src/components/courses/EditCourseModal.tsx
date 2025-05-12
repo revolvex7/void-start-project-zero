@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 
-import { courseService, Category, UpdateCoursePayload, CourseEditorDetailsResponse } from "@/services/courseService";
+import { courseService, Category, UpdateCoursePayload } from "@/services/courseService";
 
 interface EditCourseModalProps {
   isOpen: boolean;
