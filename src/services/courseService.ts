@@ -1,5 +1,4 @@
 import api from "./api";
-import { z } from "zod"; // Import zod for validation
 
 export interface ClassData {
 	id: string;
@@ -329,13 +328,6 @@ export interface UpdateSlidePayload {
   visualPrompt?: string;
 }
 
-export const UpdateClassSchema = z.object({
-  classTitle: z.string().optional(),
-  concepts: z.array(z.string()).optional(),
-});
-
-export type UpdateClassPayload = z.infer<typeof UpdateClassSchema>;
-
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -583,16 +575,6 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error updating slide:", error);
-      throw error;
-    }
-  },
-
-  async updateClassDetails(classId: string, payload: UpdateClassPayload): Promise<any> {
-    try {
-      const response = await api.patch(`/user/class/${classId}`, payload);
-      return response.data;
-    } catch (error) {
-      console.error("Error updating class details:", error);
       throw error;
     }
   },
