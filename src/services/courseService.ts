@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface ClassData {
@@ -328,6 +329,12 @@ export interface UpdateSlidePayload {
   visualPrompt?: string;
 }
 
+// Add new interface for updating class details
+export interface UpdateClassPayload {
+  classTitle?: string;
+  concepts?: string[];
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -372,6 +379,17 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error updating module title:", error);
+      throw error;
+    }
+  },
+
+  // Add new function to update class details
+  async updateClassDetails(classId: string, payload: UpdateClassPayload): Promise<any> {
+    try {
+      const response = await api.patch(`/user/class/${classId}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating class details:", error);
       throw error;
     }
   },
@@ -579,3 +597,4 @@ export const courseService = {
     }
   },
 };
+

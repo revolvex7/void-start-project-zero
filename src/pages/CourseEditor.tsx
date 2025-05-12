@@ -57,7 +57,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
-import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions } from "@/services/courseService";
+import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
 
 interface SlideData {
@@ -476,37 +476,15 @@ const CourseEditor: React.FC = () => {
   const toggleEditMode = () => {
     if (isEditingTitleConcepts) {
       // Save changes
-      if (!selectedClass) return;
-      
-      // Update the class title and concepts in generatedClasses
-      setGeneratedClasses(prev => 
-        prev.map(classData => 
-          classData.classId === selectedClass.classId
-            ? { ...classData, classTitle: editedClassTitle, concepts: editedConcepts }
-            : classData
-        )
-      );
-      
-      // Also update selectedClass
-      setSelectedClass(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          classTitle: editedClassTitle,
-          concepts: editedConcepts
-        };
-      });
-      
-      toast.success("Class details updated successfully");
+      handleSaveChanges();
     } else {
       // Enter edit mode
       if (selectedClass) {
         setEditedClassTitle(selectedClass.classTitle);
         setEditedConcepts([...selectedClass.concepts]);
       }
+      setIsEditingTitleConcepts(!isEditingTitleConcepts);
     }
-    
-    setIsEditingTitleConcepts(!isEditingTitleConcepts);
   };
   
   // Function to cancel editing without saving changes
@@ -537,6 +515,49 @@ const CourseEditor: React.FC = () => {
     if (newConceptInput.trim()) {
       setEditedConcepts(prev => [...prev, newConceptInput.trim()]);
       setNewConceptInput("");
+    }
+  };
+
+  // New function to save class title and concepts
+  const handleSaveChanges = async () => {
+    if (!selectedClass) return;
+    
+    try {
+      const payload: UpdateClassPayload = {
+        classTitle: editedClassTitle,
+        concepts: editedConcepts
+      };
+      
+      toast.info("Updating class details...");
+      
+      await courseService.updateClassDetails(selectedClass.classId, payload);
+      
+      // Update the class title and concepts in generatedClasses
+      setGeneratedClasses(prev => 
+        prev.map(classData => 
+          classData.classId === selectedClass.classId
+            ? { ...classData, classTitle: editedClassTitle, concepts: editedConcepts }
+            : classData
+        )
+      );
+      
+      // Also update selectedClass
+      setSelectedClass(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          classTitle: editedClassTitle,
+          concepts: editedConcepts
+        };
+      });
+      
+      setIsEditingTitleConcepts(false);
+      toast.success("Class details updated successfully");
+    } catch (error) {
+      console.error("Error updating class details:", error);
+      toast.error("Failed to update class details", {
+        description: "An error occurred while updating the class information"
+      });
     }
   };
 
@@ -767,7 +788,7 @@ const CourseEditor: React.FC = () => {
                         <Button 
                           variant="default" 
                           size="sm" 
-                          onClick={toggleEditMode}
+                          onClick={handleSaveChanges}
                           className="bg-green-600 hover:bg-green-700 text-white"
                         >
                           <Save className="h-4 w-4 mr-1" />
@@ -796,393 +817,4 @@ const CourseEditor: React.FC = () => {
                   </div>
                 </div>
 								<div className="flex items-center gap-3 mt-2">
-                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none dark:bg-indigo-900/30 dark:text-indigo-300">
-                    Class {selectedClass.classNo}
-                  </Badge>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm">
-                    {selectedClass.slides.length} slides
-                  </p>
-                </div>
-							</div>
-							
-							{/* Key Concepts Section */}
-							<Card className="overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm mb-8 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow duration-300 group">
-								<CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-6 py-4">
-									<div className="flex justify-between items-center">
-										<CardTitle className="text-lg flex items-center gap-2">
-											<Lightbulb className="h-5 w-5 text-amber-500" />
-											Key Concepts
-										</CardTitle>
-									</div>
-								</CardHeader>
-								
-								<CardContent className="p-6">
-                  {isEditingTitleConcepts ? (
-                    <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
-                        {editedConcepts.map((concept, i) => (
-                          <div 
-                            key={i} 
-                            className="px-3 py-1.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-sm rounded-full border border-blue-100 dark:border-blue-800/50 flex items-center gap-1.5 group/concept"
-                          >
-                            {concept}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 rounded-full opacity-70 hover:opacity-100 hover:bg-blue-200 dark:hover:bg-blue-800"
-                              onClick={() => handleRemoveConcept(i)}
-                            >
-                              <X className="h-2.5 w-2.5" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          value={newConceptInput}
-                          onChange={(e) => setNewConceptInput(e.target.value)}
-                          onKeyDown={handleNewConceptKeyDown}
-                          placeholder="Add new concept"
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button" 
-                          onClick={handleAddConcept}
-                          disabled={!newConceptInput.trim()}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedClass.concepts.map((concept, i) => (
-                        <span 
-                          key={i} 
-                          className="px-3 py-1.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-sm rounded-full hover:shadow-sm transition-shadow border border-blue-100 dark:border-blue-800/50 hover:scale-105 transition-transform"
-                        >
-                          {concept}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-								</CardContent>
-							</Card>
-							
-							{/* Slides Section */}
-							<Collapsible 
-                open={openSections.slides} 
-                className="mb-8"
-                onOpenChange={(open) => setOpenSections(prev => ({ ...prev, slides: open }))}
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer group">
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-indigo-500" />
-                        Slides ({selectedClass.slides.length})
-                      </h3>
-                      {openSections.slides ? 
-                        <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" /> : 
-                        <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" />
-                      }
-                    </div>
-                  </CollapsibleTrigger>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-                      <Button 
-                        variant={slideView === 'grid' ? "default" : "ghost"} 
-                        size="sm" 
-                        className={`rounded-none px-3 ${slideView === 'grid' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 hover:bg-indigo-200' : ''}`}
-                        onClick={() => setSlideView('grid')}
-                      >
-                        <LayoutGrid className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant={slideView === 'list' ? "default" : "ghost"} 
-                        size="sm" 
-                        className={`rounded-none px-3 ${slideView === 'list' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 hover:bg-indigo-200' : ''}`}
-                        onClick={() => setSlideView('list')}
-                      >
-                        <LayoutList className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <Button variant="outline" size="sm" className="text-xs" onClick={openAddSlideModal}>
-                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Slide
-                    </Button>
-                  </div>
-                </div>
-                
-                <CollapsibleContent className="animate-accordion-down">
-                  {slideView === 'grid' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                      {selectedClass.slides.map((slide, i) => (
-                        <Card 
-                          key={i} 
-                          className="overflow-hidden border border-slate-200 hover:border-indigo-200 dark:border-slate-700 dark:hover:border-indigo-800 bg-white dark:bg-slate-800 hover:shadow-md transition-all duration-300 cursor-pointer group"
-                          onMouseEnter={() => setHovered(`slide-${i}`)}
-                          onMouseLeave={() => setHovered(null)}
-                        >
-                          <CardHeader className="p-4 pb-2 border-b border-slate-100 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
-                            <div className="flex justify-between items-center">
-                              <div className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-medium dark:bg-indigo-900/30 dark:text-indigo-300">
-                                Slide {slide.slideNo}
-                              </div>
-                              
-                              <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-7 w-7"
-                                  onClick={() => openEditSlideModal(slide)}
-                                >
-                                  <Edit className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7">
-                                  <Eye className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="p-4">
-                            <h5 className="font-medium text-sm mb-2 text-slate-900 dark:text-slate-100">{slide.slideTitle}</h5>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3">{slide.content}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-3 mt-2">
-                      {selectedClass.slides.map((slide, i) => (
-                        <div 
-                          key={i} 
-                          className="flex items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-sm transition-shadow cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-700/70"
-                          onMouseEnter={() => setHovered(`slide-list-${i}`)}
-                          onMouseLeave={() => setHovered(null)}
-                        >
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 flex items-center justify-center mr-3">
-                            {slide.slideNo}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-medium text-slate-900 dark:text-white truncate">{slide.slideTitle}</h5>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{slide.content.substring(0, 60)}...</p>
-                          </div>
-                          <div className={`flex space-x-1 ${hovered === `slide-list-${i}` ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 w-8 p-0"
-                              onClick={() => openEditSlideModal(slide)}
-                            >
-                              <Edit className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Eye className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-							
-							{/* FAQs Section */}
-							{selectedClass.faqs.length > 0 && (
-								<Collapsible 
-                  open={openSections.faqs} 
-                  className="mb-8"
-                  onOpenChange={(open) => setOpenSections(prev => ({ ...prev, faqs: open }))}
-                >
-                  <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 mb-4 cursor-pointer group">
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Users className="h-5 w-5 text-teal-500" />
-                        FAQs ({selectedClass.faqs.length})
-                      </h3>
-                      {openSections.faqs ? 
-                        <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" /> : 
-                        <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" />
-                      }
-                    </div>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="animate-accordion-down">
-                    <Accordion type="single" collapsible className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                      {selectedClass.faqs.map((faq, i) => (
-                        <AccordionItem key={i} value={`faq-${i}`} className="border-b border-slate-200 dark:border-slate-700 last:border-0">
-                          <AccordionTrigger className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-medium">
-                            {faq.question}
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50">
-                            {faq.answer}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </CollapsibleContent>
-                </Collapsible>
-							)}
-							
-							{/* Quiz Questions Section */}
-							{selectedClass && (
-								<Collapsible 
-                  open={openSections.quizzes} 
-                  className="mb-8"
-                  onOpenChange={(open) => setOpenSections(prev => ({ ...prev, quizzes: open }))}
-                >
-                  <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 mb-4 cursor-pointer group">
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                        <GraduationCap className="h-5 w-5 text-orange-500" />
-                        Quiz Questions ({selectedClass.quizzes.length})
-                      </h3>
-                      {openSections.quizzes ? 
-                        <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" /> : 
-                        <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" />
-                      }
-                    </div>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="animate-accordion-down">
-                    <QuizManager 
-                      classId={selectedClass.classId} 
-                      quizzes={selectedClass.quizzes}
-                      onQuizChange={(newQuizzes) => handleQuizChange(selectedClass.classId, newQuizzes)}
-                    />
-                  </CollapsibleContent>
-                </Collapsible>
-							)}
-							
-							{/* Button to add manual content */}
-							<div className="mt-8 text-center">
-								<Button 
-                  variant="outline" 
-                  className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-5 py-2 h-auto transition-all hover:border-indigo-300 dark:hover:border-indigo-700"
-                >
-									<Plus className="h-4 w-4 mr-2" />
-									Add Manual Content
-								</Button>
-							</div>
-						</div>
-					) : (
-						<div className="flex items-center justify-center py-16 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-800/30">
-							<div className="text-center">
-								<div className="h-16 w-16 mb-4 rounded-full bg-slate-100 dark:bg-slate-700 mx-auto flex items-center justify-center">
-                  <BookOpen className="h-8 w-8 text-slate-400 dark:text-slate-500" />
-                </div>
-								<h3 className="text-lg font-medium mb-2 text-slate-700 dark:text-slate-300">No Class Selected</h3>
-								<p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
-									Please select a class from the sidebar to view its content.
-								</p>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
-      
-      {/* Add/Edit Slide Dialog */}
-      <Dialog open={addSlideDialogOpen} onOpenChange={setAddSlideDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>{isEditingSlide ? 'Edit Slide' : 'Add New Slide'}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Slide Title</Label>
-              <Input 
-                id="title" 
-                name="title"
-                value={slideFormData.title} 
-                onChange={handleInputChange} 
-                placeholder="Enter slide title"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="content">Content</Label>
-              <Textarea 
-                id="content" 
-                name="content"
-                value={slideFormData.content} 
-                onChange={handleInputChange} 
-                placeholder="Main content of the slide"
-                className="min-h-[80px]"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="visualPrompt">Visual Prompt</Label>
-              <Textarea 
-                id="visualPrompt" 
-                name="visualPrompt"
-                value={slideFormData.visualPrompt} 
-                onChange={handleInputChange} 
-                placeholder="Description of visuals for the slide"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="voiceoverScript">Voiceover Script</Label>
-              <Textarea 
-                id="voiceoverScript" 
-                name="voiceoverScript"
-                value={slideFormData.voiceoverScript} 
-                onChange={handleInputChange} 
-                placeholder="Script for audio narration"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="example">Example (optional)</Label>
-              <Textarea 
-                id="example" 
-                name="example"
-                value={slideFormData.example} 
-                onChange={handleInputChange} 
-                placeholder="Example that illustrates the concept"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setAddSlideDialogOpen(false)}
-              disabled={isSubmittingSlide}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="default" 
-              onClick={handleAddSlide}
-              disabled={isSubmittingSlide || !slideFormData.title || !slideFormData.content}
-            >
-              {isSubmittingSlide ? (
-                <>
-                  <Spinner size="sm" className="mr-2" />
-                  {isEditingSlide ? 'Updating...' : 'Adding...'}
-                </>
-              ) : (
-                isEditingSlide ? 'Update Slide' : 'Add Slide'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Settings Modal */}
-      {courseId && (
-        <EditCourseModal 
-          isOpen={isSettingsModalOpen}
-          onClose={() => setIsSettingsModalOpen(false)}
-          courseId={courseId}
-          onCourseUpdate={handleCourseUpdate}
-        />
-      )}
-		</div>
-	);
-};
-
-export default CourseEditor;
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none dark:bg-indigo-900/30 dark:
