@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X, Volume2, FileQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SlideData, FAQ } from "@/services/courseService";
 import ChatBot from "./ChatBot";
 import { Link } from "react-router-dom";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useImageGenerator } from "@/hooks/useImageGenerator";
 
 export interface PresentationViewProps {
 	slides: SlideData[];
@@ -24,7 +25,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 	const [currentSlideIndex, setCurrentSlideIndex] = useState(-1); // Start at -1 for intro slide
 	const [imageLoading, setImageLoading] = useState(false);
 	const totalSlides = slides.length + 1; // +1 for the quiz slide at the end
-
+	const { results } = useImageGenerator();
+	
 	useEffect(() => {
 		// Reset to the intro slide when the slides prop changes
 		setCurrentSlideIndex(-1);
@@ -61,6 +63,19 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 			setImageLoading(true);
 		}
 	}, [currentSlideIndex, currentSlide]);
+	
+	// Get image URL from either the slide's imageUrl or from generated images
+	const getImageUrl = () => {
+	  if (!currentSlide) return null;
+	  
+	  // Check if we have a generated image from the imageGenerator hook
+	  if (currentSlide.slideId && results[currentSlide.slideId]?.imageUrl) {
+	    return results[currentSlide.slideId].imageUrl;
+	  }
+	  
+	  // Otherwise use the slide's imageUrl property if it exists
+	  return currentSlide.imageUrl || null;
+	};
 
 	// Render intro slide
 	const renderIntroSlide = () => {
@@ -141,6 +156,9 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 	// Render content slide
 	const renderContentSlide = () => {
 		if (!currentSlide) return null;
+		
+		const slideImageUrl = getImageUrl();
+		const hasImage = !!slideImageUrl;
 
 		return (
 			<div className="bg-[#01304b] text-white rounded-lg overflow-hidden w-full max-w-6xl mx-auto">
@@ -154,25 +172,27 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 					{/* Image section on right (or top on mobile) */}
 					<div
 						className={`flex flex-col ${
-							currentSlide.imageUrl ? "md:order-2" : "md:col-span-2"
+							hasImage ? "md:order-2" : "md:col-span-2"
 						}`}
 					>
-						{currentSlide.imageUrl && (
+						{hasImage && (
 							<div className="h-64 md:h-full flex items-center justify-center p-2 bg-white/5 rounded-lg">
 								{imageLoading && (
 									<div className="w-full h-48 bg-gray-700 rounded-md animate-pulse flex items-center justify-center">
 										<span className="text-gray-300">Loading image...</span>
 									</div>
 								)}
-								<img
-									src={currentSlide.imageUrl}
-									alt={currentSlide.title}
-									className={`w-64 h-64 rounded-md  ${
-										imageLoading ? "hidden" : "block"
-									}`}
-									onLoad={handleImageLoad}
-									onError={handleImageError}
-								/>
+								<AspectRatio ratio={4/3} className="bg-muted w-full">
+                  <img
+                    src={slideImageUrl}
+                    alt={currentSlide.title}
+                    className={`rounded-md object-cover w-full h-full ${
+                      imageLoading ? "hidden" : "block"
+                    }`}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                  />
+                </AspectRatio>
 							</div>
 						)}
 					</div>
@@ -180,7 +200,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 					{/* Content section */}
 					<div
 						className={`flex-1 ${
-							currentSlide.imageUrl ? "md:order-1" : "md:col-span-2"
+							hasImage ? "md:order-1" : "md:col-span-2"
 						}`}
 					>
 						<div className="text-lg mt-5 leading-relaxed">
@@ -188,12 +208,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 						</div>
 					</div>
 				</div>
-				<div className="text-2xl ps-5 leading-relaxed">
-					<strong>Example :</strong>
-				</div>
-				<div className="text-lg  p-5 leading-relaxed">
-					{currentSlide.example}
-				</div>
+				{currentSlide.example && (
+          <>
+            <div className="text-2xl ps-5 leading-relaxed">
+              <strong>Example :</strong>
+            </div>
+            <div className="text-lg  p-5 leading-relaxed">
+              {currentSlide.example}
+            </div>
+          </>
+				)}
 			</div>
 		);
 	};
