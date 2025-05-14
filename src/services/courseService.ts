@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface ClassData {
@@ -378,6 +377,10 @@ export interface CourseResponse {
   };
 }
 
+export interface PublishCoursePayload {
+  isPublished: boolean;
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -660,5 +663,16 @@ export const courseService = {
       console.error("Error fetching enrolled users:", error);
       return [];
     }
-  }
+  },
+
+  async publishCourse(courseId: string): Promise<any> {
+    try {
+      const payload: PublishCoursePayload = { isPublished: true };
+      const response = await api.put(`/user/courses/${courseId}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error publishing course:", error);
+      throw error;
+    }
+  },
 };

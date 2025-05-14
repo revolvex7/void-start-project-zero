@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useSearchParams  } from "react-router-dom";
 import { toast } from "sonner";
@@ -301,16 +300,35 @@ const CourseEditor: React.FC = () => {
 		};
 	}, [socket, isConnected, selectedClass, isEditMode]);
 
-	const handlePublishCourse = () => {
+	const handlePublishCourse = async () => {
 		setIsPublishing(true);
 		
-		setTimeout(() => {
-			setIsPublishing(false);
+		try {
+			if (!courseId) {
+				throw new Error("Course ID is missing");
+			}
+			
+			await courseService.publishCourse(courseId);
+			
 			toast.success("Course published successfully", {
 				description: "Your course is now available to enrolled students",
-        duration: 5000
+				duration: 5000
 			});
-		}, 1500);
+			
+			// Update local state if needed
+			if (courseDetails?.course) {
+				courseDetails.course.isPublished = true;
+			}
+			
+		} catch (error) {
+			console.error("Error publishing course:", error);
+			toast.error("Failed to publish course", {
+				description: "An error occurred while publishing your course",
+				duration: 5000
+			});
+		} finally {
+			setIsPublishing(false);
+		}
 	};
 	
 	const handleClassSelect = (classData: GeneratedClassData) => {
