@@ -36,6 +36,7 @@ export interface Class {
 	classId?: string; // Added for API compatibility
 	classTitle?: string; // Added for API compatibility
 	classNo?: number; // Added for API compatibility
+	userTest?: UserTest; // Add userTest property to fix the TypeScript error
 }
 
 export interface Module {
@@ -219,6 +220,7 @@ export function useSyllabusGenerator() {
 							corePoints: classItem.coreConcepts || [],
 							slideCount: classItem.slides?.length || 0,
 							faqs: [],
+							userTest: undefined,
 						};
 
 						module.classes.push(newClass);
@@ -306,6 +308,7 @@ export function useSyllabusGenerator() {
 					classId: classItem.classId,
 					classTitle: classItem.classTitle,
 					classNo: classItem.classNo,
+					userTest: undefined,
 				};
 
 				module.classes.push(newClass);
