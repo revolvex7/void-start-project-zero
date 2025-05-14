@@ -59,6 +59,7 @@ import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
 import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload, CourseResponse, Class } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
+import SlidePreviewModal from "@/components/syllabus/SlidePreviewModal";
 
 interface SlideData {
   slideId?: string;
@@ -641,6 +642,16 @@ const CourseEditor: React.FC = () => {
     }
   };
 
+  // Add new state for slide preview modal
+  const [isSlidePreviewOpen, setIsSlidePreviewOpen] = useState(false);
+  const [previewSlide, setPreviewSlide] = useState<SlideData | null>(null);
+
+  // Function to handle opening the slide preview modal
+  const handlePreviewSlide = (slide: SlideData) => {
+    setPreviewSlide(slide);
+    setIsSlidePreviewOpen(true);
+  };
+
 	return (
 		<div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
 			{/* Custom sidebar for course editing */}
@@ -1046,14 +1057,22 @@ const CourseEditor: React.FC = () => {
                                 >
                                   <Edit className="h-3.5 w-3.5" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-7 w-7"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePreviewSlide(slide);
+                                  }}
+                                >
                                   <Eye className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
                             </div>
                           </CardHeader>
                           <CardContent className="p-4">
-                            <h5 className="font-medium text-sm mb-2 text-slate-900 dark:text-slate-100">{slide.slideTitle}</h5>
+                            <h5 className="font-medium text-sm mb-2 text-slate-900 dark:text-slate-100">{slide.title}</h5>
                             <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3">{slide.content}</p>
                           </CardContent>
                         </Card>
@@ -1072,7 +1091,7 @@ const CourseEditor: React.FC = () => {
                             {slide.slideNo}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-medium text-slate-900 dark:text-white truncate">{slide.slideTitle}</h5>
+                            <h5 className="text-sm font-medium text-slate-900 dark:text-white truncate">{slide.title}</h5>
                             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{slide.content.substring(0, 60)}...</p>
                           </div>
                           <div className={`flex space-x-1 ${hovered === `slide-list-${i}` ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
@@ -1084,7 +1103,15 @@ const CourseEditor: React.FC = () => {
                             >
                               <Edit className="h-3.5 w-3.5" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePreviewSlide(slide);
+                              }}
+                            >
                               <Eye className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -1277,8 +1304,17 @@ const CourseEditor: React.FC = () => {
           onCourseUpdate={handleCourseUpdate}
         />
       )}
-		</div>
-	);
+      
+      {/* Add slide preview modal */}
+      {previewSlide && (
+        <SlidePreviewModal
+          isOpen={isSlidePreviewOpen}
+          onClose={() => setIsSlidePreviewOpen(false)}
+          slide={previewSlide}
+        />
+      )}
+    </div>
+  );
 };
 
 export default CourseEditor;

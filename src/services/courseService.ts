@@ -34,17 +34,17 @@ export interface CourseDetailsResponse {
 }
 
 export interface SlideData {
-	id: string;
-	title: string;
-	slideNo: number;
-	visualPrompt: string;
-	voiceoverScript: string;
-	imageUrl: string | null;
-	content: string;
-	example: string;
-	classId: string;
-	createdAt: string;
-	updatedAt: string;
+  id: string;
+  slideNo: number;
+  title: string;
+  content: string;
+  voiceoverScript: string;
+  visualPrompt: string;
+  imageUrl: string | null;
+  example?: string;
+  classId: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface QuizQuestion {
