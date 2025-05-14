@@ -651,8 +651,8 @@ const CourseEditor: React.FC = () => {
     // Create a compatible slide object for the preview modal
     const previewSlideData = {
       id: slide.slideId || '',
-      title: slide.slideTitle || '',
       slideNo: slide.slideNo,
+      title: slide.slideTitle,
       content: slide.content,
       voiceoverScript: slide.voiceoverScript,
       visualPrompt: slide.visualPrompt,

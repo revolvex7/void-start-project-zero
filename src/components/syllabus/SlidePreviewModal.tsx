@@ -4,9 +4,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Upload, Image as ImageIcon, X } from "lucide-react";
-import { SlideData } from "@/services/courseService";
 import { toast } from "sonner";
 import { useImageGenerator } from "@/hooks/useImageGenerator";
+
+// Update the interface to match the data structure we're passing from CourseEditor
+interface SlideData {
+  id: string;
+  title: string;
+  slideNo: number;
+  content: string;
+  voiceoverScript: string;
+  visualPrompt: string;
+  example?: string;
+  imageUrl: string | null;
+  classId: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 interface SlidePreviewModalProps {
   isOpen: boolean;
