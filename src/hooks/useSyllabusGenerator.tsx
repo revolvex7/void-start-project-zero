@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -27,11 +26,16 @@ export interface Slide {
 }
 
 export interface Class {
-	faqs: any[];
 	id: string;
 	title: string;
 	corePoints: string[];
 	slideCount: number;
+	faqs?: FAQ[];
+	slides?: Slide[];
+	concepts?: string[]; // For API compatibility
+	classId?: string; // Added for API compatibility
+	classTitle?: string; // Added for API compatibility
+	classNo?: number; // Added for API compatibility
 }
 
 export interface Module {
@@ -212,14 +216,14 @@ export function useSyllabusGenerator() {
 						const newClass: Class = {
 							id: `class-${classItem.classNo}-${uuidv4().slice(0, 6)}`,
 							title: classItem.classTitle,
-							corePoints: classItem.coreConcepts,
-							slideCount: classItem.slides.length,
+							corePoints: classItem.coreConcepts || [],
+							slideCount: classItem.slides?.length || 0,
 							faqs: [],
 						};
 
 						module.classes.push(newClass);
 
-						const slides: Slide[] = classItem.slides.map(
+						const slides: Slide[] = classItem.slides?.map(
 							(slide: any, slideIndex: number) => ({
 								id: `slide-${uuidv4()}`,
 								title: slide.title,
@@ -232,7 +236,7 @@ export function useSyllabusGenerator() {
 								createdAt: new Date().toISOString(),
 								updatedAt: new Date().toISOString(),
 							})
-						);
+						) || [];
 
 						module.slides.push(slides);
 
@@ -242,7 +246,7 @@ export function useSyllabusGenerator() {
 						// Initialize empty userTests array for each class
 						module.userTests?.push([]);
 
-						classItem.slides.forEach((slide: any) => {
+						classItem.slides?.forEach((slide: any) => {
 							module.lessons.push({
 								id: `lesson-${uuidv4().slice(0, 8)}`,
 								title: `Class ${classItem.classNo} - ${slide.title}`,
@@ -265,6 +269,85 @@ export function useSyllabusGenerator() {
 			toast.error("Failed to retrieve syllabus. Please try again.");
 		}
 	};
+
+	// New function to set modules directly from course edit API data
+	const setModulesFromCourseData = useCallback((classes: any[]) => {
+		if (!classes || classes.length === 0) return;
+		
+		const CLASSES_PER_MODULE = 4;
+		const generatedModules: Module[] = [];
+		
+		// Sort classes by classNo if available
+		if (classes[0]?.classNo) {
+			classes.sort((a, b) => a.classNo - b.classNo);
+		}
+
+		for (let i = 0; i < classes.length; i += CLASSES_PER_MODULE) {
+			const moduleClasses = classes.slice(i, i + CLASSES_PER_MODULE);
+			const moduleIndex = Math.floor(i / CLASSES_PER_MODULE) + 1;
+
+			const module: Module = {
+				id: `module-${moduleIndex}-${uuidv4().slice(0, 4)}`,
+				title: `Module ${moduleIndex}`,
+				classes: [],
+				slides: [],
+				faqs: [],
+				userTests: [],
+				lessons: [],
+			};
+
+			moduleClasses.forEach((classItem: any) => {
+				const newClass: Class = {
+					id: classItem.classId || `class-${uuidv4().slice(0, 6)}`,
+					title: classItem.classTitle || classItem.title || `Class ${moduleIndex}`,
+					corePoints: [],
+					concepts: classItem.concepts || [],
+					slideCount: classItem.slides?.length || 0,
+					classId: classItem.classId,
+					classTitle: classItem.classTitle,
+					classNo: classItem.classNo,
+				};
+
+				module.classes.push(newClass);
+
+				// Add slides to the module
+				if (classItem.slides && Array.isArray(classItem.slides)) {
+					const slidesArray = classItem.slides.map((slide: any) => ({
+						id: slide.id || `slide-${uuidv4()}`,
+						title: slide.title,
+						slideNo: slide.slideNo || 0,
+						content: slide.content || "",
+						visualPrompt: slide.visualPrompt || "",
+						voiceoverScript: slide.voiceoverScript || "",
+						imageUrl: slide.imageUrl || null,
+						example: slide.example || "",
+						classId: newClass.id,
+						createdAt: slide.createdAt || new Date().toISOString(),
+						updatedAt: slide.updatedAt || new Date().toISOString(),
+					}));
+					module.slides.push(slidesArray);
+				} else {
+					module.slides.push([]);
+				}
+
+				// Add FAQs if they exist
+				if (classItem.faqs && Array.isArray(classItem.faqs)) {
+					module.faqs.push(classItem.faqs);
+				} else {
+					module.faqs.push([]);
+				}
+
+				// Initialize empty userTests array for each class
+				module.userTests?.push([]);
+			});
+
+			generatedModules.push(module);
+		}
+
+		setModules(generatedModules);
+		setStatus("complete");
+		console.log("Course data loaded and processed:", generatedModules);
+	}, []);
 
 	const updateModuleTitle = useCallback((moduleId: string, title: string) => {
 		setModules((prevModules) =>
@@ -312,5 +395,6 @@ export function useSyllabusGenerator() {
 		generateSyllabus,
 		updateModuleTitle,
 		updateLesson,
+		setModulesFromCourseData, // Export the new function
 	};
 }

@@ -111,8 +111,8 @@ const Courses: React.FC = () => {
           ? aValue.localeCompare(bValue.toString()) 
           : bValue.toString().localeCompare(aValue.toString());
       } else if (sortBy === "price") {
-        const aValue = a.price || 0;
-        const bValue = b.price || 0;
+        const aValue = a.price !== undefined ? Number(a.price) || 0 : 0;
+        const bValue = b.price !== undefined ? Number(b.price) || 0 : 0;
         return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
       } else if (sortBy === "updatedAt") {
         return sortDirection === "asc" 
@@ -141,7 +141,7 @@ const Courses: React.FC = () => {
   };
 
   const handleEditCourse = (courseId: string) => {
-    navigate(`/course/${courseId}/edit`);
+    navigate(`/course/${courseId}/edit?isEdit=true`);
   };
 
   const openDeleteDialog = (courseId: string) => {
@@ -168,12 +168,13 @@ const Courses: React.FC = () => {
   
   const isLoading = coursesLoading;
   
-  const formatPrice = (price?: number) => {
+  const formatPrice = (price?: number | string) => {
     if (price === undefined) return "-";
+    const numericPrice = typeof price === 'string' ? Number(price) : price;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(price);
+    }).format(numericPrice);
   };
 
   if (isLoading) {

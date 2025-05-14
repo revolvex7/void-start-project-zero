@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams  } from "react-router-dom";
 import { toast } from "sonner";
 import { 
   ArrowLeft, 
@@ -57,7 +58,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
-import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload } from "@/services/courseService";
+import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload, CourseResponse, Class } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
 
 interface SlideData {
@@ -114,6 +115,10 @@ const CourseEditor: React.FC = () => {
 	const [generatedClasses, setGeneratedClasses] = useState<GeneratedClassData[]>([]);
 	const [selectedClass, setSelectedClass] = useState<GeneratedClassData | null>(null);
 	const [showMainLoader, setShowMainLoader] = useState(true);
+  const [searchParams] = useSearchParams();
+
+  const isEdit = searchParams.get("isEdit") === "true";
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     concepts: true,
     slides: true,
@@ -135,6 +140,9 @@ const CourseEditor: React.FC = () => {
   const [isSubmittingSlide, setIsSubmittingSlide] = useState(false);
   const [generationNotifications, setGenerationNotifications] = useState<Array<{id: string, message: string}>>([]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  
+  // New state to track whether we're editing an existing course or generating a new one
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // New state for editing functionality
   const [isEditingTitleConcepts, setIsEditingTitleConcepts] = useState(false);
@@ -161,27 +169,74 @@ const CourseEditor: React.FC = () => {
     }
   };
 
-  // Fetch course details from API when available
+  // Fetch existing course data for edit mode
+
+  const { data: courseData, isSuccess } = useQuery({
+    queryKey: ["course-for-edit", courseId],
+    queryFn: () => courseService.getCourseForEdit(courseId!),
+    enabled: !!courseId,
+  });
+  
+  useEffect(() => { 
+    if (isEdit && isSuccess && courseData?.data?.courseInfo) {
+      console.log("Course data loaded for editing:", courseData);
+      
+      setIsEditMode(true);
+      setCourseName(courseData.data.courseInfo.courseTitle);
+  
+      const formattedClasses: GeneratedClassData[] = courseData.data.classes.map(classData => ({
+        classNo: classData.classNo,
+        classId: classData.classId,
+        classTitle: classData.classTitle,
+        concepts: classData.concepts || [],
+        slides: classData.slides.map(slide => ({
+          slideId: slide.id,
+          slideNo: slide.slideNo,
+          slideTitle: slide.title,
+          content: slide.content,
+          voiceoverScript: slide.voiceoverScript,
+          visualPrompt: slide.visualPrompt,
+          example: slide.example || ""
+        })),
+        faqs: classData.faqs || [],
+        quizzes: classData.quizzes || []
+      }));
+  
+      setGeneratedClasses(formattedClasses);
+  
+      if (formattedClasses.length > 0) {
+        setSelectedClass(formattedClasses[0]);
+        setEditedClassTitle(formattedClasses[0].classTitle);
+        setEditedConcepts([...formattedClasses[0].concepts]);
+      }
+  
+      setShowMainLoader(false);
+    }
+  }, [isSuccess, courseData]);
+
+  console.log(courseData, isEditMode);
+  
+  // Fetch course details from API when available (this is the existing query)
   const { data: courseDetails } = useQuery({
     queryKey: ["course-editor-details", courseId],
     queryFn: () => courseService.getCourseEditorDetails(courseId!),
-    enabled: !!courseId
+    enabled: !!courseId && !isEditMode, // Only fetch if we're not in edit mode
   });
   
   // Update courseName when courseDetails changes
   useEffect(() => {
-    if (courseDetails?.course) {
+    if (courseDetails?.course && !isEditMode) {
       setCourseName(courseDetails.course.courseTitle || "Untitled Course");
     }
-  }, [courseDetails]);
+  }, [courseDetails, isEditMode]);
 
 	// Get socket connection for real-time updates - prevent disconnection by setting dependencies to []
 	const { socket, isConnected, progressData } = useSocketProgress();
 
 	// Listen for socket events for course generation
 	useEffect(() => {
-		if (!socket || !isConnected) {
-			console.log("Socket not connected in CourseEditor, waiting...");
+		if (!socket || !isConnected || isEditMode) {
+			console.log("Socket not connected in CourseEditor or in edit mode, waiting...");
 			return;
 		}
 		
@@ -244,7 +299,7 @@ const CourseEditor: React.FC = () => {
 				socket.off('class_data');
 			}
 		};
-	}, [socket, isConnected, selectedClass]);
+	}, [socket, isConnected, selectedClass, isEditMode]);
 
 	const handlePublishCourse = () => {
 		setIsPublishing(true);
@@ -462,15 +517,15 @@ const CourseEditor: React.FC = () => {
 
   const handleCourseUpdate = () => {
     // Refetch course details
-    if (courseDetails?.course) {
+    if (courseDetails?.course && !isEditMode) {
       setCourseName(courseDetails.course.courseTitle);
     }
   };
 
   // Check if we should show the processing screen
-  const shouldShowProcessing = progressData.status === 'processing' || 
+  const shouldShowProcessing = !isEditMode && (progressData.status === 'processing' || 
     progressData.status === 'starting' || 
-    (sessionStorage.getItem('processingActive') === 'true' && progressData.status !== 'completed');
+    (sessionStorage.getItem('processingActive') === 'true' && progressData.status !== 'completed'));
 
   // Function to save changes
   const handleSaveChanges = async () => {
@@ -510,7 +565,7 @@ const CourseEditor: React.FC = () => {
       toast.success("Class details updated successfully");
     } catch (error) {
       console.error('Error updating class:', error);
-	  toast.error("Faild to update class");
+	  toast.error("Failed to update class");
 
       
       // Reset to original values if update failed
@@ -585,29 +640,32 @@ const CourseEditor: React.FC = () => {
 					</h1>
 					<p className="text-xs text-white/80 mt-1 flex items-center">
 						<Sparkles className="h-3 w-3 mr-1" />
-						Course being generated
+						{isEditMode ? "Edit course" : "Course being generated"}
 					</p>
 				</div>
 				
 				<div className="p-4 bg-gradient-to-b from-indigo-500/10 to-transparent">
-					<Button 
-						className="w-full mb-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md transition-all duration-300 hover:shadow-lg"
-						onClick={handlePublishCourse}
-						disabled={isPublishing || generatedClasses.length === 0}
-					>
-						{isPublishing ? (
-							<Spinner size="sm" className="mr-2" />
-						) : (
-							<CheckCircle className="h-4 w-4 mr-2" />
-						)}
-						{isPublishing ? "Publishing..." : "Publish Course"}
-					</Button>
+        {courseData?.data?.courseInfo?.isPublished === false && 
+            <Button 
+            className="w-full mb-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md transition-all duration-300 hover:shadow-lg"
+            onClick={handlePublishCourse}
+            disabled={(isPublishing || generatedClasses.length === 0) && progressData.status === 'completed'}
+          >
+            {isPublishing ? (
+              <Spinner size="sm" className="mr-2" />
+            ) : (
+              <CheckCircle className="h-4 w-4 mr-2" />
+            )}
+            {isPublishing ? "Publishing..." : "Publish Course"}
+          </Button>
+         }
+					
 					
 					<div className="flex space-x-2 mb-4">
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button variant="outline" size="sm" className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+									<Button variant="outline"	disabled={generatedClasses.length === 0 && progressData.status === 'completed'} size="sm" className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
 										<Eye className="h-4 w-4 mr-1" />
 										Preview
 									</Button>
@@ -688,8 +746,8 @@ const CourseEditor: React.FC = () => {
           )}
 				</div>
 				
-				{/* Loader in sidebar for upcoming class generation */}
-				{socket && isConnected && progressData.status !== 'idle' && !showMainLoader && (
+				{/* Loader in sidebar for upcoming class generation - Only show if not in edit mode */}
+				{!isEditMode && socket && isConnected && progressData.status !== 'idle' && !showMainLoader && (
 					<div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 animate-fade-in">
 						<div className="flex items-center justify-between mb-2">
 							<span className="text-xs font-medium text-slate-600 dark:text-slate-300">Generating next class</span>
@@ -704,8 +762,8 @@ const CourseEditor: React.FC = () => {
 					</div>
 				)}
         
-        {/* Class generation notification badges */}
-        {generationNotifications.length > 0 && (
+        {/* Class generation notification badges - Only show if not in edit mode */}
+        {!isEditMode && generationNotifications.length > 0 && (
           <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 space-y-2">
             {generationNotifications.map(notification => (
               <Badge
@@ -734,7 +792,7 @@ const CourseEditor: React.FC = () => {
 				<header className="sticky top-0 z-10 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm bg-opacity-80 backdrop-blur-sm">
 					<div className="flex items-center justify-between h-16 px-6">
 						<h1 className="text-xl font-semibold text-slate-900 dark:text-white">
-							Course Editor
+							Course Editor {isEditMode && <span className="text-indigo-500">(Edit Mode)</span>}
 						</h1>
 						<div className="flex items-center space-x-3">
 							<Badge variant="outline" className="bg-green-50 border-green-200 text-green-600 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
@@ -746,8 +804,8 @@ const CourseEditor: React.FC = () => {
 				</header>
 
 				<div className="max-w-5xl mx-auto p-6">
-					{/* Show loader for first class generation */}
-          {showMainLoader ? (
+					{/* Show loader for first class generation, but only if not in edit mode */}
+          {showMainLoader && !isEditMode ? (
 						<div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-800/30 shadow-sm animate-fade-in">
 							<div className="relative inline-flex mb-6">
 								<div className="absolute inset-0 rounded-full animate-ping opacity-75 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
@@ -1020,7 +1078,7 @@ const CourseEditor: React.FC = () => {
               </Collapsible>
 							
 							{/* FAQs Section */}
-							{selectedClass.faqs.length > 0 && (
+							{selectedClass.faqs && selectedClass.faqs.length > 0 && (
 								<Collapsible 
                   open={openSections.faqs} 
                   className="mb-8"
@@ -1057,7 +1115,7 @@ const CourseEditor: React.FC = () => {
 							)}
 							
 							{/* Quiz Questions Section */}
-							{selectedClass && (
+							{selectedClass && selectedClass.quizzes && (
 								<Collapsible 
                   open={openSections.quizzes} 
                   className="mb-8"
@@ -1067,7 +1125,7 @@ const CourseEditor: React.FC = () => {
                     <div className="flex items-center gap-2 mb-4 cursor-pointer group">
                       <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <GraduationCap className="h-5 w-5 text-orange-500" />
-                        Quiz Questions ({selectedClass.quizzes.length})
+                        Quiz Questions ({selectedClass.quizzes ? selectedClass.quizzes.length : 0})
                       </h3>
                       {openSections.quizzes ? 
                         <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform" /> : 
@@ -1079,7 +1137,7 @@ const CourseEditor: React.FC = () => {
                   <CollapsibleContent className="animate-accordion-down">
                     <QuizManager 
                       classId={selectedClass.classId} 
-                      quizzes={selectedClass.quizzes}
+                      quizzes={selectedClass.quizzes || []}
                       onQuizChange={(newQuizzes) => handleQuizChange(selectedClass.classId, newQuizzes)}
                     />
                   </CollapsibleContent>
@@ -1087,15 +1145,7 @@ const CourseEditor: React.FC = () => {
 							)}
 							
 							{/* Button to add manual content */}
-							<div className="mt-8 text-center">
-								<Button 
-                  variant="outline" 
-                  className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-5 py-2 h-auto transition-all hover:border-indigo-300 dark:hover:border-indigo-700"
-                >
-									<Plus className="h-4 w-4 mr-2" />
-									Add Manual Content
-								</Button>
-							</div>
+							
 						</div>
 					) : (
 						<div className="flex items-center justify-center py-16 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-800/30">

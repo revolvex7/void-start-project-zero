@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface ClassData {
@@ -171,15 +172,13 @@ export interface Course {
   id: string;
   courseTitle: string;
   description?: string;
-  category: string;
-  price?: number;
-  currency?: string;
-  categoryId: string;
-  categoryName: string;
-  courseCode: string;
-  createdAt: string;
+  courseCode?: string;
+  price?: string | number; // Updated to accept both string and number
+  categoryName?: string;
+  categoryId?: string;
+  isPublished?: boolean;
   updatedAt: string;
-  userId: string;
+  image?: string | null;
 }
 
 export interface CategoryResponse {
@@ -252,7 +251,7 @@ export interface GenerateCoursesPayload {
   classNo: string;
   courseTitle: string,
   description: string;
-  price: number | null;
+  price: string | null;  // Changed from number to string
   isPublished: boolean;
   image?: string; // Added the image field as optional
   category?: string; // Added category field
@@ -280,7 +279,7 @@ export interface CourseEditorDetailsResponse {
     updatedAt: string;
     userId: string;
     courseCode: string;
-    price: number | null;
+    price: string | null;  // Changed from number to string
     categoryId: string;
     description: string | null;
     image: string | null;
@@ -300,10 +299,10 @@ export interface CourseEditorDetailsResponse {
 }
 
 export interface UpdateCoursePayload {
-  courseTitle: string;
-  description: string | null;
-  price: number | null;
-  categoryId: string;
+  courseTitle?: string;
+  description?: string;
+  price: string | null; // Changed to string to match API expectation
+  categoryId?: string;
   isPublished?: boolean;
   image?: string | null;
   courseCode?: string;  // Added courseCode field
@@ -331,6 +330,52 @@ export interface UpdateSlidePayload {
 export interface UpdateClassPayload {
   classTitle?: string;
   concepts?: string[];
+}
+
+// New interfaces for the course data from the edit endpoint
+export interface Slide {
+  id: string;
+  title: string;
+  slideNo: number;
+  visualPrompt: string;
+  voiceoverScript: string;
+  imageUrl: string | null;
+  content: string;
+  classId: string;
+  createdAt: string;
+  updatedAt: string;
+  example: string;
+}
+
+export interface Class {
+  classNo: number;
+  classId: string;
+  classTitle: string;
+  concepts: string[];
+  slides: Slide[];
+  faqs?: FAQ[];
+  quizzes?: QuizQuestionWithOptions[];
+}
+
+export interface CourseInfo {
+  id: string;
+  courseTitle: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  courseCode: string | null;
+  price: number | null;
+  categoryId: string | null;
+  description: string | null;
+  image: string | null;
+  isPublished: boolean | null;
+}
+
+export interface CourseResponse {
+  data: {
+    courseInfo: CourseInfo;
+    classes: Class[];
+  };
 }
 
 export const courseService = {
@@ -594,4 +639,26 @@ export const courseService = {
       throw error;
     }
   },
+
+  // New function to get course for edit
+  async getCourseForEdit(courseId: string): Promise<CourseResponse> {
+    try {
+      const response = await api.get<CourseResponse>(`/user/course/${courseId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course for edit:", error);
+      throw error;
+    }
+  },
+
+  // Function to get enrolled users for a course
+  async getCourseEnrolledUsers(courseId: string): Promise<CourseEnrolledResponse[]> {
+    try {
+      const response = await api.get(`/user/course-enrolled-users/${courseId}`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching enrolled users:", error);
+      return [];
+    }
+  }
 };

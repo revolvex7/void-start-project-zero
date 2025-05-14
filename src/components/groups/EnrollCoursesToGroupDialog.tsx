@@ -115,7 +115,7 @@ export function EnrollCoursesToGroupDialog({
                 availableCourses.map((course) => (
                   <TableRow key={course.id}>
                     <TableCell className="font-medium">{course.courseTitle}</TableCell>
-                    <TableCell>{course.category}</TableCell>
+                    <TableCell>{course.categoryName || "Uncategorized"}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="outline"
