@@ -59,8 +59,6 @@ import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
 import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload, CourseResponse, Class } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
-import SlidePreviewModal from "@/components/syllabus/SlidePreviewModal";
-import PresentationView from "@/components/syllabus/PresentationView";
 
 interface SlideData {
   slideId?: string;
@@ -643,12 +641,6 @@ const CourseEditor: React.FC = () => {
     }
   };
 
-  // Add new state for the slide preview modal
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
-  const [selectedSlideForPreview, setSelectedSlideForPreview] = useState<SlideData | null>(null);
-  const [isPresentationMode, setIsPresentationMode] = useState(false);
-
 	return (
 		<div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
 			{/* Custom sidebar for course editing */}
@@ -1026,15 +1018,6 @@ const CourseEditor: React.FC = () => {
                     <Button variant="outline" size="sm" className="text-xs" onClick={openAddSlideModal}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> Add Slide
                     </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs"
-                      onClick={togglePresentationMode}
-                    >
-                      <Eye className="h-3.5 w-3.5 mr-1" /> Present All
-                    </Button>
                   </div>
                 </div>
                 
@@ -1063,15 +1046,7 @@ const CourseEditor: React.FC = () => {
                                 >
                                   <Edit className="h-3.5 w-3.5" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-7 w-7"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openSlidePreviewModal(slide, i);
-                                  }}
-                                >
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
                                   <Eye className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
@@ -1109,15 +1084,7 @@ const CourseEditor: React.FC = () => {
                             >
                               <Edit className="h-3.5 w-3.5" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 w-8 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openSlidePreviewModal(slide, i);
-                              }}
-                            >
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <Eye className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -1308,29 +1275,6 @@ const CourseEditor: React.FC = () => {
           onClose={() => setIsSettingsModalOpen(false)}
           courseId={courseId}
           onCourseUpdate={handleCourseUpdate}
-        />
-      )}
-      
-      {/* Slide Preview Modal */}
-      {selectedClass && (
-        <SlidePreviewModal
-          open={isPreviewModalOpen}
-          onOpenChange={setIsPreviewModalOpen}
-          slide={selectedSlideForPreview}
-          slides={selectedClass.slides}
-          currentIndex={selectedSlideIndex}
-          onNavigate={handleSlideNavigation}
-        />
-      )}
-      
-      {/* Presentation Mode */}
-      {isPresentationMode && selectedClass && (
-        <PresentationView
-          slides={selectedClass.slides}
-          title={selectedClass.classTitle}
-          faqs={selectedClass.faqs}
-          onClose={() => setIsPresentationMode(false)}
-          classId={selectedClass.classId}
         />
       )}
 		</div>
