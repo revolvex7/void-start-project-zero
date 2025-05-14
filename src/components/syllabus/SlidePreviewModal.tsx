@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Upload, Image as ImageIcon, X } from "lucide-react";
 import { SlideData } from "@/services/courseService";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useImageGenerator } from "@/hooks/useImageGenerator";
 
 interface SlidePreviewModalProps {
@@ -26,21 +26,13 @@ const SlidePreviewModal: React.FC<SlidePreviewModalProps> = ({ isOpen, onClose, 
 
     // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload an image less than 5MB",
-        variant: "destructive",
-      });
+      toast.error("File too large. Please upload an image less than 5MB");
       return;
     }
 
     // Check file type
     if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
+      toast.error("Invalid file type. Please upload an image file");
       return;
     }
 
@@ -53,10 +45,7 @@ const SlidePreviewModal: React.FC<SlidePreviewModalProps> = ({ isOpen, onClose, 
     setIsUploading(false);
 
     // In a real app, you would upload the image to your server here
-    toast({
-      title: "Image uploaded",
-      description: "Your image has been uploaded successfully",
-    });
+    toast.success("Image uploaded successfully");
   };
 
   const handleGenerateImage = async () => {
@@ -73,11 +62,7 @@ const SlidePreviewModal: React.FC<SlidePreviewModalProps> = ({ isOpen, onClose, 
       }
     } catch (error) {
       console.error("Error generating image:", error);
-      toast({
-        title: "Image generation failed",
-        description: "There was an error generating your image",
-        variant: "destructive",
-      });
+      toast.error("There was an error generating your image");
     } finally {
       setIsUploading(false);
     }
