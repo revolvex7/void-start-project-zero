@@ -648,22 +648,7 @@ const CourseEditor: React.FC = () => {
 
   // Function to handle opening the slide preview modal
   const handlePreviewSlide = (slide: SlideData) => {
-    // Create a compatible slide object for the preview modal
-    const previewSlideData = {
-      id: slide.slideId || '',
-      slideNo: slide.slideNo,
-      title: slide.slideTitle,
-      content: slide.content,
-      voiceoverScript: slide.voiceoverScript,
-      visualPrompt: slide.visualPrompt,
-      example: slide.example || '',
-      imageUrl: null, // Since we don't have this in our SlideData interface
-      classId: selectedClass?.classId || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    setPreviewSlide(previewSlideData);
+    setPreviewSlide(slide);
     setIsSlidePreviewOpen(true);
   };
 
@@ -1087,7 +1072,7 @@ const CourseEditor: React.FC = () => {
                             </div>
                           </CardHeader>
                           <CardContent className="p-4">
-                            <h5 className="font-medium text-sm mb-2 text-slate-900 dark:text-slate-100">{slide.slideTitle}</h5>
+                            <h5 className="font-medium text-sm mb-2 text-slate-900 dark:text-slate-100">{slide.title}</h5>
                             <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3">{slide.content}</p>
                           </CardContent>
                         </Card>
@@ -1106,7 +1091,7 @@ const CourseEditor: React.FC = () => {
                             {slide.slideNo}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-medium text-slate-900 dark:text-white truncate">{slide.slideTitle}</h5>
+                            <h5 className="text-sm font-medium text-slate-900 dark:text-white truncate">{slide.title}</h5>
                             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{slide.content.substring(0, 60)}...</p>
                           </div>
                           <div className={`flex space-x-1 ${hovered === `slide-list-${i}` ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
