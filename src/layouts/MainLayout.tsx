@@ -15,6 +15,17 @@ const MainLayout = () => {
   // Check if this is a learner route or parent dashboard
   const isLearnerRoute = role === 'learner' || location.pathname.includes('learner-dashboard');
   const isParentDashboard = location.pathname.includes('parent-dashboard');
+  // Check if this is a course preview page
+  const isCoursePreview = location.pathname.includes('/preview');
+  
+  // For course preview, return just the outlet without any navigation
+  if (isCoursePreview) {
+    return (
+      <div className="min-h-screen w-full">
+        <Outlet />
+      </div>
+    );
+  }
   
   if (isParentDashboard) {
     return (
