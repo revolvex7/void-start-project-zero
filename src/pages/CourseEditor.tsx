@@ -663,6 +663,10 @@ const CourseEditor: React.FC = () => {
     setIsSlidePreviewOpen(true);
   };
 
+  const handlePreview = () => {
+    navigate(`/course/${courseId}/preview`);
+  };
+
 	return (
 		<div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
 			{/* Custom sidebar for course editing */}
@@ -705,7 +709,7 @@ const CourseEditor: React.FC = () => {
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button variant="outline"	disabled={generatedClasses.length === 0 && progressData.status === 'completed'} size="sm" className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+									<Button variant="outline" onClick={() => handlePreview()}	disabled={generatedClasses.length === 0 && progressData.status === 'completed'} size="sm" className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
 										<Eye className="h-4 w-4 mr-1" />
 										Preview
 									</Button>
