@@ -33,6 +33,7 @@ export interface CourseDetailsResponse {
 	};
 }
 
+// Updating the SlideData interface to align with what's being used in the app
 export interface SlideData {
   id: string;
   slideNo: number;

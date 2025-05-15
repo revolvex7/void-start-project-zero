@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -98,7 +98,7 @@ const CoursePreview: React.FC = () => {
     queryKey: ['course-preview', courseId],
     queryFn: async () => {
       try {
-        const response = await api.get(`/course/${courseId}`);
+        const response = await api.get(`/user/course/${courseId}`);
         return response.data as CourseResponse;
       } catch (error) {
         console.error('Error fetching course data:', error);
@@ -108,7 +108,7 @@ const CoursePreview: React.FC = () => {
     enabled: !!courseId,
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (error) {
       toast.error('Failed to load course preview', {
         description: 'Please try again later or contact support.'
