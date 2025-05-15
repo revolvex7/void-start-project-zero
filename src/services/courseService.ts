@@ -33,19 +33,22 @@ export interface CourseDetailsResponse {
 	};
 }
 
-// Updating the SlideData interface to align with what's being used in the app
+// Updated SlideData interface to make it compatible with both usages
 export interface SlideData {
-  id: string;
+  // Original properties
+  id?: string;
   slideNo: number;
-  title: string;
+  title?: string;
   content: string;
-  voiceoverScript: string;
-  visualPrompt: string;
-  imageUrl: string | null;
+  voiceoverScript?: string;
+  visualPrompt?: string;
+  imageUrl?: string | null;
   example?: string;
-  classId: string;
+  classId?: string;
   createdAt?: string;
   updatedAt?: string;
+  
+  // Additional properties used in CourseEditor
   slideId?: string;
   slideTitle?: string;
 }

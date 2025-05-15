@@ -86,9 +86,9 @@ interface GeneratedClassData {
   classId: string;
   classTitle: string;
   concepts: string[];
-  slides: SlideData[];
+  slides: SlideData[]; // Now using the updated SlideData interface
   faqs: FAQ[];
-  quizzes: QuizQuestionWithOptions[]; // Updated to QuizQuestionWithOptions
+  quizzes: QuizQuestionWithOptions[];
 }
 
 interface AddSlideFormData {
@@ -183,11 +183,15 @@ const CourseEditor: React.FC = () => {
         concepts: classData.concepts || [],
         slides: classData.slides.map(slide => ({
           slideId: slide.id,
+          id: slide.id, // Add id property
           slideNo: slide.slideNo,
           slideTitle: slide.title,
+          title: slide.title, // Add title property
           content: slide.content,
           voiceoverScript: slide.voiceoverScript,
           visualPrompt: slide.visualPrompt,
+          imageUrl: slide.imageUrl, // Add imageUrl property
+          classId: slide.classId, // Add classId property
           example: slide.example || ""
         })),
         faqs: classData.faqs || [],
@@ -204,7 +208,7 @@ const CourseEditor: React.FC = () => {
   
       setShowMainLoader(false);
     }
-  }, [isSuccess, courseData]);
+  }, [isSuccess, courseData, isEdit]);
 
   console.log(courseData, isEditMode);
   
@@ -436,6 +440,7 @@ const CourseEditor: React.FC = () => {
               return {
                 ...slide,
                 slideTitle: slideFormData.title,
+                title: slideFormData.title, // Add title property
                 content: slideFormData.content,
                 visualPrompt: slideFormData.visualPrompt,
                 voiceoverScript: slideFormData.voiceoverScript,
@@ -456,6 +461,7 @@ const CourseEditor: React.FC = () => {
                   return {
                     ...slide,
                     slideTitle: slideFormData.title,
+                    title: slideFormData.title, // Add title property
                     content: slideFormData.content,
                     visualPrompt: slideFormData.visualPrompt,
                     voiceoverScript: slideFormData.voiceoverScript,
@@ -477,11 +483,15 @@ const CourseEditor: React.FC = () => {
         // Create a new slide with the response data
         const newSlide: SlideData = {
           slideId: newSlideId,
+          id: newSlideId, // Add id property
           slideNo: selectedClass.slides.length + 1,
           slideTitle: slideFormData.title,
+          title: slideFormData.title, // Add title property
           content: slideFormData.content,
           voiceoverScript: slideFormData.voiceoverScript,
           visualPrompt: slideFormData.visualPrompt,
+          imageUrl: null, // Add imageUrl property
+          classId: selectedClass.classId, // Add classId property
           example: slideFormData.example
         };
         
@@ -640,7 +650,16 @@ const CourseEditor: React.FC = () => {
 
   // Function to handle opening the slide preview modal
   const handlePreviewSlide = (slide: SlideData) => {
-    setPreviewSlide(slide);
+    // Make sure the slide has all the properties required by SlidePreviewModal
+    const previewSlideData: SlideData = {
+      ...slide,
+      id: slide.id || slide.slideId, // Use id or slideId
+      title: slide.title || slide.slideTitle, // Use title or slideTitle
+      imageUrl: slide.imageUrl || null, // Provide default value for imageUrl
+      classId: slide.classId || selectedClass?.classId || "", // Provide default value for classId
+    };
+    
+    setPreviewSlide(previewSlideData);
     setIsSlidePreviewOpen(true);
   };
 
