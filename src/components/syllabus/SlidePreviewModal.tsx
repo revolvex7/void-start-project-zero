@@ -11,7 +11,7 @@ import { useImageGenerator } from "@/hooks/useImageGenerator";
 interface SlidePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  slide: SlideData;
+  slide: SlideData | null;
 }
 
 const SlidePreviewModal: React.FC<SlidePreviewModalProps> = ({ isOpen, onClose, slide }) => {

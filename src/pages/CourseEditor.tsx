@@ -57,19 +57,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EditCourseModal } from "@/components/courses/EditCourseModal";
 import { useQuery } from "@tanstack/react-query";
-import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload, CourseResponse, Class } from "@/services/courseService";
+import { courseService, AddSlidePayload, UpdateSlidePayload, QuizQuestionWithOptions, UpdateClassPayload, CourseResponse, Class, SlideData } from "@/services/courseService";
 import QuizManager from "@/components/quiz/QuizManager";
 import SlidePreviewModal from "@/components/syllabus/SlidePreviewModal";
 
-interface SlideData {
-  slideId?: string;
-  slideNo: number;
-  slideTitle: string;
-  content: string;
-  voiceoverScript: string;
-  visualPrompt: string;
-  example: string;
-}
+
 
 interface FAQ {
   question: string;

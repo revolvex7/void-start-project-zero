@@ -45,6 +45,8 @@ export interface SlideData {
   classId: string;
   createdAt?: string;
   updatedAt?: string;
+  slideId?: string;
+  slideTitle?: string;
 }
 
 export interface QuizQuestion {
