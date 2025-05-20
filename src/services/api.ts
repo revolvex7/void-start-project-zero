@@ -87,4 +87,35 @@ export const uploadFile = async (fileToUpload: File) => {
   }
 };
 
+// Assignment APIs
+export const getAssignments = async (courseId: string) => {
+  try {
+    const response = await api.get(`/user/assignments/${courseId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch assignments:', error);
+    throw error;
+  }
+};
+
+export const updateAssignment = async (assignmentId: string, assignmentData: any) => {
+  try {
+    const response = await api.put(`/user/assignments/${assignmentId}`, assignmentData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update assignment:', error);
+    throw error;
+  }
+};
+
+export const deleteAssignment = async (assignmentId: string) => {
+  try {
+    const response = await api.delete(`/user/assignments/${assignmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete assignment:', error);
+    throw error;
+  }
+};
+
 export default api;

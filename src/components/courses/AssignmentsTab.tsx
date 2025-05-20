@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatDistance } from "date-fns";
 import { AddAssignmentDialog } from "./AddAssignmentDialog";
 import { toast } from "sonner";
-import api from "@/services/api";
+import { deleteAssignment as deleteAssignmentApi } from "@/services/api";
 
 export interface Assignment {
   id: string;
@@ -40,8 +41,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
 
   const handleDeleteAssignment = async (assignmentId: string) => {
     try {
-      // Call the API to delete the assignment
-      await api.delete(`/user/assignments/${assignmentId}`);
+      await deleteAssignmentApi(assignmentId);
       toast.success("Assignment deleted successfully");
       await onAssignmentAdded(); // Refresh the list
     } catch (error) {

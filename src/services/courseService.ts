@@ -696,32 +696,8 @@ export const courseService = {
 
   async getCourseAssignments(courseId: string): Promise<Assignment[]> {
     try {
-      // Mock data for now - in a real implementation, this would be an API call
-      // const response = await api.get<{ data: Assignment[] }>(`/user/course/${courseId}/assignments`);
-      // return response.data.data;
-      
-      // Return mock data
-      return [
-        {
-          id: "1",
-          title: "Midterm Assignment",
-          description: "Complete the exercises from chapters 1-5",
-          fileUrl: "https://example.com/assignments/midterm.pdf",
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-          createdAt: new Date().toISOString(),
-          isAiGenerated: false
-        },
-        {
-          id: "2",
-          title: "Final Project",
-          description: "Create a comprehensive project applying all course concepts",
-          fileUrl: "https://example.com/assignments/final.pdf",
-          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
-          createdAt: new Date().toISOString(),
-          isAiGenerated: true,
-          classNumbers: ["1", "2", "3"]
-        }
-      ];
+      const response = await api.get(`/user/assignments/${courseId}`);
+      return response.data.data || [];
     } catch (error) {
       console.error("Error fetching course assignments:", error);
       return [];
@@ -730,28 +706,30 @@ export const courseService = {
 
   async createAssignment(courseId: string, assignmentData: Omit<Assignment, 'id'>): Promise<Assignment> {
     try {
-      // In a real implementation, this would be an API call
-      // const response = await api.post<{ data: Assignment }>(`/user/course/${courseId}/assignments`, assignmentData);
-      // return response.data.data;
-      
-      // Return mock data
-      return {
-        id: Math.random().toString(36).substring(2, 11),
+      const response = await api.post(`/user/assignments`, {
         ...assignmentData,
-      };
+        courseId,
+      });
+      return response.data.data;
     } catch (error) {
       console.error("Error creating assignment:", error);
       throw error;
     }
   },
 
+  async updateAssignment(assignmentId: string, assignmentData: Partial<Omit<Assignment, 'id'>>): Promise<Assignment> {
+    try {
+      const response = await api.put(`/user/assignments/${assignmentId}`, assignmentData);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      throw error;
+    }
+  },
+
   async deleteAssignment(assignmentId: string): Promise<void> {
     try {
-      // In a real implementation, this would be an API call
-      // await api.delete(`/user/assignments/${assignmentId}`);
-      
-      // Mock success
-      return;
+      await api.delete(`/user/assignments/${assignmentId}`);
     } catch (error) {
       console.error("Error deleting assignment:", error);
       throw error;
