@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,7 +15,8 @@ import {
   XCircle,
   Upload,
   FilePlus,
-  Trash2
+  Trash2,
+  FileX
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,8 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { formatFileSize } from "@/lib/utils";
 import { EnrollUsersDialog } from "@/components/courses/EnrollUsersDialog";
 import { FileUploader } from "@/components/courses/FileUploader";
+import { AssignmentsTab } from "@/components/courses/AssignmentsTab";
+import { Assignment } from "@/components/courses/AssignmentsTab";
 
 const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -57,6 +60,7 @@ const CourseDetailPage: React.FC = () => {
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
   const [isFileUploaderOpen, setIsFileUploaderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
 
   const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
     queryKey: ["course-basic-info", courseId],
@@ -80,7 +84,19 @@ const CourseDetailPage: React.FC = () => {
     }
   });
 
-  const isLoading = isLoadingBasicInfo || isLoadingDetail;
+  const { data: assignmentsData, isLoading: isLoadingAssignments, refetch: refetchAssignments } = useQuery({
+    queryKey: ["courseAssignments", courseId],
+    queryFn: () => courseService.getCourseAssignments(courseId || ""),
+    enabled: !!courseId && activeTab === "assignments"
+  });
+
+  useEffect(() => {
+    if (assignmentsData) {
+      setAssignments(assignmentsData);
+    }
+  }, [assignmentsData]);
+
+  const isLoading = isLoadingBasicInfo || isLoadingDetail || isLoadingAssignments;
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
@@ -146,6 +162,10 @@ const CourseDetailPage: React.FC = () => {
     }
   };
 
+  const handleAssignmentAdded = async () => {
+    await refetchAssignments();
+  };
+
   const filteredUsers = courseDetail.data.enrolledUsers.filter(user => 
     user.userName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -187,7 +207,7 @@ const CourseDetailPage: React.FC = () => {
         <CardHeader className="pb-3">
           <CardTitle>Course Details</CardTitle>
           <CardDescription>
-            View and manage course information, enrolled users, files, and groups.
+            View and manage course information, enrolled users, files, groups, and assignments.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -213,6 +233,13 @@ const CourseDetailPage: React.FC = () => {
               >
                 <Users className="mr-2 h-4 w-4" />
                 Groups
+              </TabsTrigger>
+              <TabsTrigger 
+                value="assignments" 
+                className="pb-4 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 text-sm font-medium"
+              >
+                <FileX className="mr-2 h-4 w-4" />
+                Assignments
               </TabsTrigger>
             </TabsList>
 
@@ -436,6 +463,14 @@ const CourseDetailPage: React.FC = () => {
                   </TableBody>
                 </Table>
               </div>
+            </TabsContent>
+            
+            <TabsContent value="assignments" className="space-y-4">
+              <AssignmentsTab 
+                courseId={courseId || ""}
+                assignments={assignments} 
+                onAssignmentAdded={handleAssignmentAdded}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>

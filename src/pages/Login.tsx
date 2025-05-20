@@ -14,7 +14,6 @@ import {
   Lock, 
   Eye, 
   EyeOff, 
-  Building,
   AlertCircle,
   Loader2,
   ExternalLink,
@@ -23,8 +22,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LoadingState } from '@/components/LoadingState';
-import { FormItem, FormLabel, FormControl, FormField, Form } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -34,7 +31,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   
-  // Extract subdomain from URL if present
+  // Extract subdomain from URL
   const getSubdomainFromUrl = () => {
     const hostname = window.location.hostname;
     // Check if we're on localhost (for development)
@@ -82,9 +79,6 @@ const Login = () => {
       document.title = `${defaultDomain} | Ilmee`;
     }
   }, [setValues, defaultDomain]);
-  
-  // Determine if domain field should be shown
-  const shouldShowDomain = values.emailOrUsername && !values.emailOrUsername.includes('@');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,8 +98,8 @@ const Login = () => {
         localStorage.setItem('lastLoginEmail', values.emailOrUsername);
       }
       
-      // Always pass domain for non-email logins
-      const loginDomain = !values.emailOrUsername.includes('@') ? values.domain : undefined;
+      // Always use the domain from the URL/subdomain
+      const loginDomain = defaultDomain;
       
       const success = await login(
         values.emailOrUsername, 
@@ -143,17 +137,6 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  // Custom handler for domain to prevent spaces and convert to lowercase
-  const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const sanitizedValue = value.replace(/\s+/g, '').toLowerCase();
-    
-    setValues({
-      ...values,
-      [name]: sanitizedValue
-    });
-  };
-
   const isLoading = isSubmitting || authLoading;
 
   const getInputIcon = () => {
@@ -182,7 +165,7 @@ const Login = () => {
   return (
     <AuthLayout 
       title="Welcome back" 
-      subtitle="Sign in to continue to your learning dashboard"
+      subtitle={`Sign in to continue to your ${defaultDomain !== 'ilmee' ? defaultDomain : ''} dashboard`}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-3">
@@ -239,30 +222,8 @@ const Login = () => {
             )}
           </div>
           
-          {shouldShowDomain && (
-            <div className="space-y-2">
-              <label htmlFor="domain" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Domain
-              </label>
-              <div className="relative flex rounded-lg border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-[#1B68B3] focus-within:border-transparent overflow-hidden">
-                <div className="relative flex-grow">
-                  <Building className="absolute left-3 top-3 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="domain"
-                    name="domain"
-                    type="text"
-                    className="border-0 pl-10 py-5 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    value={values.domain}
-                    onChange={handleDomainChange}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="flex items-center bg-gray-100 dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400 text-sm font-medium">
-                  .ilmee.ai
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Domain field is now hidden as we get it from the URL */}
+          <input type="hidden" name="domain" value={defaultDomain} />
           
           <div className="flex items-center justify-between">
             <div className="flex items-center">

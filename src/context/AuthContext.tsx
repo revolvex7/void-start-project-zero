@@ -23,7 +23,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   login: (emailOrUsername: string, password: string, domain?: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string, username: string, domain?: string, profileImage?: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string, username: string, domain?: string, profileImage?: string) => Promise<{success: boolean, domain?: string}>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -195,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     username: string, 
     domain?: string, 
     profileImage?: string
-  ): Promise<boolean> => {
+  ): Promise<{success: boolean, domain?: string}> => {
     setIsLoading(true);
     
     try {
@@ -211,47 +211,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         registerData.profileImage = profileImage;
       }
       
+      // Modified to not automatically log the user in
       const response = await authService.register(registerData);
       
-      const accessToken = response?.data?.data?.token?.accessToken;
-      const refreshToken = response?.data?.data?.token?.refreshToken;
+      // Get the domain from the response or use the provided domain
+      const userDomain = response?.data?.data?.user?.domain || domain || 'ilmee';
       
-      if (accessToken) {
-        localStorage.setItem('token', accessToken);
-        
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
-        }
-        
-        const userDomain = response?.data?.data?.user?.domain || domain || 'ilmee';
-        
-        const basicUser = {
-          id: 'temp-id',
-          name: name,
-          email: email,
-          avatar: profileImage,
-          domain: userDomain
-        };
-        localStorage.setItem('user', JSON.stringify(basicUser));
-        localStorage.setItem('userDomain', userDomain);
-        
-        setUser(basicUser);
-        setIsAuthenticated(true);
-        toast.success('Successfully registered!');
-        
-        // Check if we need to redirect to a subdomain
-        checkSubdomain();
-        
-        return true;
-      } else {
-        console.error('Registration response missing token:', response);
-        toast.error('Registration failed: Invalid response from server');
-        return false;
-      }
+      // Store just the domain for redirecting to login page
+      localStorage.setItem('userDomain', userDomain);
+      
+      // Don't set isAuthenticated or user data
+      toast.success('Successfully registered! Please log in to continue.');
+      
+      return {
+        success: true,
+        domain: userDomain
+      };
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.response?.data?.message || 'Registration failed');
-      return false;
+      return { success: false };
     } finally {
       setIsLoading(false);
     }

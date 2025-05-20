@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useNavigate } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/context/ThemeContext';
 
 interface SidebarItem {
   id: string;
@@ -41,6 +42,7 @@ export const Sidebar = ({
   const [isResizing, setIsResizing] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Initialize expanded state for modules
@@ -198,7 +200,7 @@ export const Sidebar = ({
       
       <div 
         className={cn(
-          "bg-talentlms-blue border-r border-talentlms-darkBlue flex flex-col h-screen relative",
+          "flex flex-col h-screen relative",
           "transition-all duration-300 ease-in-out z-40",
           isMobile ? "fixed" : "sticky top-0",
           isMobile && !isOpen && "-translate-x-full",
@@ -206,35 +208,44 @@ export const Sidebar = ({
         )}
         style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '500px' }}
       >
-        <div className="p-5 border-b border-talentlms-navBlue flex items-center">
-          <BookOpen className="w-5 h-5 text-white mr-3" />
-          <h2 className="font-medium text-lg text-white">Syllabus</h2>
-        </div>
-        
-        <div className="overflow-y-auto flex-grow py-4 px-2 custom-scrollbar">
-          {renderContent()}
-        </div>
-
-        {/* Loader in sidebar when generating next classes */}
-        {!isFirstClassLoading && isGenerating && (
-          <div className="p-4 bg-talentlms-darkBlue/50 border-t border-talentlms-navBlue animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-white/90">Generating next class</span>
-              <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-200 border-blue-700/30">
-                {generationProgress}%
-              </Badge>
-            </div>
-            <Progress value={generationProgress} className="h-1.5 bg-blue-900/30" />
-            <p className="text-xs text-white/60 mt-2 text-center italic">
-              {generationMessage || "Processing..."}
-            </p>
+        <div 
+          className={cn(
+            "border-r border-white/10 flex flex-col h-screen bg-gradient-to-b",
+            theme === 'dark' 
+              ? "from-purple-900/90 via-indigo-900/90 to-violet-800/80"
+              : "from-talentlms-blue via-talentlms-darkBlue to-blue-700"
+          )}
+        >
+          <div className="p-5 border-b border-white/10 flex items-center">
+            <BookOpen className="w-5 h-5 text-white mr-3" />
+            <h2 className="font-medium text-lg text-white">Syllabus</h2>
           </div>
-        )}
+          
+          <div className="overflow-y-auto flex-grow py-4 px-2 custom-scrollbar">
+            {renderContent()}
+          </div>
+
+          {/* Loader in sidebar when generating next classes */}
+          {!isFirstClassLoading && isGenerating && (
+            <div className="p-4 bg-black/20 border-t border-white/10 animate-fade-in">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-white/90">Generating next class</span>
+                <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-200 border-blue-700/30">
+                  {generationProgress}%
+                </Badge>
+              </div>
+              <Progress value={generationProgress} className="h-1.5 bg-blue-900/30" />
+              <p className="text-xs text-white/60 mt-2 text-center italic">
+                {generationMessage || "Processing..."}
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Resize handle */}
         {!isMobile && (
           <div 
-            className="absolute top-0 right-0 w-2 h-full cursor-ew-resize bg-talentlms-darkBlue hover:bg-talentlms-navBlue transition-colors"
+            className="absolute top-0 right-0 w-2 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
             onMouseDown={handleResizeStart}
           />
         )}

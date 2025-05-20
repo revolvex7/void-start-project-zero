@@ -84,7 +84,7 @@ const Register = () => {
       // Trim spaces and normalize domain prefix - convert to lowercase
       const domainPrefix = values.domainPrefix.trim().toLowerCase();
       // Use a default domain if domainPrefix is empty
-      const domain = domainPrefix ? `${domainPrefix}.ilmee.ai` : 'ilmee.ai';
+      const domain = domainPrefix || 'ilmee';
       
       // Create registration data object
       const registrationData: {
@@ -107,7 +107,7 @@ const Register = () => {
         registrationData.profileImage = avatar;
       }
       
-      const success = await register(
+      const result = await register(
         registrationData.name,
         registrationData.email,
         registrationData.password,
@@ -116,9 +116,23 @@ const Register = () => {
         registrationData.profileImage
       );
       
-      if (success) {
-        toast.success('Account created successfully!');
-        navigate('/onboarding/step1');
+      if (result.success && result.domain) {
+        toast.success('Account created successfully! Please log in to continue.');
+        
+        // Redirect to the login page on the correct subdomain
+        const hostname = window.location.hostname;
+        
+        // For development environments (localhost)
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          // Navigate to login with domain parameter for local development
+          navigate(`/login?domain=${result.domain}`);
+        } else {
+          // For production environments, redirect to the subdomain
+          const baseDomain = hostname.split('.').slice(-2).join('.');
+          const subdomain = result.domain === 'ilmee' ? '' : `${result.domain}.`;
+          const loginUrl = `${window.location.protocol}//${subdomain}${baseDomain}/login`;
+          window.location.href = loginUrl;
+        }
       }
     } catch (error) {
       console.error('Registration submission error:', error);

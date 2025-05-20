@@ -1,97 +1,143 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ChevronLeft, Book, CircleDollarSign, Star, StarHalf, Info, FileText } from "lucide-react";
+import api from '@/services/api';
+import { toast } from 'sonner';
 
-// Reusing the dummy data from CourseStore
-const ilmeeLibraryCourses = [
-  {
-    id: "tl1",
-    title: "Digital Transformation Strategy",
-    courseCode: "DTS001",
-    category: "Business Strategy",
-    description: "Learn how to lead digital transformation initiatives in your organization",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?q=80&w=500&auto=format&fit=crop",
-    featured: true,
-    longDescription: `Do you ever feel the business world is rapidly changing around you? Digital transformation is revolutionizing how companies operate and compete.
+// Course interfaces
+interface BaseCourse {
+  id: string;
+  courseTitle: string;
+  courseCode: string;
+  categoryName: string;
+  description: string;
+  image: string;
+  avgrating?: string;
+}
 
-This comprehensive course provides business leaders with the knowledge and tools to successfully implement digital transformation strategies. From understanding the latest technologies to managing organizational change, you'll learn how to guide your company through digital evolution.
+interface IlmeeLibraryCourse extends BaseCourse {
+  isFeatured: boolean;
+}
 
-Learn how to:
-• Assess your organization's digital readiness
-• Develop a comprehensive digital transformation roadmap
-• Implement emerging technologies effectively
-• Manage change and overcome resistance
-• Measure the success of digital initiatives`,
-    duration: "8 hours",
-    modules: [
-      "Understanding Digital Transformation",
-      "Assessing Your Digital Readiness",
-      "Creating a Digital Strategy",
-      "Implementation and Change Management",
-      "Measuring Success and Continuous Improvement"
-    ],
-    provider: "IlmeeLibrary™"
-  },
-  // Additional courses would be listed here
-];
+interface OtherProviderCourse extends BaseCourse {
+  price: string;
+  providerName: string;
+}
 
-const otherProviderCourses = [
-  {
-    id: "op1",
-    title: "Adobe Acrobat DC Essentials",
-    courseCode: "ADE001",
-    category: "Software Skills",
-    description: "Master PDF editing and management with Adobe Acrobat DC",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=500&auto=format&fit=crop",
-    provider: "Bigger Brains",
-    price: 40.00,
-    currency: "USD",
-    longDescription: `Have you ever been frustrated trying to work with PDF documents? This Adobe Acrobat DC Essentials course, taught by 25-year IT veteran Chip Reaves, will help beginners and experts get more from the latest version of the Adobe Acrobat solutions.
+// Type guard functions
+const isIlmeeLibraryCourse = (course: any): course is IlmeeLibraryCourse => {
+  return 'isFeatured' in course;
+};
 
-In this course from Bigger Brains, you will learn to use Adobe Acrobat Pro DC to convert documents to PDF files, search within PDF documents, edit and markup PDF documents, and convert and optimize PDF files.
+const isOtherProviderCourse = (course: any): course is OtherProviderCourse => {
+  return 'providerName' in course && 'price' in course;
+};
 
-Learn how to:
-• Convert documents to PDF from within Acrobat
-• Convert documents to PDF using the Print command
-• Create and use multiple PDF conversion presets
-• Create PDFs from websites
-• Find text in PDF documents
-• Add text to a PDF document
-• Add comments, stamps, highlights, and markup
-• Merge multiple documents
-• Extract pages from a PDF document`,
-    duration: "3.5 hours",
-    modules: [
-      "Introduction to Adobe Acrobat DC",
-      "Creating PDF Documents",
-      "Editing PDF Documents",
-      "PDF Document Management",
-      "PDF Security Features"
-    ]
-  },
-  // Additional courses would be listed here
-];
-
-// Combine the courses for easy lookup
-const allCourses = [...ilmeeLibraryCourses, ...otherProviderCourses];
+interface CourseDetails {
+  course: IlmeeLibraryCourse | OtherProviderCourse;
+  isIlmeeLibrary: boolean;
+  modules: string[];
+  duration: string;
+  longDescription: string;
+}
 
 const CourseStoreDetails = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
   
-  // Find the course based on the ID
-  const course = allCourses.find(c => c.id === courseId);
+  useEffect(() => {
+    const fetchCourseDetails = async () => {
+      if (!courseId) return;
+      
+      try {
+        setLoading(true);
+        // Fetch from the course store API
+        const response = await api.get('/user/course-store');
+        
+        if (response.data && response.data.data) {
+          // Find the course in either ilmeeLibrary or otherProviders arrays
+          const ilmeeCourse = response.data.data.ilmeeLibrary?.find(
+            (c: IlmeeLibraryCourse) => c.id === courseId
+          );
+          
+          const otherCourse = response.data.data.otherProviders?.find(
+            (c: OtherProviderCourse) => c.id === courseId
+          );
+          
+          const course = ilmeeCourse || otherCourse;
+          
+          if (course) {
+            // Determine if this is an IlmeeLibrary course
+            const isIlmeeLibraryCourse = !!ilmeeCourse;
+            
+            // Generate some mock data for the course details since we don't have this in the API yet
+            const mockData = {
+              duration: "8 hours",
+              longDescription: course.description ? `${course.description}\n\nThis comprehensive course provides learners with in-depth knowledge and practical skills in ${course.categoryName}. From understanding fundamental concepts to advanced techniques, you'll gain valuable insights that can be applied in real-world scenarios.\n\nLearn how to:\n• Master core concepts in ${course.categoryName}\n• Apply practical techniques to real-world problems\n• Stay current with industry best practices\n• Overcome common challenges in the field\n• Measure success and track improvement` : "",
+              modules: [
+                "Introduction to " + course.categoryName,
+                "Core Concepts and Methodologies",
+                "Practical Applications",
+                "Advanced Techniques",
+                "Case Studies and Examples"
+              ]
+            };
+            
+            setCourseDetails({
+              course,
+              isIlmeeLibrary: isIlmeeLibraryCourse,
+              ...mockData
+            });
+          } else {
+            setError('Course not found');
+          }
+        } else {
+          setError('Failed to load course data');
+        }
+      } catch (err) {
+        console.error('Error fetching course details:', err);
+        setError('Failed to load course details. Please try again later.');
+        toast.error('Failed to load course details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCourseDetails();
+  }, [courseId]);
   
-  if (!course) {
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <Button 
+          variant="ghost" 
+          className="mb-6 pl-0 flex items-center group"
+          onClick={() => navigate('/course-store')}
+        >
+          <ChevronLeft className="mr-1 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+          Back to Course Store
+        </Button>
+        
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="ml-4 text-muted-foreground">Loading course details...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !courseDetails) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-semibold mb-4">Course Not Found</h1>
-        <p className="mb-6">The course you're looking for doesn't exist or has been removed.</p>
+        <p className="mb-6">{error || "The course you're looking for doesn't exist or has been removed."}</p>
         <Button onClick={() => navigate('/course-store')}>
           Return to Course Store
         </Button>
@@ -99,7 +145,8 @@ const CourseStoreDetails = () => {
     );
   }
   
-  const isIlmeeLibrary = course.id.startsWith('tl');
+  const { course, isIlmeeLibrary, modules, duration, longDescription } = courseDetails;
+  const rating = course.avgrating || "4.5";
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -115,17 +162,17 @@ const CourseStoreDetails = () => {
       
       {/* Course breadcrumb */}
       <div className="text-sm text-muted-foreground mb-4 flex items-center">
-        <span>{course.category}</span>
+        <span>{course.categoryName}</span>
         <span className="mx-2">•</span>
         <Badge variant={isIlmeeLibrary ? "default" : "secondary"} className="font-normal">
-          {isIlmeeLibrary ? "IlmeeLibrary™" : course.provider}
+          {isIlmeeLibrary ? "IlmeeLibrary™" : isOtherProviderCourse(course) ? course.providerName : "External Provider"}
         </Badge>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main content - 2/3 width on desktop */}
         <div className="lg:col-span-2">
-          <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
+          <h1 className="text-3xl font-bold mb-2">{course.courseTitle}</h1>
           <div className="flex items-center mb-6">
             <div className="flex mr-4">
               <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
@@ -133,17 +180,17 @@ const CourseStoreDetails = () => {
               <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
               <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
               <StarHalf className="h-5 w-5 text-amber-500 fill-amber-500" />
-              <span className="ml-2 text-sm font-medium">4.5</span>
+              <span className="ml-2 text-sm font-medium">{rating}</span>
             </div>
             <span className="text-sm text-muted-foreground">{course.courseCode}</span>
             <span className="mx-2 text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground">{course.duration}</span>
+            <span className="text-sm text-muted-foreground">{duration}</span>
           </div>
           
           <div className="mb-8 rounded-xl overflow-hidden shadow-md">
             <img 
               src={course.image} 
-              alt={course.title} 
+              alt={course.courseTitle} 
               className="w-full h-[300px] object-cover"
             />
           </div>
@@ -158,14 +205,14 @@ const CourseStoreDetails = () => {
             <TabsContent value="overview" className="pt-2">
               <div className="prose dark:prose-invert max-w-none">
                 <h2 className="text-xl font-semibold mb-4">Description</h2>
-                <div className="whitespace-pre-line">{course.longDescription}</div>
+                <div className="whitespace-pre-line">{longDescription}</div>
               </div>
             </TabsContent>
             
             <TabsContent value="content" className="pt-2">
               <h2 className="text-xl font-semibold mb-4">Course Modules</h2>
               <div className="space-y-4">
-                {course.modules.map((module, index) => (
+                {modules.map((module, index) => (
                   <Card key={index} className="overflow-hidden hover:shadow-md transition-all border bg-card">
                     <CardContent className="p-4 flex items-center gap-3">
                       <div className="bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
@@ -183,7 +230,7 @@ const CourseStoreDetails = () => {
             <TabsContent value="reviews" className="pt-2">
               <h2 className="text-xl font-semibold mb-4">Student Reviews</h2>
               <div className="text-center py-12">
-                <p className="text-muted-foreground">Reviews will be available after the course is published.</p>
+                <p className="text-muted-foreground">No reviews available.</p>
               </div>
             </TabsContent>
           </Tabs>
@@ -206,8 +253,8 @@ const CourseStoreDetails = () => {
                   <div className="flex items-center gap-2">
                     <CircleDollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                     <span className="font-medium">
-                      {'price' in course && course.price !== null && course.price !== undefined
-                        ? `${course.price.toFixed(2)} ${('currency' in course) ? course.currency : 'USD'}` 
+                      {!isIlmeeLibrary && (course as OtherProviderCourse).price
+                        ? `${parseFloat((course as OtherProviderCourse).price).toFixed(2)} USD` 
                         : 'Free Course'}
                     </span>
                   </div>
@@ -215,12 +262,12 @@ const CourseStoreDetails = () => {
               </div>
               
               <Button 
-                className={`w-full mb-4 ${!isIlmeeLibrary && 'price' in course && course.price ? "bg-green-600 hover:bg-green-700" : ""}`} 
+                className={`w-full mb-4 ${!isIlmeeLibrary && (course as OtherProviderCourse).price ? "bg-green-600 hover:bg-green-700" : ""}`} 
                 size="lg"
                 onClick={() => isIlmeeLibrary ? navigate('/subscription') : undefined}
               >
                 {isIlmeeLibrary ? 'Get this course' 
-                  : ('price' in course && course.price !== null && course.price !== undefined) ? 'Buy licenses' : 'Get for free'}
+                  : (course as OtherProviderCourse).price ? 'Buy licenses' : 'Get for free'}
               </Button>
               
               {!isIlmeeLibrary && (
@@ -239,7 +286,7 @@ const CourseStoreDetails = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <Book className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <span>{course.duration} of content</span>
+                  <span>{duration} of content</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Star className="h-5 w-5 text-muted-foreground mt-0.5" />
@@ -259,7 +306,7 @@ const CourseStoreDetails = () => {
                   <p className="text-sm text-muted-foreground">
                     {isIlmeeLibrary ? 
                       "IlmeeLibrary™ courses are created by our expert instructional designers and subject matter experts." : 
-                      `${course.provider} is a trusted third-party content provider specializing in professional development courses.`
+                      `${(course as OtherProviderCourse).providerName} is a trusted third-party content provider specializing in professional development courses.`
                     }
                   </p>
                 </div>

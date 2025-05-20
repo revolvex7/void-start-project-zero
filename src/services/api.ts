@@ -54,4 +54,37 @@ api.interceptors.response.use(
 	}
 );
 
+// Course Store API
+export const fetchCourseStore = async () => {
+  try {
+    const response = await api.get('/user/course-store');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch course store data:', error);
+    throw error;
+  }
+};
+
+// File Upload API
+export const uploadFile = async (fileToUpload: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('fileToUpload', fileToUpload);
+    
+    const response = await api.post(
+      '/common/upload-file',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Failed to upload file:', error);
+    throw error;
+  }
+};
+
 export default api;

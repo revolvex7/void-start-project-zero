@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,155 +8,51 @@ import { Info, Book, CircleDollarSign, Star, StarHalf, Search } from "lucide-rea
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import CategoryBadge from "@/components/courses/CategoryBadge";
+import { fetchCourseStore } from "@/services/api";
+import { toast } from 'sonner';
 
-// Dummy data for courses
-const ilmeeLibraryCourses = [
-  {
-    id: "tl1",
-    title: "Digital Transformation Strategy",
-    courseCode: "DTS001",
-    category: "Business Strategy",
-    description: "Learn how to lead digital transformation initiatives in your organization",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?q=80&w=500&auto=format&fit=crop",
-    featured: true
-  },
-  {
-    id: "tl2",
-    title: "AI for Business Leaders",
-    courseCode: "AIB001",
-    category: "Technology",
-    description: "Understanding AI applications and implementation for strategic decision makers",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=500&auto=format&fit=crop",
-    featured: true
-  },
-  {
-    id: "tl3",
-    title: "Data Analytics Fundamentals",
-    courseCode: "DAF001",
-    category: "Data Science",
-    description: "Master the basics of data analysis for business intelligence",
-    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=500&auto=format&fit=crop",
-    featured: false
-  },
-  {
-    id: "tl4",
-    title: "Leadership in Digital Age",
-    courseCode: "LDA001",
-    category: "Leadership",
-    description: "Develop leadership skills needed in today's digital business environment",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=500&auto=format&fit=crop",
-    featured: false
-  },
-  {
-    id: "tl5",
-    title: "Cybersecurity for Everyone",
-    courseCode: "CSE001",
-    category: "Security",
-    description: "Essential cybersecurity concepts every professional should know",
-    image: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?q=80&w=500&auto=format&fit=crop",
-    featured: false
-  },
-  {
-    id: "tl6",
-    title: "Project Management Excellence",
-    courseCode: "PME001",
-    category: "Project Management",
-    description: "Master modern project management methodologies and tools",
-    image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=500&auto=format&fit=crop",
-    featured: false
-  }
-];
+// Types for API response
+interface CourseStoreData {
+  ilmeeLibrary: IlmeeLibraryCourse[];
+  otherProviders: OtherProviderCourse[];
+}
 
-const otherProviderCourses = [
-  {
-    id: "op1",
-    title: "Adobe Acrobat DC Essentials",
-    courseCode: "ADE001",
-    category: "Software Skills",
-    description: "Master PDF editing and management with Adobe Acrobat DC",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=500&auto=format&fit=crop",
-    provider: "Bigger Brains",
-    price: 40.00,
-    currency: "USD"
-  },
-  {
-    id: "op2",
-    title: "Workplace Violence Prevention",
-    courseCode: "WVP001",
-    category: "Health and Safety",
-    description: "Essential training for identifying and preventing workplace violence",
-    image: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?q=80&w=500&auto=format&fit=crop",
-    provider: "ELL Training",
-    price: 19.95,
-    currency: "USD"
-  },
-  {
-    id: "op3",
-    title: "Microsoft Excel Advanced Techniques",
-    courseCode: "MEA001",
-    category: "Software Skills",
-    description: "Take your Excel skills to the next level with advanced formulas and functions",
-    image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=500&auto=format&fit=crop",
-    provider: "Excel Pro",
-    price: 29.99,
-    currency: "USD"
-  },
-  {
-    id: "op4",
-    title: "Communication Skills Master Class",
-    courseCode: "CSM001",
-    category: "Personal Development",
-    description: "Enhance your personal and professional communication abilities",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=500&auto=format&fit=crop",
-    provider: "KeySkills Training",
-    price: null, // Free course
-    currency: "USD"
-  },
-  {
-    id: "op5",
-    title: "Python for Data Analysis",
-    courseCode: "PDA001",
-    category: "Programming",
-    description: "Learn how to analyze data efficiently using Python",
-    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=500&auto=format&fit=crop",
-    provider: "CodeMasters",
-    price: 49.99,
-    currency: "USD"
-  },
-  {
-    id: "op6",
-    title: "Digital Marketing Essentials",
-    courseCode: "DME001",
-    category: "Marketing",
-    description: "Core concepts and practices for effective digital marketing",
-    image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=500&auto=format&fit=crop",
-    provider: "Marketing Pros",
-    price: null, // Free course
-    currency: "USD"
-  }
-];
+interface IlmeeLibraryCourse {
+  id: string;
+  courseTitle: string;
+  courseCode: string;
+  categoryName: string;
+  description: string;
+  image: string;
+  isFeatured: boolean;
+  avgrating?: string;
+  // Additional properties as needed
+}
 
-// Featured collection data
-const featuredCollections = [
-  {
-    id: "col1",
-    title: "Digital Transformation",
-    courses: ["tl1", "tl2", "tl4"]
-  },
-  {
-    id: "col2",
-    title: "Technical Skills",
-    courses: ["tl3", "tl5", "op5"]
-  },
-  {
-    id: "col3",
-    title: "Professional Development",
-    courses: ["tl6", "op4", "op6"]
-  }
-];
+interface OtherProviderCourse {
+  id: string;
+  courseTitle: string;
+  courseCode: string;
+  categoryName: string;
+  description: string;
+  image: string;
+  price: string;
+  providerName: string;
+  avgrating?: string;
+  // Additional properties as needed
+}
 
-// Categories for filtering
-const categories = [
+// Type guard functions to check course types
+const isIlmeeLibraryCourse = (course: IlmeeLibraryCourse | OtherProviderCourse): course is IlmeeLibraryCourse => {
+  return 'isFeatured' in course;
+};
+
+const isOtherProviderCourse = (course: IlmeeLibraryCourse | OtherProviderCourse): course is OtherProviderCourse => {
+  return 'providerName' in course && 'price' in course;
+};
+
+// Categories for filtering (will be dynamically populated)
+const initialCategories = [
   "Business Strategy",
   "Technology",
   "Data Science",
@@ -177,6 +72,48 @@ const CourseStore = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [featuredFilter, setFeaturedFilter] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [courseData, setCourseData] = useState<CourseStoreData>({
+    ilmeeLibrary: [],
+    otherProviders: []
+  });
+  const [categories, setCategories] = useState<string[]>(initialCategories);
+
+  // Fetch course data on component mount
+  useEffect(() => {
+    const loadCourseData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetchCourseStore();
+        console.log('Course store data:', response);
+        
+        if (response && response.data) {
+          setCourseData({
+            ilmeeLibrary: response.data.ilmeeLibrary || [],
+            otherProviders: response.data.otherProviders || []
+          });
+          
+          // Extract categories from all courses
+          const allCourses = [...(response.data.ilmeeLibrary || []), ...(response.data.otherProviders || [])];
+          const uniqueCategories = [...new Set(allCourses.map(course => course.categoryName))].filter(Boolean);
+          
+          // Only update categories if we have some from the API
+          if (uniqueCategories.length > 0) {
+            setCategories(uniqueCategories);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching course data:', error);
+        setError('Failed to load course data. Please try again later.');
+        toast.error('Failed to load course data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCourseData();
+  }, []);
 
   // Handle category toggle
   const toggleCategory = (category: string) => {
@@ -195,52 +132,100 @@ const CourseStore = () => {
   };
 
   // Filter courses based on search query and categories
-  const filterCourses = (courses: any[]) => {
+  const filterCourses = (courses: IlmeeLibraryCourse[] | OtherProviderCourse[]) => {
     return courses.filter(course => {
       const matchesSearch = searchQuery === "" || 
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.category.toLowerCase().includes(searchQuery.toLowerCase());
+        course.categoryName.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesCategory = selectedCategories.length === 0 || 
-        selectedCategories.includes(course.category);
+        selectedCategories.includes(course.categoryName);
       
-      const matchesFeatured = !featuredFilter || (course.featured === true);
+      // For IlmeeLibrary courses, check featured flag if filter is active
+      let matchesFeatured = true;
+      if (featuredFilter && activeTab === "ilmeeLibrary") {
+        matchesFeatured = isIlmeeLibraryCourse(course) && course.isFeatured === true;
+      }
       
-      return matchesSearch && matchesCategory && (activeTab === "otherProviders" || matchesFeatured);
+      return matchesSearch && matchesCategory && matchesFeatured;
     });
   };
-
-  const filteredIlmeeLibraryCourses = filterCourses(ilmeeLibraryCourses);
-  const filteredOtherProviderCourses = filterCourses(otherProviderCourses);
 
   const handleCourseClick = (courseId: string) => {
     navigate(`/course-store/course/${courseId}`);
   };
 
-  const handleCollectionClick = (collectionId: string) => {
-    const collection = featuredCollections.find(col => col.id === collectionId);
-    if (collection) {
-      // Reset current filters
-      setSearchQuery('');
-      setFeaturedFilter(false);
-      
-      // Get the categories of courses in this collection
-      const collectionCourses = [
-        ...ilmeeLibraryCourses.filter(course => collection.courses.includes(course.id)),
-        ...otherProviderCourses.filter(course => collection.courses.includes(course.id))
-      ];
-      
-      const collectionCategories = [...new Set(collectionCourses.map(course => course.category))];
-      setSelectedCategories(collectionCategories);
-      
-      // If collection has courses from other providers, switch to that tab if necessary
-      const hasOtherProviders = collection.courses.some(id => id.startsWith('op'));
-      if (hasOtherProviders && activeTab !== "otherProviders") {
-        setActiveTab("ilmeeLibrary"); // We'll stay on IlmeeLibrary tab by default
-      }
-    }
-  };
+  // Transform API data to the structure expected by the UI
+  const transformedIlmeeLibraryCourses = filterCourses(courseData.ilmeeLibrary).map(course => {
+    // We know this is an IlmeeLibraryCourse because it comes from ilmeeLibrary array
+    const ilmeeCourse = course as IlmeeLibraryCourse;
+    return {
+      id: ilmeeCourse.id,
+      title: ilmeeCourse.courseTitle,
+      courseCode: ilmeeCourse.courseCode,
+      category: ilmeeCourse.categoryName,
+      description: ilmeeCourse.description,
+      image: ilmeeCourse.image,
+      featured: ilmeeCourse.isFeatured,
+      rating: ilmeeCourse.avgrating || "4.5"
+    };
+  });
+
+  const transformedOtherProviderCourses = filterCourses(courseData.otherProviders).map(course => {
+    // We know this is an OtherProviderCourse because it comes from otherProviders array
+    const otherCourse = course as OtherProviderCourse;
+    return {
+      id: otherCourse.id,
+      title: otherCourse.courseTitle,
+      courseCode: otherCourse.courseCode,
+      category: otherCourse.categoryName,
+      description: otherCourse.description,
+      image: otherCourse.image,
+      provider: otherCourse.providerName || "External Provider",
+      price: parseFloat(otherCourse.price) || null,
+      currency: "USD",
+      rating: otherCourse.avgrating || "4.0"
+    };
+  });
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Course Store</h1>
+          <p className="text-muted-foreground">
+            Discover and access professional learning content from our library and trusted partners
+          </p>
+        </div>
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="ml-4 text-muted-foreground">Loading courses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Course Store</h1>
+          <p className="text-muted-foreground">
+            Discover and access professional learning content from our library and trusted partners
+          </p>
+        </div>
+        <div className="text-center py-16 border border-dashed rounded-lg">
+          <p className="text-red-500 mb-2">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -333,51 +318,9 @@ const CourseStore = () => {
         </TabsList>
         
         <TabsContent value="ilmeeLibrary" className="space-y-8">
-          {/* Featured Collection */}
-          {!searchQuery && selectedCategories.length === 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Featured Collections</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {featuredCollections.map(collection => (
-                  <Card 
-                    key={collection.id} 
-                    className="overflow-hidden transition-all hover:shadow-md dark:hover:shadow-indigo-900/10 border-none bg-gradient-to-b from-indigo-50 to-blue-50 dark:from-indigo-950/50 dark:to-blue-950/50 cursor-pointer"
-                    onClick={() => handleCollectionClick(collection.id)}
-                  >
-                    <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                      <CardTitle className="text-lg">{collection.title}</CardTitle>
-                      <CardDescription className="text-indigo-100">
-                        {collection.courses.length} courses
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <ul className="space-y-2">
-                        {collection.courses.slice(0, 3).map(courseId => {
-                          const course = ilmeeLibraryCourses.find(c => c.id === courseId) || 
-                                       otherProviderCourses.find(c => c.id === courseId);
-                          return course ? (
-                            <li key={courseId} className="flex items-center gap-2 text-sm">
-                              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                              <span>{course.title}</span>
-                            </li>
-                          ) : null;
-                        })}
-                      </ul>
-                    </CardContent>
-                    <CardFooter className="pt-0">
-                      <Button variant="ghost" size="sm" className="text-indigo-600 dark:text-indigo-400 ml-auto">
-                        View all
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {filteredIlmeeLibraryCourses.length > 0 ? (
+          {transformedIlmeeLibraryCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredIlmeeLibraryCourses.map(course => (
+              {transformedIlmeeLibraryCourses.map(course => (
                 <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border bg-card" onClick={() => handleCourseClick(course.id)}>
                   <div className="relative h-48 overflow-hidden">
                     <img 
@@ -438,9 +381,9 @@ const CourseStore = () => {
         </TabsContent>
         
         <TabsContent value="otherProviders" className="space-y-8">
-          {filteredOtherProviderCourses.length > 0 ? (
+          {transformedOtherProviderCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredOtherProviderCourses.map(course => (
+              {transformedOtherProviderCourses.map(course => (
                 <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border bg-card" onClick={() => handleCourseClick(course.id)}>
                   <div className="relative h-48 overflow-hidden">
                     <img 

@@ -24,12 +24,13 @@ export interface CourseDetailsResponse {
     groups: any;
     files: any;
     enrolledUsers: any;
-		id: string;
-		name: string;
-		createdAt: string;
-		updatedAt: string;
-		userId: string;
-		modules: ModuleData[];
+    assignments: Assignment[];
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    modules: ModuleData[];
 	};
 }
 
@@ -387,6 +388,17 @@ export interface PublishCoursePayload {
   isPublished: boolean;
 }
 
+export interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  fileUrl?: string;
+  dueDate: string;
+  createdAt: string;
+  classNumbers?: string[];
+  isAiGenerated: boolean;
+}
+
 export const courseService = {
   async getCourseDetails(courseId: string): Promise<CourseDetailsResponse> {
     try {
@@ -678,6 +690,70 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error("Error publishing course:", error);
+      throw error;
+    }
+  },
+
+  async getCourseAssignments(courseId: string): Promise<Assignment[]> {
+    try {
+      // Mock data for now - in a real implementation, this would be an API call
+      // const response = await api.get<{ data: Assignment[] }>(`/user/course/${courseId}/assignments`);
+      // return response.data.data;
+      
+      // Return mock data
+      return [
+        {
+          id: "1",
+          title: "Midterm Assignment",
+          description: "Complete the exercises from chapters 1-5",
+          fileUrl: "https://example.com/assignments/midterm.pdf",
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+          createdAt: new Date().toISOString(),
+          isAiGenerated: false
+        },
+        {
+          id: "2",
+          title: "Final Project",
+          description: "Create a comprehensive project applying all course concepts",
+          fileUrl: "https://example.com/assignments/final.pdf",
+          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+          createdAt: new Date().toISOString(),
+          isAiGenerated: true,
+          classNumbers: ["1", "2", "3"]
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching course assignments:", error);
+      return [];
+    }
+  },
+
+  async createAssignment(courseId: string, assignmentData: Omit<Assignment, 'id'>): Promise<Assignment> {
+    try {
+      // In a real implementation, this would be an API call
+      // const response = await api.post<{ data: Assignment }>(`/user/course/${courseId}/assignments`, assignmentData);
+      // return response.data.data;
+      
+      // Return mock data
+      return {
+        id: Math.random().toString(36).substring(2, 11),
+        ...assignmentData,
+      };
+    } catch (error) {
+      console.error("Error creating assignment:", error);
+      throw error;
+    }
+  },
+
+  async deleteAssignment(assignmentId: string): Promise<void> {
+    try {
+      // In a real implementation, this would be an API call
+      // await api.delete(`/user/assignments/${assignmentId}`);
+      
+      // Mock success
+      return;
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
       throw error;
     }
   },
