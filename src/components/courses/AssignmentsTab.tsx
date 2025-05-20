@@ -2,11 +2,22 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FilePlus, Download, Eye, Trash2 } from "lucide-react";
+import { FilePlus, Download, Pencil, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddAssignmentDialog } from "./AddAssignmentDialog";
 import { toast } from "sonner";
 import { deleteAssignment as deleteAssignmentApi } from "@/services/api";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export interface Assignment {
   id: string;
@@ -31,22 +42,44 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
   onAssignmentAdded 
 }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState<string | null>(null);
+  const [assignmentToEdit, setAssignmentToEdit] = useState<Assignment | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] = useState<string | null>(null);
   
   const filteredAssignments = assignments.filter(assignment => 
     assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     assignment.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeleteAssignment = async (assignmentId: string) => {
+  const handleOpenEditDialog = (assignment: Assignment) => {
+    setAssignmentToEdit(assignment);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleConfirmDelete = (assignmentId: string) => {
+    setAssignmentToDelete(assignmentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteAssignment = async () => {
+    if (!assignmentToDelete) return;
+    
     try {
-      await deleteAssignmentApi(assignmentId);
+      setLoading(assignmentToDelete);
+      await deleteAssignmentApi(assignmentToDelete);
       toast.success("Assignment deleted successfully");
       await onAssignmentAdded(); // Refresh the list
     } catch (error) {
       toast.error("Failed to delete assignment", {
         description: "An error occurred while deleting the assignment"
       });
+    } finally {
+      setLoading(null);
+      setDeleteDialogOpen(false);
+      setAssignmentToDelete(null);
     }
   };
 
@@ -95,14 +128,13 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                               size="icon" 
                               variant="outline" 
                               className="h-8 w-8"
-                              onClick={() => window.open(assignment.fileUrl, '_blank')}
-                              disabled={!assignment.fileUrl}
+                              onClick={() => handleOpenEditDialog(assignment)}
                             >
-                              <Eye className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>View</p>
+                            <p>Edit</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -133,9 +165,14 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                               size="icon"
                               variant="outline"
                               className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                              onClick={() => handleDeleteAssignment(assignment.id)}
+                              onClick={() => handleConfirmDelete(assignment.id)}
+                              disabled={loading === assignment.id}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              {loading === assignment.id ? (
+                                <Spinner size="sm" color="primary" className="h-4 w-4" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -168,12 +205,57 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
         </Table>
       </div>
 
+      {/* Add Assignment Dialog */}
       <AddAssignmentDialog 
         isOpen={isAddDialogOpen} 
         onClose={() => setIsAddDialogOpen(false)} 
         courseId={courseId}
         onAssignmentAdded={onAssignmentAdded}
       />
+      
+      {/* Edit Assignment Dialog */}
+      {assignmentToEdit && (
+        <AddAssignmentDialog 
+          isOpen={isEditDialogOpen} 
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setAssignmentToEdit(null);
+          }} 
+          courseId={courseId}
+          onAssignmentAdded={onAssignmentAdded}
+          existingAssignment={assignmentToEdit}
+          isEditing={true}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Assignment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this assignment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteAssignment}
+              disabled={loading !== null}
+            >
+              {loading !== null ? (
+                <div className="flex items-center">
+                  <Spinner size="sm" color="white" className="mr-2" />
+                  Deleting...
+                </div>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
