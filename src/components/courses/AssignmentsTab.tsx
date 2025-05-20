@@ -2,9 +2,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FilePlus, Download, Eye, Trash2, Filter } from "lucide-react";
+import { FilePlus, Download, Eye, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatDistance } from "date-fns";
 import { AddAssignmentDialog } from "./AddAssignmentDialog";
 import { toast } from "sonner";
 import { deleteAssignment as deleteAssignmentApi } from "@/services/api";
@@ -63,11 +62,9 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
             onChange={(e) => setSearchTerm(e.target.value)}
           /> 
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <FilePlus className="mr-2 h-4 w-4" /> Add Assignment
-          </Button>
-        </div>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <FilePlus className="mr-2 h-4 w-4" /> Add Assignment
+        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-md border">
