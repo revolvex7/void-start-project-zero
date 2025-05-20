@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,7 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Assignment } from "./AssignmentsTab";
-import api, { uploadFile } from "@/services/api";
+import api, { uploadFile, updateAssignment } from "@/services/api";
 
 // Create the schema based on the provided schema
 const assignmentSchema = z.object({
@@ -52,11 +53,14 @@ interface CourseFileUploadResponse {
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
+  initialFileUrl?: string;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, initialFileUrl }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(
+    initialFileUrl ? "Existing file" : null
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,6 +79,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
         <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
         <p className="text-sm font-semibold">Click to upload or drag and drop</p>
         <p className="text-xs text-gray-500 mt-1">PDF, DOCX, or TXT (max 10MB)</p>
+        {initialFileUrl && (
+          <p className="text-xs text-blue-500 mt-2">Current file already uploaded</p>
+        )}
         <input
           type="file"
           ref={fileInputRef}
@@ -105,9 +112,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
 
 interface AIGenerationProps {
   onClassNumbersChange: (classNumbers: string) => void;
+  initialClassNumbers?: string[];
 }
 
-const AIGeneration: React.FC<AIGenerationProps> = ({ onClassNumbersChange }) => {
+const AIGeneration: React.FC<AIGenerationProps> = ({ onClassNumbersChange, initialClassNumbers }) => {
+  const initialValue = initialClassNumbers?.join(',') || '';
+  
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg">
@@ -126,6 +136,7 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassNumbersChange }) => 
         <label className="text-sm font-medium">Class Numbers</label>
         <Input 
           placeholder="e.g., 1,2,3 or 1-3" 
+          defaultValue={initialValue}
           onChange={(e) => onClassNumbersChange(e.target.value)}
         />
         <p className="text-xs text-gray-500">
@@ -141,6 +152,8 @@ interface AddAssignmentDialogProps {
   onClose: () => void;
   courseId: string;
   onAssignmentAdded: () => Promise<void>;
+  existingAssignment?: Assignment;
+  isEditing?: boolean;
 }
 
 export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
@@ -148,17 +161,27 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   onClose,
   courseId,
   onAssignmentAdded,
+  existingAssignment,
+  isEditing = false,
 }) => {
-  const [activeTab, setActiveTab] = useState<string>("manual");
+  const isEdit = isEditing && existingAssignment;
+  const dialogTitle = isEdit ? "Edit Assignment" : "Add Assignment";
+  const submitButtonText = isEdit ? "Update Assignment" : "Create Assignment";
+  
+  const initialTab = existingAssignment?.isAiGenerated ? "ai" : "manual";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [classNumbers, setClassNumbers] = useState<string>("");
+  const [classNumbers, setClassNumbers] = useState<string>(
+    existingAssignment?.classNumbers?.join(',') || ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
-      title: "",
-      description: "",
+      title: existingAssignment?.title || "",
+      description: existingAssignment?.description || "",
+      dueDate: existingAssignment ? new Date(existingAssignment.dueDate) : undefined,
     },
   });
 
@@ -184,8 +207,8 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   const handleSubmit = async (values: z.infer<typeof assignmentSchema>) => {
     setIsSubmitting(true);
     try {
-      // For manual assignments, file is required
-      if (activeTab === "manual" && !selectedFile) {
+      // For manual assignments, file is required (unless editing and not changing)
+      if (activeTab === "manual" && !selectedFile && !isEdit) {
         toast.error("Please upload an assignment file");
         setIsSubmitting(false);
         return;
@@ -198,8 +221,8 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         return;
       }
 
-      // Upload file for manual assignments
-      let fileUrl = '';
+      // Upload file for manual assignments (only if new file selected)
+      let fileUrl = existingAssignment?.fileUrl || '';
       if (activeTab === "manual" && selectedFile) {
         // Use the imported uploadFile function
         const uploadResponse = await uploadFile(selectedFile);
@@ -216,19 +239,24 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         isAiGenerated: activeTab === "ai",
       };
 
-      // Create the assignment
-      await createAssignment(assignmentData);
-
-      toast.success(
-        activeTab === "manual" 
-          ? "Assignment uploaded successfully" 
-          : "AI is generating your assignment",
-        {
-          description: activeTab === "manual" 
-            ? "Students can now access this assignment" 
-            : "You will be notified when the generation is complete"
-        }
-      );
+      if (isEdit && existingAssignment) {
+        // Update existing assignment
+        await updateAssignment(existingAssignment.id, assignmentData);
+        toast.success("Assignment updated successfully");
+      } else {
+        // Create new assignment
+        await createAssignment(assignmentData);
+        toast.success(
+          activeTab === "manual" 
+            ? "Assignment uploaded successfully" 
+            : "AI is generating your assignment",
+          {
+            description: activeTab === "manual" 
+              ? "Students can now access this assignment" 
+              : "You will be notified when the generation is complete"
+          }
+        );
+      }
 
       await onAssignmentAdded();
       onClose();
@@ -236,8 +264,8 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
       setSelectedFile(null);
       setClassNumbers("");
     } catch (error) {
-      toast.error("Failed to create assignment", {
-        description: "An error occurred while creating the assignment"
+      toast.error(isEdit ? "Failed to update assignment" : "Failed to create assignment", {
+        description: "An error occurred while processing the assignment"
       });
     } finally {
       setIsSubmitting(false);
@@ -248,9 +276,9 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Assignment</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Create a new assignment for your students
+            {isEdit ? "Update assignment details" : "Create a new assignment for your students"}
           </DialogDescription>
         </DialogHeader>
         
@@ -334,10 +362,16 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
                 <TabsTrigger value="ai">AI Generated</TabsTrigger>
               </TabsList>
               <TabsContent value="manual" className="mt-4">
-                <FileUpload onFileSelect={setSelectedFile} />
+                <FileUpload 
+                  onFileSelect={setSelectedFile} 
+                  initialFileUrl={existingAssignment?.fileUrl}
+                />
               </TabsContent>
               <TabsContent value="ai" className="mt-4">
-                <AIGeneration onClassNumbersChange={setClassNumbers} />
+                <AIGeneration 
+                  onClassNumbersChange={setClassNumbers}
+                  initialClassNumbers={existingAssignment?.classNumbers} 
+                />
               </TabsContent>
             </Tabs>
             
@@ -346,7 +380,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Assignment"}
+                {isSubmitting ? (isEdit ? "Updating..." : "Creating...") : submitButtonText}
               </Button>
             </DialogFooter>
           </form>
