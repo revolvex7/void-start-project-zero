@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -131,13 +132,17 @@ interface AIGenerationProps {
   classes: ClassOption[];
 }
 
-const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialClassIds, classes }) => {
+const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialClassIds = [], classes }) => {
   const [selectedClasses, setSelectedClasses] = useState<ClassOption[]>([]);
   const [commandOpen, setCommandOpen] = useState(false);
 
+  console.log("AIGeneration - initialClassIds:", initialClassIds);
+  console.log("AIGeneration - classes:", classes);
+
   useEffect(() => {
-    if (classes.length) {
+    if (classes && classes.length > 0 && initialClassIds && initialClassIds.length > 0) {
       const initialSelected = classes.filter(c => initialClassIds.includes(c.id));
+      console.log("AIGeneration - initialSelected:", initialSelected);
       setSelectedClasses(initialSelected);
     }
   }, [initialClassIds, classes]);
@@ -215,7 +220,7 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialCl
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0">
+          <PopoverContent className="w-[400px] p-0" sideOffset={4}>
             <Command>
               <CommandInput placeholder="Search classes..." />
               <CommandEmpty>No classes found.</CommandEmpty>
@@ -283,6 +288,9 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   const [classIds, setClassIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileChanged, setFileChanged] = useState(false);
+
+  console.log("AddAssignmentDialog - assignment:", assignment);
+  console.log("AddAssignmentDialog - classes:", classes);
   
   // Initialize form with default values or values from existing assignment
   const form = useForm<z.infer<typeof assignmentSchema>>({
@@ -308,9 +316,10 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
       
       setActiveTab(assignment.isAiGenerated ? "ai" : "manual");
       
-      if (assignment.classNumbers?.length) {
-        setClassIds(assignment.classNumbers);
-      }
+      // Handle classNumbers - ensure it's an array or empty array
+      const assignmentClassNumbers = assignment.classNumbers || [];
+      console.log("Setting classIds from assignment.classNumbers:", assignmentClassNumbers);
+      setClassIds(Array.isArray(assignmentClassNumbers) ? assignmentClassNumbers : []);
     } else {
       form.reset({
         title: "",
@@ -520,7 +529,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
               <TabsContent value="ai" className="mt-4">
                 <AIGeneration 
                   onClassIdsChange={setClassIds}
-                  initialClassIds={assignment?.classNumbers}
+                  initialClassIds={classIds}
                   classes={classes}
                 />
               </TabsContent>
