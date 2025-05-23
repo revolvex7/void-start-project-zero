@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -88,16 +89,16 @@ const CourseDetails: React.FC = () => {
 			}))
 		);
 	}, [data]);
-
+  
 	React.useEffect(() => {
-		if (transformedModules.length > 0) {
+		if (data?.data?.modules.length > 0) {
 			const initialExpandedState: Record<string, boolean> = {};
-			transformedModules.forEach((module) => {
+			data.data.modules.forEach((module) => {
 				initialExpandedState[module.id] = true;
 			});
 			setExpandedModules(initialExpandedState);
 		}
-	}, [transformedModules]);
+	}, [data?.data?.modules]);
 
 	const sidebarItems = React.useMemo(() => {
 		if (!data?.data?.modules) return [];
@@ -312,7 +313,7 @@ const CourseDetails: React.FC = () => {
 											</div>
 										)
 									) : (
-										transformedModules.map((module) => (
+										data?.data?.modules.map((module) => (
 											<ModuleCard
 												key={module.id}
 												module={module}

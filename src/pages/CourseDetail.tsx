@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -98,14 +97,6 @@ const CourseDetailPage: React.FC = () => {
           title: cls.title
         }))
       );
-    }
-    
-    // If we don't have modules, check if we have a classes array directly
-    if (courseDetail.data.course?.classes) {
-      return courseDetail.data.course.classes.map(cls => ({
-        id: cls.id,
-        title: cls.title
-      }));
     }
     
     return [];
