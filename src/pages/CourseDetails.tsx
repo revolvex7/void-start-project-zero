@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +17,7 @@ import ClassDetailsPanel from "@/components/syllabus/ClassDetailsPanel";
 import EditDialog from "@/components/syllabus/EditDialog";
 import PresentationView from "@/components/syllabus/PresentationView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AssignmentsTab } from "@/components/courses/AssignmentsTab";
+import { AssignmentsTab, ClassOption } from "@/components/courses/AssignmentsTab";
 import { GroupUsersTab } from "@/components/groups/GroupUsersTab";
 import { GroupFilesTab } from "@/components/groups/GroupFilesTab";
 import { UserGroupsTab } from "@/components/users/UserGroupsTab";
@@ -78,19 +77,16 @@ const CourseDetails: React.FC = () => {
 		},
 	});
 
-	const transformedModules = React.useMemo(() => {
+	// Extract classes for the AssignmentsTab
+	const courseClasses: ClassOption[] = React.useMemo(() => {
 		if (!data?.data?.modules) return [];
-
-		return data.data.modules.map((module: ModuleData) => ({
-			id: module.id,
-			title: module.name,
-			classes: module.classes.map((classItem: ClassData) => ({
-				id: classItem.id,
-				title: classItem.title,
-				corePoints: classItem.concepts,
-				slideCount: 0,
-			})),
-		}));
+		
+		return data.data.modules.flatMap((module: ModuleData) => 
+			module.classes.map((cls: ClassData) => ({
+				id: cls.id,
+				title: cls.title
+			}))
+		);
 	}, [data]);
 
 	React.useEffect(() => {
@@ -333,7 +329,8 @@ const CourseDetails: React.FC = () => {
 									<AssignmentsTab 
 										courseId={courseId || ""} 
 										assignments={data.data.assignments || []} 
-										onAssignmentAdded={handleAssignmentChanged} 
+										onAssignmentAdded={handleAssignmentChanged}
+										classes={courseClasses} 
 									/>
 								</TabsContent>
 								

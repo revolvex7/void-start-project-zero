@@ -50,7 +50,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { formatFileSize } from "@/lib/utils";
 import { EnrollUsersDialog } from "@/components/courses/EnrollUsersDialog";
 import { FileUploader } from "@/components/courses/FileUploader";
-import { AssignmentsTab } from "@/components/courses/AssignmentsTab";
+import { AssignmentsTab, ClassOption } from "@/components/courses/AssignmentsTab";
 import { Assignment } from "@/components/courses/AssignmentsTab";
 
 const CourseDetailPage: React.FC = () => {
@@ -84,9 +84,32 @@ const CourseDetailPage: React.FC = () => {
     }
   });
 
-  // Removed the separate assignments query since we're getting them from courseDetail
-
   const isLoading = isLoadingBasicInfo || isLoadingDetail;
+
+  // Extract classes from courseDetail for use in the AssignmentsTab
+  const courseClasses: ClassOption[] = React.useMemo(() => {
+    if (!courseDetail?.data) return [];
+    
+    // Check if the course has modules with classes
+    if (courseDetail.data.modules && courseDetail.data.modules.length > 0) {
+      return courseDetail.data.modules.flatMap(module => 
+        module.classes.map(cls => ({
+          id: cls.id,
+          title: cls.title
+        }))
+      );
+    }
+    
+    // If we don't have modules, check if we have a classes array directly
+    if (courseDetail.data.course?.classes) {
+      return courseDetail.data.course.classes.map(cls => ({
+        id: cls.id,
+        title: cls.title
+      }));
+    }
+    
+    return [];
+  }, [courseDetail]);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
@@ -459,9 +482,10 @@ const CourseDetailPage: React.FC = () => {
             
             <TabsContent value="assignments" className="space-y-4">
               <AssignmentsTab 
-                courseId={courseId || ""}
+                courseId={courseId || ""} 
                 assignments={courseDetail.data.assignments || []} 
                 onAssignmentAdded={handleAssignmentAdded}
+                classes={courseClasses}
               />
             </TabsContent>
           </Tabs>

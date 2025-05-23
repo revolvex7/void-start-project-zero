@@ -33,16 +33,23 @@ export interface Assignment {
   totalMarks?: number;
 }
 
+export interface ClassOption {
+  id: string;
+  title: string;
+}
+
 interface AssignmentsTabProps {
   courseId: string;
   assignments: Assignment[];
   onAssignmentAdded: () => Promise<void>;
+  classes?: ClassOption[];
 }
 
 export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({ 
   courseId, 
   assignments = [],
-  onAssignmentAdded 
+  onAssignmentAdded,
+  classes = []
 }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -265,6 +272,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
         courseId={courseId}
         onAssignmentAdded={onAssignmentAdded}
         assignment={selectedAssignment}
+        classes={classes}
       />
     </div>
   );

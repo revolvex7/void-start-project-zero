@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,6 +39,7 @@ import {
   CommandItem 
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
+import { ClassOption } from "./AssignmentsTab";
 
 // Create the schema based on the provided schema
 const assignmentSchema = z.object({
@@ -59,12 +59,6 @@ interface CourseFileUploadResponse {
     size: number;
     url: string;
   };
-}
-
-// Interface for class data
-interface ClassOption {
-  id: string;
-  title: string;
 }
 
 interface FileUploadProps {
@@ -272,6 +266,7 @@ interface AddAssignmentDialogProps {
   courseId: string;
   onAssignmentAdded: () => Promise<void>;
   assignment?: Assignment | null;
+  classes?: ClassOption[];
 }
 
 export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
@@ -280,6 +275,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   courseId,
   onAssignmentAdded,
   assignment,
+  classes = []
 }) => {
   const isEditMode = !!assignment;
   const [activeTab, setActiveTab] = useState<string>(assignment?.isAiGenerated ? "ai" : "manual");
@@ -287,34 +283,8 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   const [classIds, setClassIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileChanged, setFileChanged] = useState(false);
-  const [classList, setClassList] = useState<ClassOption[]>([]);
   
-  // Fetch course details to get classes
-  useEffect(() => {
-    if (isOpen && courseId) {
-      const fetchCourseDetails = async () => {
-        try {
-          const response = await courseService.getCourseDetails(courseId);
-          
-          if (response?.data?.id) {
-            const classData = response.data.modules.flatMap(module => 
-              module.classes.map(cls => ({
-                id: cls.id,
-                title: cls.title
-              }))
-            );
-            setClassList(classData);
-          }
-        } catch (error) {
-          console.error("Error fetching course details:", error);
-          toast.error("Failed to load class list");
-        }
-      };
-      
-      fetchCourseDetails();
-    }
-  }, [isOpen, courseId]);
-
+  // Initialize form with default values or values from existing assignment
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
@@ -551,7 +521,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
                 <AIGeneration 
                   onClassIdsChange={setClassIds}
                   initialClassIds={assignment?.classNumbers}
-                  classes={classList}
+                  classes={classes}
                 />
               </TabsContent>
             </Tabs>
