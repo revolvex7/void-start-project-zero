@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Upload, Zap, X, Check } from "lucide-react";
+import { CalendarIcon, Upload, Zap, X, Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -152,7 +152,9 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialCl
     setSelectedClasses(current => {
       // Check if already selected
       if (current.some(item => item.id === classItem.id)) {
-        return current.filter(item => item.id !== classItem.id);
+        const newSelection = current.filter(item => item.id !== classItem.id);
+        onClassIdsChange(newSelection.map(item => item.id));
+        return newSelection;
       } 
       // Check if already has 3 items
       if (current.length >= 3) {
@@ -216,7 +218,7 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialCl
               {selectedClasses.length > 0 
                 ? `${selectedClasses.length} class${selectedClasses.length > 1 ? 'es' : ''} selected`
                 : "Select classes..."}
-              <CalendarIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0">
@@ -224,27 +226,31 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialCl
               <CommandInput placeholder="Search classes..." />
               <CommandEmpty>No classes found.</CommandEmpty>
               <CommandGroup className="max-h-[300px] overflow-auto">
-                {classes.map(classItem => (
-                  <CommandItem
-                    key={classItem.id}
-                    value={classItem.title}
-                    onSelect={() => {
-                      handleSelect(classItem);
-                      setCommandOpen(false);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <div className={cn(
-                      "mr-2", 
-                      selectedClasses.some(item => item.id === classItem.id) ? "opacity-100" : "opacity-0"
-                    )}>
-                      <Check className="h-4 w-4" />
-                    </div>
-                    <span className="flex-1 truncate">
-                      {classItem.title}
-                    </span>
-                  </CommandItem>
-                ))}
+                {classes && classes.length > 0 ? (
+                  classes.map(classItem => (
+                    <CommandItem
+                      key={classItem.id}
+                      value={classItem.title}
+                      onSelect={() => {
+                        handleSelect(classItem);
+                        setCommandOpen(false);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={cn(
+                        "mr-2", 
+                        selectedClasses.some(item => item.id === classItem.id) ? "opacity-100" : "opacity-0"
+                      )}>
+                        <Check className="h-4 w-4" />
+                      </div>
+                      <span className="flex-1 truncate">
+                        {classItem.title}
+                      </span>
+                    </CommandItem>
+                  ))
+                ) : (
+                  <div className="py-6 text-center text-sm">No classes available</div>
+                )}
               </CommandGroup>
             </Command>
           </PopoverContent>
@@ -288,13 +294,16 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
     if (isOpen && courseId) {
       const fetchCourseDetails = async () => {
         try {
-          const response = await courseService.getCourseForEdit(courseId);
-          if (response?.data?.classes) {
-            const classes = response.data.classes.map(cls => ({
-              id: cls.classId,
-              title: cls.classTitle
-            }));
-            setClassList(classes);
+          const response = await courseService.getCourseDetails(courseId);
+          
+          if (response?.data?.id) {
+            const classData = response.data.modules.flatMap(module => 
+              module.classes.map(cls => ({
+                id: cls.id,
+                title: cls.title
+              }))
+            );
+            setClassList(classData);
           }
         } catch (error) {
           console.error("Error fetching course details:", error);
