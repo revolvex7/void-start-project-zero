@@ -2,11 +2,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FilePlus, Download, Pencil, Trash2 } from "lucide-react";
+import { FilePlus, Download, Eye, Trash2, Pencil } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddAssignmentDialog } from "./AddAssignmentDialog";
 import { toast } from "sonner";
-import { deleteAssignment as deleteAssignmentApi } from "@/services/api";
+import { courseService } from "@/services/courseService";
 import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 
 export interface Assignment {
   id: string;
@@ -28,6 +29,8 @@ export interface Assignment {
   createdAt: string;
   classNumbers?: string[];
   isAiGenerated: boolean;
+  published?: boolean;
+  totalMarks?: number;
 }
 
 interface AssignmentsTabProps {
@@ -42,34 +45,28 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
   onAssignmentAdded 
 }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState<string | null>(null);
-  const [assignmentToEdit, setAssignmentToEdit] = useState<Assignment | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const filteredAssignments = assignments.filter(assignment => 
     assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     assignment.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenEditDialog = (assignment: Assignment) => {
-    setAssignmentToEdit(assignment);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleConfirmDelete = (assignmentId: string) => {
+  const handleDeletePrompt = (assignmentId: string) => {
     setAssignmentToDelete(assignmentId);
-    setDeleteDialogOpen(true);
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteAssignment = async () => {
+  const handleDeleteConfirm = async () => {
     if (!assignmentToDelete) return;
     
     try {
-      setLoading(assignmentToDelete);
-      await deleteAssignmentApi(assignmentToDelete);
+      setIsDeleting(true);
+      await courseService.deleteAssignment(assignmentToDelete);
       toast.success("Assignment deleted successfully");
       await onAssignmentAdded(); // Refresh the list
     } catch (error) {
@@ -77,23 +74,33 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
         description: "An error occurred while deleting the assignment"
       });
     } finally {
-      setLoading(null);
-      setDeleteDialogOpen(false);
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
       setAssignmentToDelete(null);
     }
   };
 
+  const handleEditAssignment = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setIsAddDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedAssignment(null);
+    setIsAddDialogOpen(false);
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="relative flex-1">
-          <input
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="relative flex-1 max-w-md">
+          <Input
             type="text"
             placeholder="Search assignments..."
-            className="w-full px-3 py-2 border rounded-md pr-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-          /> 
+            className="w-full"
+          />
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <FilePlus className="mr-2 h-4 w-4" /> Add Assignment
@@ -107,8 +114,9 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
               <TableHead className="w-[180px] min-w-[150px]">Title</TableHead>
               <TableHead className="min-w-[250px]">Description</TableHead>
               <TableHead className="w-[120px]">Due Date</TableHead>
+              <TableHead className="w-[80px]">Marks</TableHead>
               <TableHead className="w-[100px]">Type</TableHead>
-              <TableHead className="text-right w-[120px]">Actions</TableHead>
+              <TableHead className="text-right w-[150px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,6 +126,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                   <TableCell className="font-medium">{assignment.title}</TableCell>
                   <TableCell className="line-clamp-2 max-w-[300px]">{assignment.description}</TableCell>
                   <TableCell>{new Date(assignment.dueDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{assignment.totalMarks || "—"}</TableCell>
                   <TableCell>{assignment.isAiGenerated ? "AI Generated" : "Manual"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-1">
@@ -128,13 +137,14 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                               size="icon" 
                               variant="outline" 
                               className="h-8 w-8"
-                              onClick={() => handleOpenEditDialog(assignment)}
+                              onClick={() => window.open(assignment.fileUrl, '_blank')}
+                              disabled={!assignment.fileUrl}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Edit</p>
+                            <p>View</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -157,6 +167,24 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="icon" 
+                              variant="outline" 
+                              className="h-8 w-8"
+                              onClick={() => handleEditAssignment(assignment)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Edit</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       
                       <TooltipProvider>
                         <Tooltip>
@@ -165,14 +193,9 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                               size="icon"
                               variant="outline"
                               className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                              onClick={() => handleConfirmDelete(assignment.id)}
-                              disabled={loading === assignment.id}
+                              onClick={() => handleDeletePrompt(assignment.id)}
                             >
-                              {loading === assignment.id ? (
-                                <Spinner size="sm" color="primary" className="h-4 w-4" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
-                              )}
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -205,50 +228,29 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
         </Table>
       </div>
 
-      {/* Add Assignment Dialog */}
-      <AddAssignmentDialog 
-        isOpen={isAddDialogOpen} 
-        onClose={() => setIsAddDialogOpen(false)} 
-        courseId={courseId}
-        onAssignmentAdded={onAssignmentAdded}
-      />
-      
-      {/* Edit Assignment Dialog */}
-      {assignmentToEdit && (
-        <AddAssignmentDialog 
-          isOpen={isEditDialogOpen} 
-          onClose={() => {
-            setIsEditDialogOpen(false);
-            setAssignmentToEdit(null);
-          }} 
-          courseId={courseId}
-          onAssignmentAdded={onAssignmentAdded}
-          existingAssignment={assignmentToEdit}
-          isEditing={true}
-        />
-      )}
-
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Assignment</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this assignment? This action cannot be undone.
+              This action cannot be undone. This will permanently delete the assignment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading !== null}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={handleDeleteAssignment}
-              disabled={loading !== null}
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault(); // Prevent dialog from closing immediately
+                handleDeleteConfirm();
+              }}
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={isDeleting}
             >
-              {loading !== null ? (
-                <div className="flex items-center">
-                  <Spinner size="sm" color="white" className="mr-2" />
-                  Deleting...
-                </div>
+              {isDeleting ? (
+                <>
+                  <Spinner size="sm" color="white" className="mr-2" /> Deleting...
+                </>
               ) : (
                 "Delete"
               )}
@@ -256,6 +258,14 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AddAssignmentDialog 
+        isOpen={isAddDialogOpen} 
+        onClose={handleCloseDialog} 
+        courseId={courseId}
+        onAssignmentAdded={onAssignmentAdded}
+        assignment={selectedAssignment}
+      />
     </div>
   );
 };

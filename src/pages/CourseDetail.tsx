@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -60,7 +61,6 @@ const CourseDetailPage: React.FC = () => {
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
   const [isFileUploaderOpen, setIsFileUploaderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
 
   const { data: courseBasicInfo, isLoading: isLoadingBasicInfo } = useQuery({
     queryKey: ["course-basic-info", courseId],
@@ -84,19 +84,9 @@ const CourseDetailPage: React.FC = () => {
     }
   });
 
-  const { data: assignmentsData, isLoading: isLoadingAssignments, refetch: refetchAssignments } = useQuery({
-    queryKey: ["courseAssignments", courseId],
-    queryFn: () => courseService.getCourseAssignments(courseId || ""),
-    enabled: !!courseId && activeTab === "assignments"
-  });
+  // Removed the separate assignments query since we're getting them from courseDetail
 
-  useEffect(() => {
-    if (assignmentsData) {
-      setAssignments(assignmentsData);
-    }
-  }, [assignmentsData]);
-
-  const isLoading = isLoadingBasicInfo || isLoadingDetail || isLoadingAssignments;
+  const isLoading = isLoadingBasicInfo || isLoadingDetail;
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
@@ -163,7 +153,7 @@ const CourseDetailPage: React.FC = () => {
   };
 
   const handleAssignmentAdded = async () => {
-    await refetchAssignments();
+    await refetch(); // Refetch course details to update assignments
   };
 
   const filteredUsers = courseDetail.data.enrolledUsers.filter(user => 
@@ -244,6 +234,7 @@ const CourseDetailPage: React.FC = () => {
             </TabsList>
 
             <div className="flex flex-wrap items-center gap-2 mb-4">
+            {activeTab !== "assignments" && (
               <div className="flex-1 flex items-center space-x-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -258,6 +249,7 @@ const CourseDetailPage: React.FC = () => {
                   <Filter className="h-4 w-4" />
                 </Button>
               </div>
+              )}
               {activeTab === "users" && (
                 <Button onClick={() => setIsEnrollDialogOpen(true)}>
                   <UserPlus className="mr-2 h-4 w-4" /> Enroll to course
@@ -468,7 +460,7 @@ const CourseDetailPage: React.FC = () => {
             <TabsContent value="assignments" className="space-y-4">
               <AssignmentsTab 
                 courseId={courseId || ""}
-                assignments={assignments} 
+                assignments={courseDetail.data.assignments || []} 
                 onAssignmentAdded={handleAssignmentAdded}
               />
             </TabsContent>

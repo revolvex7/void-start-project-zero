@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,9 +29,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import { Assignment } from "./AssignmentsTab";
-import api, { uploadFile, updateAssignment } from "@/services/api";
+import { courseService } from "@/services/courseService";
+import { uploadFile } from "@/services/api";
 
 // Create the schema based on the provided schema
 const assignmentSchema = z.object({
@@ -40,6 +40,8 @@ const assignmentSchema = z.object({
   dueDate: z.date({
     required_error: "Due date is required",
   }),
+  totalMarks: z.coerce.number().min(1, "Total marks are required").max(100, "Total marks cannot exceed 100"),
+  published: z.boolean().optional(),
 });
 
 // Type for API responses
@@ -58,9 +60,14 @@ interface FileUploadProps {
 
 const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, initialFileUrl }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<string | null>(
-    initialFileUrl ? "Existing file" : null
-  );
+  const [fileName, setFileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialFileUrl) {
+      const filename = initialFileUrl.split('/').pop() || 'Current file';
+      setFileName(filename);
+    }
+  }, [initialFileUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,11 +84,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, initialFileUrl })
         onClick={() => fileInputRef.current?.click()}
       >
         <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
-        <p className="text-sm font-semibold">Click to upload or drag and drop</p>
+        <p className="text-sm font-semibold">
+          {initialFileUrl ? 'Replace current file' : 'Click to upload or drag and drop'}
+        </p>
         <p className="text-xs text-gray-500 mt-1">PDF, DOCX, or TXT (max 10MB)</p>
-        {initialFileUrl && (
-          <p className="text-xs text-blue-500 mt-2">Current file already uploaded</p>
-        )}
         <input
           type="file"
           ref={fileInputRef}
@@ -97,7 +103,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, initialFileUrl })
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setFileName(null);
               if (fileInputRef.current) fileInputRef.current.value = '';
             }}
@@ -116,8 +123,19 @@ interface AIGenerationProps {
 }
 
 const AIGeneration: React.FC<AIGenerationProps> = ({ onClassNumbersChange, initialClassNumbers }) => {
-  const initialValue = initialClassNumbers?.join(',') || '';
-  
+  const [value, setValue] = useState<string>(initialClassNumbers?.join(',') || "");
+
+  useEffect(() => {
+    if (initialClassNumbers?.length) {
+      setValue(initialClassNumbers.join(','));
+    }
+  }, [initialClassNumbers]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    onClassNumbersChange(e.target.value);
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg">
@@ -136,8 +154,8 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassNumbersChange, initi
         <label className="text-sm font-medium">Class Numbers</label>
         <Input 
           placeholder="e.g., 1,2,3 or 1-3" 
-          defaultValue={initialValue}
-          onChange={(e) => onClassNumbersChange(e.target.value)}
+          value={value}
+          onChange={handleChange}
         />
         <p className="text-xs text-gray-500">
           Enter comma-separated numbers (e.g., 1,2,3) or a range (e.g., 1-3)
@@ -152,8 +170,7 @@ interface AddAssignmentDialogProps {
   onClose: () => void;
   courseId: string;
   onAssignmentAdded: () => Promise<void>;
-  existingAssignment?: Assignment;
-  isEditing?: boolean;
+  assignment?: Assignment | null;
 }
 
 export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
@@ -161,54 +178,66 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   onClose,
   courseId,
   onAssignmentAdded,
-  existingAssignment,
-  isEditing = false,
+  assignment,
 }) => {
-  const isEdit = isEditing && existingAssignment;
-  const dialogTitle = isEdit ? "Edit Assignment" : "Add Assignment";
-  const submitButtonText = isEdit ? "Update Assignment" : "Create Assignment";
-  
-  const initialTab = existingAssignment?.isAiGenerated ? "ai" : "manual";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const isEditMode = !!assignment;
+  const [activeTab, setActiveTab] = useState<string>(assignment?.isAiGenerated ? "ai" : "manual");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [classNumbers, setClassNumbers] = useState<string>(
-    existingAssignment?.classNumbers?.join(',') || ""
-  );
+  const [classNumbers, setClassNumbers] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fileChanged, setFileChanged] = useState(false);
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
-      title: existingAssignment?.title || "",
-      description: existingAssignment?.description || "",
-      dueDate: existingAssignment ? new Date(existingAssignment.dueDate) : undefined,
+      title: assignment?.title || "",
+      description: assignment?.description || "",
+      dueDate: assignment?.dueDate ? new Date(assignment.dueDate) : undefined,
+      totalMarks: assignment?.totalMarks || 10,
+      published: assignment?.published || false,
     },
   });
 
-  // Function to create assignment
-  const createAssignment = async (data: {
-    title: string;
-    description: string;
-    fileUrl: string;
-    dueDate: string;
-    classNumbers?: string[];
-    isAiGenerated?: boolean;
-  }) => {
-    try {
-      // Updated to use the new API endpoint with courseId in the URL
-      const response = await api.post(`/user/assignments/${courseId}`, data);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating assignment:", error);
-      throw error;
+  useEffect(() => {
+    if (assignment) {
+      form.reset({
+        title: assignment.title,
+        description: assignment.description,
+        dueDate: new Date(assignment.dueDate),
+        totalMarks: assignment.totalMarks || 10,
+        published: assignment.published || false,
+      });
+      
+      setActiveTab(assignment.isAiGenerated ? "ai" : "manual");
+      
+      if (assignment.classNumbers?.length) {
+        setClassNumbers(assignment.classNumbers.join(','));
+      }
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        dueDate: undefined,
+        totalMarks: 10,
+        published: false,
+      });
+      setActiveTab("manual");
+      setClassNumbers("");
+      setSelectedFile(null);
+      setFileChanged(false);
     }
+  }, [assignment, form]);
+
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setFileChanged(true);
   };
 
   const handleSubmit = async (values: z.infer<typeof assignmentSchema>) => {
     setIsSubmitting(true);
     try {
-      // For manual assignments, file is required (unless editing and not changing)
-      if (activeTab === "manual" && !selectedFile && !isEdit) {
+      // For manual assignments, file is required for new assignments
+      if (activeTab === "manual" && !isEditMode && !selectedFile) {
         toast.error("Please upload an assignment file");
         setIsSubmitting(false);
         return;
@@ -221,10 +250,9 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         return;
       }
 
-      // Upload file for manual assignments (only if new file selected)
-      let fileUrl = existingAssignment?.fileUrl || '';
-      if (activeTab === "manual" && selectedFile) {
-        // Use the imported uploadFile function
+      // Upload file for manual assignments if it's changed or new
+      let fileUrl = assignment?.fileUrl || '';
+      if (activeTab === "manual" && selectedFile && (fileChanged || !isEditMode)) {
         const uploadResponse = await uploadFile(selectedFile);
         fileUrl = uploadResponse.data.url;
       }
@@ -237,15 +265,16 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         fileUrl: activeTab === "manual" ? fileUrl : '',
         classNumbers: activeTab === "ai" ? classNumbers.split(',').map(n => n.trim()) : undefined,
         isAiGenerated: activeTab === "ai",
+        published: values.published,
+        totalMarks: values.totalMarks,
       };
 
-      if (isEdit && existingAssignment) {
-        // Update existing assignment
-        await updateAssignment(existingAssignment.id, assignmentData);
+      // Create or update the assignment
+      if (isEditMode && assignment) {
+        await courseService.updateAssignment(assignment.id, assignmentData);
         toast.success("Assignment updated successfully");
       } else {
-        // Create new assignment
-        await createAssignment(assignmentData);
+        await courseService.createAssignment(courseId, assignmentData);
         toast.success(
           activeTab === "manual" 
             ? "Assignment uploaded successfully" 
@@ -263,9 +292,10 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
       form.reset();
       setSelectedFile(null);
       setClassNumbers("");
+      setFileChanged(false);
     } catch (error) {
-      toast.error(isEdit ? "Failed to update assignment" : "Failed to create assignment", {
-        description: "An error occurred while processing the assignment"
+      toast.error(isEditMode ? "Failed to update assignment" : "Failed to create assignment", {
+        description: "An error occurred"
       });
     } finally {
       setIsSubmitting(false);
@@ -276,9 +306,9 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Assignment" : "Add Assignment"}</DialogTitle>
           <DialogDescription>
-            {isEdit ? "Update assignment details" : "Create a new assignment for your students"}
+            {isEditMode ? "Update assignment details" : "Create a new assignment for your students"}
           </DialogDescription>
         </DialogHeader>
         
@@ -316,61 +346,84 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Due Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Select a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                        disabled={(date) => date < new Date()}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Due Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Select a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          disabled={(date) => date < new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="totalMarks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Marks</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="Enter total marks" 
+                        min={1} 
+                        max={100} 
+                        {...field} 
                       />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            {/* FIX: Handle tab disabling at the UI/UX level instead of a prop on the Tabs component */}
+            <Tabs value={activeTab} onValueChange={isEditMode ? undefined : setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual">Manual Upload</TabsTrigger>
-                <TabsTrigger value="ai">AI Generated</TabsTrigger>
+                <TabsTrigger value="manual" disabled={isEditMode}>Manual Upload</TabsTrigger>
+                <TabsTrigger value="ai" disabled={isEditMode}>AI Generated</TabsTrigger>
               </TabsList>
               <TabsContent value="manual" className="mt-4">
                 <FileUpload 
-                  onFileSelect={setSelectedFile} 
-                  initialFileUrl={existingAssignment?.fileUrl}
+                  onFileSelect={handleFileSelect} 
+                  initialFileUrl={assignment?.fileUrl}
                 />
               </TabsContent>
               <TabsContent value="ai" className="mt-4">
                 <AIGeneration 
-                  onClassNumbersChange={setClassNumbers}
-                  initialClassNumbers={existingAssignment?.classNumbers} 
+                  onClassNumbersChange={setClassNumbers} 
+                  initialClassNumbers={assignment?.classNumbers}
                 />
               </TabsContent>
             </Tabs>
@@ -380,7 +433,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (isEdit ? "Updating..." : "Creating...") : submitButtonText}
+                {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Assignment" : "Create Assignment")}
               </Button>
             </DialogFooter>
           </form>

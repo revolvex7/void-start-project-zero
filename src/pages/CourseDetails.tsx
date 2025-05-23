@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, BookOpen, Calendar } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Users, FileText, Paperclip } from "lucide-react";
 import {
 	courseService,
 	ModuleData,
@@ -17,6 +17,11 @@ import ModuleCard from "@/components/syllabus/ModuleCard";
 import ClassDetailsPanel from "@/components/syllabus/ClassDetailsPanel";
 import EditDialog from "@/components/syllabus/EditDialog";
 import PresentationView from "@/components/syllabus/PresentationView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AssignmentsTab } from "@/components/courses/AssignmentsTab";
+import { GroupUsersTab } from "@/components/groups/GroupUsersTab";
+import { GroupFilesTab } from "@/components/groups/GroupFilesTab";
+import { UserGroupsTab } from "@/components/users/UserGroupsTab";
 
 interface SidebarItem {
 	id: string;
@@ -47,8 +52,11 @@ const CourseDetails: React.FC = () => {
 	const [presentationSlides, setPresentationSlides] = useState<SlideData[]>([]);
 	const [presentationTitle, setPresentationTitle] = useState("");
 	const [presentationFaqs, setPresentationFaqs] = useState<FAQ[]>([]);
+	
+	// Current active tab
+	const [activeTab, setActiveTab] = useState("content");
 
-	const { data, isLoading, error } = useQuery({
+	const { data, isLoading, error, refetch } = useQuery({
 		queryKey: ["courseDetails", courseId],
 		queryFn: () => courseService.getCourseDetails(courseId || ""),
 		enabled: !!courseId,
@@ -128,6 +136,9 @@ const CourseDetails: React.FC = () => {
 			title: classItem.title,
 			corePoints: classItem.concepts,
 		});
+		
+		// Switch to content tab when selecting a class
+		setActiveTab("content");
 	};
 
 	const handleSidebarSelect = (id: string) => {
@@ -175,6 +186,11 @@ const CourseDetails: React.FC = () => {
 
 	const closePresentationMode = () => {
 		setIsPresentationMode(false);
+	};
+	
+	// Handler for refreshing assignments after changes
+	const handleAssignmentChanged = async () => {
+		await refetch();
 	};
 
 	if (isLoading) {
@@ -242,62 +258,94 @@ const CourseDetails: React.FC = () => {
 					</div>
 
 					<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-						<div className="bg-talentlms-blue p-4 flex items-center justify-between">
-							<div className="flex items-center space-x-3">
-								<BookOpen className="w-6 h-6 text-white" />
-								<h2 className="text-xl font-semibold text-white">
-									Course Content
-								</h2>
+						<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+							<div className="bg-talentlms-blue p-4">
+								<TabsList className="bg-talentlms-blue/20">
+									<TabsTrigger value="content" className="data-[state=active]:bg-white data-[state=active]:text-talentlms-blue">
+										<BookOpen className="w-4 h-4 mr-2" />
+										Content
+									</TabsTrigger>
+									<TabsTrigger value="assignments" className="data-[state=active]:bg-white data-[state=active]:text-talentlms-blue">
+										<Paperclip className="w-4 h-4 mr-2" />
+										Assignments
+									</TabsTrigger>
+									<TabsTrigger value="users" className="data-[state=active]:bg-white data-[state=active]:text-talentlms-blue">
+										<Users className="w-4 h-4 mr-2" />
+										Users
+									</TabsTrigger>
+									<TabsTrigger value="files" className="data-[state=active]:bg-white data-[state=active]:text-talentlms-blue">
+										<FileText className="w-4 h-4 mr-2" />
+										Files
+									</TabsTrigger>
+								</TabsList>
 							</div>
-						</div>
 
-						<div className="p-4 md:p-6">
-							{selectedClass ? (
-								isLoadingClass ? (
-									<div className="flex justify-center items-center h-64">
-										<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-talentlms-blue"></div>
-										<p className="ml-4 text-gray-600">
-											Loading class details...
-										</p>
-									</div>
-								) : classData?.data ? (
-									<ClassDetailsPanel
-										title={classData.data.title}
-										corePoints={classData.data.concepts}
-										slides={classData.data.slides || []}
-										faqs={classData.data.faqs || []}
-										onBack={clearSelectedClass}
-										onStartPresentation={() =>
-											startPresentation(
-												classData.data.slides,
-												classData.data.title,
-												classData.data.faqs
-											)
-										}
+							<div className="p-4 md:p-6">
+								<TabsContent value="content">
+									{selectedClass ? (
+										isLoadingClass ? (
+											<div className="flex justify-center items-center h-64">
+												<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-talentlms-blue"></div>
+												<p className="ml-4 text-gray-600">
+													Loading class details...
+												</p>
+											</div>
+										) : classData?.data ? (
+											<ClassDetailsPanel
+												title={classData.data.title}
+												corePoints={classData.data.concepts}
+												slides={classData.data.slides || []}
+												faqs={classData.data.faqs || []}
+												onBack={clearSelectedClass}
+												onStartPresentation={() =>
+													startPresentation(
+														classData.data.slides,
+														classData.data.title,
+														classData.data.faqs
+													)
+												}
+											/>
+										) : (
+											<div className="p-6 text-center">
+												<p className="text-red-500">
+													Failed to load class details.
+												</p>
+												<Button onClick={clearSelectedClass} className="mt-4">
+													Go Back
+												</Button>
+											</div>
+										)
+									) : (
+										transformedModules.map((module) => (
+											<ModuleCard
+												key={module.id}
+												module={module}
+												expanded={expandedModules[module.id] ?? true}
+												onToggle={() => toggleModule(module.id)}
+												onEdit={openModuleEdit}
+												onClassSelect={handleClassSelect}
+											/>
+										))
+									)}
+								</TabsContent>
+								
+								<TabsContent value="assignments">
+									<AssignmentsTab 
+										courseId={courseId || ""} 
+										assignments={data.data.assignments || []} 
+										onAssignmentAdded={handleAssignmentChanged} 
 									/>
-								) : (
-									<div className="p-6 text-center">
-										<p className="text-red-500">
-											Failed to load class details.
-										</p>
-										<Button onClick={clearSelectedClass} className="mt-4">
-											Go Back
-										</Button>
-									</div>
-								)
-							) : (
-								transformedModules.map((module) => (
-									<ModuleCard
-										key={module.id}
-										module={module}
-										expanded={expandedModules[module.id] ?? true}
-										onToggle={() => toggleModule(module.id)}
-										onEdit={openModuleEdit}
-										onClassSelect={handleClassSelect}
-									/>
-								))
-							)}
-						</div>
+								</TabsContent>
+								
+								<TabsContent value="users">
+									<GroupUsersTab groupId={courseId || ""} users={data.data.enrolledUsers || []} />
+								</TabsContent>
+								
+								<TabsContent value="files">
+									<GroupFilesTab groupId={courseId || ""} files={data.data.files || []} />
+								</TabsContent>
+							</div>
+						</Tabs>
 					</div>
 				</div>
 			</div>

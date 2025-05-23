@@ -98,6 +98,16 @@ export const getAssignments = async (courseId: string) => {
   }
 };
 
+export const createAssignment = async (courseId: string, assignmentData: any) => {
+  try {
+    const response = await api.post(`/user/assignments/${courseId}`, assignmentData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create assignment:', error);
+    throw error;
+  }
+};
+
 export const updateAssignment = async (assignmentId: string, assignmentData: any) => {
   try {
     const response = await api.put(`/user/assignments/${assignmentId}`, assignmentData);

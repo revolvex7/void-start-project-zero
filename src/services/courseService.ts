@@ -397,6 +397,7 @@ export interface Assignment {
   createdAt: string;
   classNumbers?: string[];
   isAiGenerated: boolean;
+  published?: boolean;
 }
 
 export const courseService = {
@@ -704,12 +705,9 @@ export const courseService = {
     }
   },
 
-  async createAssignment(courseId: string, assignmentData: Omit<Assignment, 'id'>): Promise<Assignment> {
+  async createAssignment(courseId: string, assignmentData: Omit<Assignment, 'id' | 'createdAt'>): Promise<Assignment> {
     try {
-      const response = await api.post(`/user/assignments`, {
-        ...assignmentData,
-        courseId,
-      });
+      const response = await api.post(`/user/assignments/${courseId}`, assignmentData);
       return response.data.data;
     } catch (error) {
       console.error("Error creating assignment:", error);
@@ -717,7 +715,7 @@ export const courseService = {
     }
   },
 
-  async updateAssignment(assignmentId: string, assignmentData: Partial<Omit<Assignment, 'id'>>): Promise<Assignment> {
+  async updateAssignment(assignmentId: string, assignmentData: Partial<Assignment>): Promise<Assignment> {
     try {
       const response = await api.put(`/user/assignments/${assignmentId}`, assignmentData);
       return response.data.data;
