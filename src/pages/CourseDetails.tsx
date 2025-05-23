@@ -100,6 +100,22 @@ const CourseDetails: React.FC = () => {
 		}
 	}, [data?.data?.modules]);
 
+	// Map API module data to the format expected by ModuleCard
+	const mappedModules = React.useMemo(() => {
+		if (!data?.data?.modules) return [];
+
+		return data.data.modules.map((module: ModuleData) => ({
+			id: module.id,
+			title: module.name, // Map 'name' to 'title' for ModuleCard
+			classes: module.classes.map((classItem: ClassData) => ({
+				id: classItem.id,
+				title: classItem.title,
+				corePoints: classItem.concepts,
+				slideCount: 0, // Add any missing props required by Module type
+			})),
+		}));
+	}, [data]);
+
 	const sidebarItems = React.useMemo(() => {
 		if (!data?.data?.modules) return [];
 
@@ -313,7 +329,7 @@ const CourseDetails: React.FC = () => {
 											</div>
 										)
 									) : (
-										data?.data?.modules.map((module) => (
+										mappedModules.map((module) => (
 											<ModuleCard
 												key={module.id}
 												module={module}
