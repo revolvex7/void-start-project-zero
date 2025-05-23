@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Upload, Zap } from "lucide-react";
+import { CalendarIcon, Upload, Zap, X, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +32,14 @@ import { toast } from "sonner";
 import { Assignment } from "./AssignmentsTab";
 import { courseService } from "@/services/courseService";
 import { uploadFile } from "@/services/api";
+import { 
+  Command, 
+  CommandEmpty, 
+  CommandGroup, 
+  CommandInput, 
+  CommandItem 
+} from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
 
 // Create the schema based on the provided schema
 const assignmentSchema = z.object({
@@ -51,6 +59,12 @@ interface CourseFileUploadResponse {
     size: number;
     url: string;
   };
+}
+
+// Interface for class data
+interface ClassOption {
+  id: string;
+  title: string;
 }
 
 interface FileUploadProps {
@@ -118,48 +132,129 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, initialFileUrl })
 };
 
 interface AIGenerationProps {
-  onClassNumbersChange: (classNumbers: string) => void;
-  initialClassNumbers?: string[];
+  onClassIdsChange: (classIds: string[]) => void;
+  initialClassIds?: string[];
+  classes: ClassOption[];
 }
 
-const AIGeneration: React.FC<AIGenerationProps> = ({ onClassNumbersChange, initialClassNumbers }) => {
-  const [value, setValue] = useState<string>(initialClassNumbers?.join(',') || "");
+const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialClassIds, classes }) => {
+  const [selectedClasses, setSelectedClasses] = useState<ClassOption[]>([]);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
-    if (initialClassNumbers?.length) {
-      setValue(initialClassNumbers.join(','));
+    if (initialClassIds?.length && classes.length) {
+      const initialSelected = classes.filter(c => initialClassIds.includes(c.id));
+      setSelectedClasses(initialSelected);
     }
-  }, [initialClassNumbers]);
+  }, [initialClassIds, classes]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
-    onClassNumbersChange(e.target.value);
+  const handleSelect = (classItem: ClassOption) => {
+    setSelectedClasses(current => {
+      // Check if already selected
+      if (current.some(item => item.id === classItem.id)) {
+        return current.filter(item => item.id !== classItem.id);
+      } 
+      // Check if already has 3 items
+      if (current.length >= 3) {
+        toast.error("You can only select up to 3 classes");
+        return current;
+      }
+      const newSelection = [...current, classItem];
+      onClassIdsChange(newSelection.map(item => item.id));
+      return newSelection;
+    });
+  };
+
+  const removeItem = (classId: string) => {
+    setSelectedClasses(current => {
+      const newSelection = current.filter(item => item.id !== classId);
+      onClassIdsChange(newSelection.map(item => item.id));
+      return newSelection;
+    });
   };
 
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 p-4 rounded-lg">
+      <div className="bg-blue-50 dark:bg-blue-950/50 p-4 rounded-lg">
         <div className="flex items-start gap-3">
-          <Zap className="h-5 w-5 text-blue-600 mt-1" />
+          <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-1" />
           <div>
-            <h3 className="text-sm font-medium text-blue-800">AI-Generated Assignment</h3>
-            <p className="text-xs text-blue-700 mt-1">
-              Provide the class numbers to generate an assignment based on those classes.
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">AI-Generated Assignment</h3>
+            <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+              Select up to 3 classes to generate an assignment based on their content.
             </p>
           </div>
         </div>
       </div>
       
       <div className="space-y-2">
-        <label className="text-sm font-medium">Class Numbers</label>
-        <Input 
-          placeholder="e.g., 1,2,3 or 1-3" 
-          value={value}
-          onChange={handleChange}
-        />
-        <p className="text-xs text-gray-500">
-          Enter comma-separated numbers (e.g., 1,2,3) or a range (e.g., 1-3)
-        </p>
+        <FormLabel className="text-sm font-medium">Select Classes (max 3)</FormLabel>
+        
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedClasses.map(item => (
+            <Badge key={item.id} variant="secondary" className="py-1 pl-2 pr-1 flex items-center gap-1">
+              {item.title.length > 30 ? `${item.title.substring(0, 30)}...` : item.title}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-5 w-5 p-0 rounded-full"
+                onClick={() => removeItem(item.id)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+        
+        <Popover open={commandOpen} onOpenChange={setCommandOpen}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="outline" 
+              role="combobox" 
+              className="w-full justify-between font-normal"
+            >
+              {selectedClasses.length > 0 
+                ? `${selectedClasses.length} class${selectedClasses.length > 1 ? 'es' : ''} selected`
+                : "Select classes..."}
+              <CalendarIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[300px] p-0">
+            <Command>
+              <CommandInput placeholder="Search classes..." />
+              <CommandEmpty>No classes found.</CommandEmpty>
+              <CommandGroup className="max-h-[300px] overflow-auto">
+                {classes.map(classItem => (
+                  <CommandItem
+                    key={classItem.id}
+                    value={classItem.title}
+                    onSelect={() => {
+                      handleSelect(classItem);
+                      setCommandOpen(false);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <div className={cn(
+                      "mr-2", 
+                      selectedClasses.some(item => item.id === classItem.id) ? "opacity-100" : "opacity-0"
+                    )}>
+                      <Check className="h-4 w-4" />
+                    </div>
+                    <span className="flex-1 truncate">
+                      {classItem.title}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        
+        {selectedClasses.length === 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Please select at least one class for AI generation
+          </p>
+        )}
       </div>
     </div>
   );
@@ -183,9 +278,33 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
   const isEditMode = !!assignment;
   const [activeTab, setActiveTab] = useState<string>(assignment?.isAiGenerated ? "ai" : "manual");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [classNumbers, setClassNumbers] = useState<string>("");
+  const [classIds, setClassIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileChanged, setFileChanged] = useState(false);
+  const [classList, setClassList] = useState<ClassOption[]>([]);
+  
+  // Fetch course details to get classes
+  useEffect(() => {
+    if (isOpen && courseId) {
+      const fetchCourseDetails = async () => {
+        try {
+          const response = await courseService.getCourseForEdit(courseId);
+          if (response?.data?.classes) {
+            const classes = response.data.classes.map(cls => ({
+              id: cls.classId,
+              title: cls.classTitle
+            }));
+            setClassList(classes);
+          }
+        } catch (error) {
+          console.error("Error fetching course details:", error);
+          toast.error("Failed to load class list");
+        }
+      };
+      
+      fetchCourseDetails();
+    }
+  }, [isOpen, courseId]);
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
@@ -211,7 +330,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
       setActiveTab(assignment.isAiGenerated ? "ai" : "manual");
       
       if (assignment.classNumbers?.length) {
-        setClassNumbers(assignment.classNumbers.join(','));
+        setClassIds(assignment.classNumbers);
       }
     } else {
       form.reset({
@@ -222,7 +341,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         published: false,
       });
       setActiveTab("manual");
-      setClassNumbers("");
+      setClassIds([]);
       setSelectedFile(null);
       setFileChanged(false);
     }
@@ -243,9 +362,9 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         return;
       }
 
-      // For AI generation, class numbers are required
-      if (activeTab === "ai" && !classNumbers.trim()) {
-        toast.error("Please enter class numbers for AI generation");
+      // For AI generation, class IDs are required
+      if (activeTab === "ai" && classIds.length === 0) {
+        toast.error("Please select at least one class for AI generation");
         setIsSubmitting(false);
         return;
       }
@@ -263,7 +382,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
         description: values.description,
         dueDate: values.dueDate.toISOString(),
         fileUrl: activeTab === "manual" ? fileUrl : '',
-        classNumbers: activeTab === "ai" ? classNumbers.split(',').map(n => n.trim()) : undefined,
+        classNumbers: activeTab === "ai" ? classIds : undefined,
         isAiGenerated: activeTab === "ai",
         published: values.published,
         totalMarks: values.totalMarks,
@@ -291,7 +410,7 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
       onClose();
       form.reset();
       setSelectedFile(null);
-      setClassNumbers("");
+      setClassIds([]);
       setFileChanged(false);
     } catch (error) {
       toast.error(isEditMode ? "Failed to update assignment" : "Failed to create assignment", {
@@ -408,7 +527,6 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
               />
             </div>
             
-            {/* FIX: Handle tab disabling at the UI/UX level instead of a prop on the Tabs component */}
             <Tabs value={activeTab} onValueChange={isEditMode ? undefined : setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="manual" disabled={isEditMode}>Manual Upload</TabsTrigger>
@@ -422,8 +540,9 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
               </TabsContent>
               <TabsContent value="ai" className="mt-4">
                 <AIGeneration 
-                  onClassNumbersChange={setClassNumbers} 
-                  initialClassNumbers={assignment?.classNumbers}
+                  onClassIdsChange={setClassIds}
+                  initialClassIds={assignment?.classNumbers}
+                  classes={classList}
                 />
               </TabsContent>
             </Tabs>

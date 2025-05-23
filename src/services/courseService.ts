@@ -398,6 +398,7 @@ export interface Assignment {
   classNumbers?: string[];
   isAiGenerated: boolean;
   published?: boolean;
+  totalMarks?: number;
 }
 
 export const courseService = {
