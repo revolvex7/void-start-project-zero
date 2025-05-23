@@ -21,6 +21,7 @@ export interface ModuleData {
 
 export interface CourseDetailsResponse {
 	data: {
+    course: any;
     groups: any;
     files: any;
     enrolledUsers: any;
@@ -30,7 +31,6 @@ export interface CourseDetailsResponse {
     createdAt: string;
     updatedAt: string;
     userId: string;
-    modules: ModuleData[];
 	};
 }
 

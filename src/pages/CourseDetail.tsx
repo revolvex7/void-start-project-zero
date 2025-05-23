@@ -87,16 +87,15 @@ const CourseDetailPage: React.FC = () => {
 
   // Extract classes from courseDetail for use in the AssignmentsTab
   const courseClasses: ClassOption[] = React.useMemo(() => {
-    if (!courseDetail?.data) return [];
-    
-    // Check if the course has modules with classes
-    if (courseDetail.data.modules && courseDetail.data.modules.length > 0) {
-      return courseDetail.data.modules.flatMap(module => 
-        module.classes.map(cls => ({
-          id: cls.id,
-          title: cls.title
-        }))
-      );
+    if (!courseDetail?.data) return [];    
+    // Check if the course has course.classes with classes
+    if (courseDetail.data.course.classes && courseDetail.data.course.classes.length > 0) {
+      return courseDetail.data.course.classes.map(course => {
+        return {
+          id: course.id,
+          title: course.title
+        };
+      });
     }
     
     return [];

@@ -136,7 +136,7 @@ const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialCl
   const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
-    if (initialClassIds?.length && classes.length) {
+    if (classes.length) {
       const initialSelected = classes.filter(c => initialClassIds.includes(c.id));
       setSelectedClasses(initialSelected);
     }
