@@ -1,28 +1,25 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  BookOpen,
+  Clock,
   Users,
-  Calendar,
-  Share2,
+  BookOpen,
+  Eye,
+  Trash2,
   Edit,
+  Plus,
 } from "lucide-react";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { courseService } from "@/services/courseService";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ModuleCard } from "@/components/dashboard/ModuleCard";
-import { AssignmentsTab } from "@/components/dashboard/AssignmentsTab";
+import { toast } from "@/hooks/use-toast";
+import { EditCourseModal } from "@/components/courses/EditCourseModal";
+import AssignmentsTab from "@/components/courses/AssignmentsTab";
 
 interface CourseDetailsProps {
   id: string;
@@ -38,14 +35,13 @@ const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const [activeTab, setActiveTab] = useState<"overview" | "assignments">("overview");
   
-  const { data, isLoading, error } = useQuery({
+  const { data: course, isLoading } = useQuery({
     queryKey: ["course", courseId],
-    queryFn: () => courseService.getCourseById(courseId!),
-    enabled: !!courseId,
+    queryFn: () => courseService.getCourseDetails(courseId!),
   });
 
   // Add console log to debug the data structure
-  console.log("Course details data:", data);
+  console.log("Course details data:", course);
 
   if (isLoading) {
     return (
@@ -55,7 +51,7 @@ const CourseDetails: React.FC = () => {
     );
   }
 
-  if (error || !data) {
+  if (!course) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -69,8 +65,8 @@ const CourseDetails: React.FC = () => {
   }
 
   // Handle the API response structure where course info is nested
-  const courseInfo = data.course || data;
-  const classes = data.classes || [];
+  const courseInfo = course.course || course;
+  const classes = course.classes || [];
   
   // Map classes to modules format if needed for compatibility
   const mappedModules = classes.map((classItem: any, index: number) => ({

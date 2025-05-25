@@ -36,58 +36,60 @@ const CategoryReports: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.completionRate}
+      <Card className="bg-white dark:bg-gray-800 shadow-sm">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                {stats.completionRate}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Completion rate
+              </div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Completion rate
+            <div className="text-center p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                {stats.completedLearners}
+              </div>
+              <div className="text-sm text-blue-600 dark:text-blue-400">
+                Completed learners
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+              <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
+                {stats.learnersInProgress}
+              </div>
+              <div className="text-sm text-yellow-600 dark:text-yellow-400">
+                Learners in progress
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
+              <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">
+                {stats.learnersNotPassed}
+              </div>
+              <div className="text-sm text-red-600 dark:text-red-400">
+                Learners not passed
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="text-3xl font-bold text-gray-600 dark:text-gray-400 mb-1">
+                {stats.learnersNotStarted}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Learners not started
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                {stats.trainingTime}
+              </div>
+              <div className="text-sm text-green-600 dark:text-green-400">
+                Training time
+              </div>
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.completedLearners}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Completed learners
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.learnersInProgress}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Learners in progress
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.learnersNotPassed}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Learners not passed
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.learnersNotStarted}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Learners not started
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.trainingTime}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Training time
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Search and Filters */}
       <Card>

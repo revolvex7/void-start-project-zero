@@ -22,7 +22,7 @@ const UserReports: React.FC = () => {
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
-    queryFn: userService.getUsers,
+    queryFn: userService.getAllUsers,
   });
 
   // Calculate stats from users data
@@ -37,7 +37,7 @@ const UserReports: React.FC = () => {
     };
 
     const totalUsers = users.length;
-    const activeUsers = users.filter(user => user.role !== 'administrator').length;
+    const activeUsers = users.filter(user => user.status === 'Active').length;
     
     return {
       completionRate: totalUsers > 0 ? `${((activeUsers / totalUsers) * 100).toFixed(1)}%` : "0.0%",
@@ -73,58 +73,60 @@ const UserReports: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.completionRate}
+      <Card className="bg-white dark:bg-gray-800 shadow-sm">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                {stats.completionRate}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Active rate
+              </div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Completion rate
+            <div className="text-center p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                {stats.completedCourses}
+              </div>
+              <div className="text-sm text-blue-600 dark:text-blue-400">
+                Active users
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+              <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
+                {stats.coursesInProgress}
+              </div>
+              <div className="text-sm text-yellow-600 dark:text-yellow-400">
+                Inactive users
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
+              <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">
+                {stats.coursesNotPassed}
+              </div>
+              <div className="text-sm text-red-600 dark:text-red-400">
+                Courses not passed
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="text-3xl font-bold text-gray-600 dark:text-gray-400 mb-1">
+                {stats.coursesNotStarted}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Courses not started
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                {stats.trainingTime}
+              </div>
+              <div className="text-sm text-green-600 dark:text-green-400">
+                Training time
+              </div>
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.completedCourses}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Completed courses
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.coursesInProgress}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Courses in progress
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.coursesNotPassed}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Courses not passed
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.coursesNotStarted}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Courses not started
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.trainingTime}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Training time
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Search and Filters */}
       <Card>
@@ -157,12 +159,12 @@ const UserReports: React.FC = () => {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>User type</TableHead>
-                  <TableHead>Last login</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Registration Date</TableHead>
                   <TableHead>Assigned courses</TableHead>
                   <TableHead>Completed courses</TableHead>
                   <TableHead>Points</TableHead>
-                  <TableHead>Badges</TableHead>
-                  <TableHead>Level</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -190,7 +192,14 @@ const UserReports: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <span className="text-muted-foreground">-</span>
+                        <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>
+                          {user.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">
+                          {new Date(user.registrationDate).toLocaleDateString()}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-muted-foreground">-</span>
@@ -202,10 +211,9 @@ const UserReports: React.FC = () => {
                         <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-muted-foreground">-</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">-</span>
+                        <Button variant="ghost" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
