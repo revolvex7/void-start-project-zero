@@ -127,20 +127,18 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, initialFileUrl })
 
 interface AIGenerationProps {
   onClassIdsChange: (classIds: string[]) => void;
-  initialClassIds?: string[];
   classes: ClassOption[];
 }
 
-const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, initialClassIds, classes }) => {
+const AIGeneration: React.FC<AIGenerationProps> = ({ onClassIdsChange, classes }) => {
   const [selectedClasses, setSelectedClasses] = useState<ClassOption[]>([]);
   const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
     if (classes.length) {
-      const initialSelected = classes.filter(c => initialClassIds.includes(c.id));
-      setSelectedClasses(initialSelected);
+      setSelectedClasses(classes);
     }
-  }, [initialClassIds, classes]);
+  }, [classes]);
 
   const handleSelect = (classItem: ClassOption) => {
     setSelectedClasses(current => {
@@ -520,7 +518,6 @@ export const AddAssignmentDialog: React.FC<AddAssignmentDialogProps> = ({
               <TabsContent value="ai" className="mt-4">
                 <AIGeneration 
                   onClassIdsChange={setClassIds}
-                  initialClassIds={assignment?.classNumbers}
                   classes={classes}
                 />
               </TabsContent>
