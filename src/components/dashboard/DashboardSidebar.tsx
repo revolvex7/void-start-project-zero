@@ -82,8 +82,8 @@ export function DashboardSidebar() {
                               <div className="flex items-center">
                                 <item.icon className={cn(
                                   "h-5 w-5 transition-colors",
-                                  "text-blue-600 dark:text-blue-400",
-                                  "group-hover:text-blue-700 dark:group-hover:text-blue-300"
+                                  " dark:text-blue-400",
+                                  " dark:group-hover:text-blue-300"
                                 )} />
                                 <span className={cn(
                                   "ml-2 font-medium", 
@@ -95,7 +95,7 @@ export function DashboardSidebar() {
                               {!isCollapsed && (
                                 <ChevronRight className={cn(
                                   "h-4 w-4 transition-transform",
-                                  "text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                                  "text-gray-400 dark:group-hover:text-blue-400",
                                   "group-data-[state=open]:rotate-90"
                                 )} />
                               )}
@@ -159,7 +159,7 @@ export function DashboardSidebar() {
                             "h-5 w-5 transition-colors",
                             isActive 
                               ? "text-white" 
-                              : "text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300"
+                              : "dark:text-blue-400 dark:group-hover:text-blue-300"
                           )} />
                           <span className={cn(
                             "ml-2 font-medium", 

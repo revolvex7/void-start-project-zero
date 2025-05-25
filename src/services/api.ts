@@ -100,7 +100,7 @@ export const getAssignments = async (courseId: string) => {
 // Grading Hub API - Get all assignments for instructor
 export const getInstructorAssignments = async () => {
   try {
-    const response = await api.get('/instructor/assignments');
+    const response = await api.get('/user/assignments');
     return response.data;
   } catch (error) {
     console.error('Failed to fetch instructor assignments:', error);
