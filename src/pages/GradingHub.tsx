@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { getInstructorAssignments } from "@/services/api";
+import { assignmentService } from "@/services/assignmentService";
 import { Assignment } from "@/types/assignment";
 
 const GradingHub: React.FC = () => {
@@ -39,7 +39,7 @@ const GradingHub: React.FC = () => {
 
   const { data: assignmentsResponse, isLoading, error } = useQuery({
     queryKey: ["instructor-assignments"],
-    queryFn: getInstructorAssignments,
+    queryFn: assignmentService.getInstructorAssignments,
   });
 
   const assignments = assignmentsResponse?.data || [];
