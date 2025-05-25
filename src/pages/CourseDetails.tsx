@@ -1,4 +1,5 @@
 
+
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -98,12 +99,13 @@ const CourseDetails: React.FC = () => {
 
   // Handle the API response structure where course info is nested
   const courseInfo = course.data?.course || course;
-  const classes = course.data?.classes || [];
+  // Try multiple possible locations for classes data
+  const classes = course.data?.course?.classes || course.data?.modules || course.classes || [];
   
   // Map classes to modules format if needed for compatibility
   const mappedModules = classes.map((classItem: any, index: number) => ({
     id: classItem.id,
-    title: classItem.title,
+    title: classItem.title || classItem.name,
     lessons: [],
     order: index + 1
   }));
@@ -257,3 +259,4 @@ const CourseDetails: React.FC = () => {
 };
 
 export default CourseDetails;
+
