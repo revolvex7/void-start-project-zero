@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,8 @@ import {
   Trash2,
   Edit,
   Plus,
+  Calendar,
+  Share2,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +22,7 @@ import { courseService } from "@/services/courseService";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { toast } from "@/hooks/use-toast";
 import { EditCourseModal } from "@/components/courses/EditCourseModal";
-import AssignmentsTab from "@/components/courses/AssignmentsTab";
+import { AssignmentsTab } from "@/components/courses/AssignmentsTab";
 
 interface CourseDetailsProps {
   id: string;
@@ -30,6 +33,35 @@ interface CourseDetailsProps {
   image?: string;
   courseTitle?: string;
 }
+
+interface ModuleCardProps {
+  module: {
+    id: string;
+    title: string;
+    lessons: any[];
+    order: number;
+  };
+  courseId: string;
+  onModuleClick: () => void;
+  onLessonClick: () => void;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+}
+
+const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
+  return (
+    <Card className="border border-gray-200 dark:border-gray-700">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">{module.title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Module {module.order}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 const CourseDetails: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -65,8 +97,8 @@ const CourseDetails: React.FC = () => {
   }
 
   // Handle the API response structure where course info is nested
-  const courseInfo = course.course || course;
-  const classes = course.classes || [];
+  const courseInfo = course.data?.course || course;
+  const classes = course.data?.classes || [];
   
   // Map classes to modules format if needed for compatibility
   const mappedModules = classes.map((classItem: any, index: number) => ({
@@ -213,6 +245,8 @@ const CourseDetails: React.FC = () => {
           {activeTab === "assignments" && (
             <AssignmentsTab 
               courseId={courseId!} 
+              assignments={course.data?.assignments || []}
+              onAssignmentAdded={async () => {}}
               classes={classes}
             />
           )}
