@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -94,6 +93,17 @@ export const getAssignments = async (courseId: string) => {
     return response.data;
   } catch (error) {
     console.error('Failed to fetch assignments:', error);
+    throw error;
+  }
+};
+
+// Grading Hub API - Get all assignments for instructor
+export const getInstructorAssignments = async () => {
+  try {
+    const response = await api.get('/instructor/assignments');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch instructor assignments:', error);
     throw error;
   }
 };
