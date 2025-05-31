@@ -35,9 +35,7 @@ export const adminMenuItems: MenuItem[] = [
     adminOnly: true,
     dropdownItems: [
       { title: "Course Reports", url: "/reports/courses" },
-      { title: "Group Reports", url: "/reports/groups" },
       { title: "User Reports", url: "/reports/users" },
-      { title: "Category Reports", url: "/reports/categories" }
     ]
   },
   { title: "Account & Settings", icon: Settings, url: "/settings" },
