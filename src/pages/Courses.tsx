@@ -12,8 +12,7 @@ import {
   Eye,
   Pencil,
   Trash2, 
-  Book,
-  SlidersHorizontal
+  Book 
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -180,9 +179,9 @@ const Courses: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <LoadingState 
               message="Loading courses" 
               variant="spinner"
@@ -196,15 +195,15 @@ const Courses: React.FC = () => {
 
   if (coursesError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-8 text-center">
-            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
+            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Courses
             </h1>
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Courses</h2>
-              <p className="text-slate-700 dark:text-slate-300">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+              <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Courses</h2>
+              <p className="text-gray-700">
                 We couldn't load your courses. Please try again later.
               </p>
             </div>
@@ -215,20 +214,20 @@ const Courses: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Course Management
               </h1>
-              <p className="text-slate-600 dark:text-slate-300 mt-1">Create and manage your educational content</p>
+              <p className="text-gray-600 mt-1">Create and manage your educational content</p>
             </div>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Plus className="mr-2 h-4 w-4" /> Add Course
             </Button>
@@ -236,13 +235,13 @@ const Courses: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/80 to-blue-50/80 dark:from-slate-800/80 dark:to-slate-700/80 px-6 py-4">
-              <TabsList className="h-12 p-1 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm rounded-xl shadow-md border border-slate-200/50 dark:border-slate-600/50">
+            <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4">
+              <TabsList className="h-12 p-1 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200">
                 <TabsTrigger 
                   value="all" 
-                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
                 >
                   <Book className="mr-2 h-4 w-4" />
                   All Courses
@@ -251,7 +250,7 @@ const Courses: React.FC = () => {
                   <TabsTrigger 
                     key={category} 
                     value={category.toLowerCase()} 
-                    className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                    className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
                   >
                     {category}
                   </TabsTrigger>
@@ -262,10 +261,10 @@ const Courses: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Search courses by title, code, or category..."
-                    className="pl-10 h-12 border-slate-200 dark:border-slate-600 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 backdrop-blur-sm transition-all duration-200"
+                    className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -277,7 +276,7 @@ const Courses: React.FC = () => {
                         variant="outline" 
                         size="icon" 
                         onClick={toggleViewMode}
-                        className="h-12 w-12 border-slate-200 dark:border-slate-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-xl transition-all duration-200"
+                        className="h-12 w-12 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all duration-200"
                       >
                         {viewMode === "grid" ? (
                           <List className="h-4 w-4" />
@@ -291,13 +290,6 @@ const Courses: React.FC = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="h-12 w-12 border-slate-200 dark:border-slate-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-xl transition-all duration-200"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
               </div>
 
               {/* Content for all tabs */}
@@ -336,105 +328,87 @@ const Courses: React.FC = () => {
         
         <CreateCourseModal 
           isOpen={isCreateModalOpen} 
-          onClose={() => setIsCreateModalOpen(false)}
-          onCourseCreated={refetch}
+          onClose={() => setIsCreateModalOpen(false)} 
+          onSuccess={() => {
+            refetch();
+          }} 
         />
       </div>
     </div>
   );
 
   function renderCourseContent() {
-    if (isLoading) {
+    if (viewMode === "list") {
       return (
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-          <LoadingState 
-            message="Loading courses" 
-            variant="spinner"
-            className="py-16"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg">
-        {viewMode === "list" ? (
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-slate-50/50 dark:bg-slate-700/50">
-                <TableHead>
+              <TableRow className="bg-gray-50">
+                <TableHead className="w-[25%]">
                   <Button 
                     variant="ghost" 
                     onClick={() => handleSort("courseTitle")}
-                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent text-slate-700 dark:text-slate-300"
+                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent"
                   >
                     Course Name
                     <ArrowUpDown className="h-3.5 w-3.5" />
                   </Button>
                 </TableHead>
-                <TableHead>
+                <TableHead className="w-[15%]">
                   <Button 
                     variant="ghost" 
                     onClick={() => handleSort("courseCode")}
-                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent text-slate-700 dark:text-slate-300"
+                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent"
                   >
                     Course Code
                     <ArrowUpDown className="h-3.5 w-3.5" />
                   </Button>
                 </TableHead>
-                <TableHead>
+                <TableHead className="w-[20%]">
                   <Button 
                     variant="ghost" 
                     onClick={() => handleSort("categoryName")}
-                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent text-slate-700 dark:text-slate-300"
+                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent"
                   >
                     Category
                     <ArrowUpDown className="h-3.5 w-3.5" />
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort("updatedAt")}
-                    className="font-medium flex items-center gap-1 px-0 hover:bg-transparent text-slate-700 dark:text-slate-300"
-                  >
-                    Updated On
-                    <ArrowUpDown className="h-3.5 w-3.5" />
-                  </Button>
-                </TableHead>
-                <TableHead className="text-right text-slate-700 dark:text-slate-300">Actions</TableHead>
+                <TableHead className="w-[15%]">Updated On</TableHead>
+                <TableHead className="w-[10%] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAndSortedCourses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24 text-slate-600 dark:text-slate-400">
+                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
                     No courses found.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredAndSortedCourses.map((course) => (
-                  <TableRow key={course.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
-                    <TableCell className="font-medium text-slate-900 dark:text-slate-100">{course.courseTitle}</TableCell>
-                    <TableCell className="text-slate-700 dark:text-slate-300">{course.courseCode || "-"}</TableCell>
-                    <TableCell className="text-slate-700 dark:text-slate-300">{course.categoryName || "-"}</TableCell>
-                    <TableCell className="text-slate-700 dark:text-slate-300">{format(new Date(course.updatedAt), 'MMM dd, yyyy')}</TableCell>
+                  <TableRow key={course.id} className="hover:bg-gray-50 transition-colors">
+                    <TableCell className="font-medium">{course.courseTitle}</TableCell>
+                    <TableCell>{course.courseCode}</TableCell>
+                    <TableCell>{course.categoryName}</TableCell>
+                    <TableCell>{format(new Date(course.updatedAt), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
+                      <div className="flex justify-end gap-2">
+                        {/* Action buttons remain the same */}
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
+                                className="h-8 w-8 p-0"
                                 onClick={() => handleViewCourse(course.id)}
-                                className="h-8 w-8 border-slate-200 dark:border-slate-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>View Course</p>
+                              <p>Preview course</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -443,16 +417,16 @@ const Courses: React.FC = () => {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
+                                className="h-8 w-8 p-0"
                                 onClick={() => handleEditCourse(course.id)}
-                                className="h-8 w-8 border-slate-200 dark:border-slate-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Edit Course</p>
+                              <p>Edit course</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -461,16 +435,16 @@ const Courses: React.FC = () => {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
+                                className="h-8 w-8 p-0 text-red-600"
                                 onClick={() => openDeleteDialog(course.id)}
-                                className="h-8 w-8 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Delete Course</p>
+                              <p>Delete course</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -481,44 +455,80 @@ const Courses: React.FC = () => {
               )}
             </TableBody>
           </Table>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-            {filteredAndSortedCourses.map((course) => (
-              <Card key={course.id} className="hover:shadow-lg transition-shadow bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-slate-900 dark:text-slate-100">{course.courseTitle}</CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">{course.courseCode || "No code"}</CardDescription>
+        </div>
+      );
+    } else {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAndSortedCourses.length === 0 ? (
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+              <Book className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">No courses found</h2>
+              <p className="text-gray-600 mb-6">
+                No courses matching your search criteria.
+              </p>
+            </div>
+          ) : (
+            filteredAndSortedCourses.map((course) => (
+              <Card key={course.id} className="h-full transition-all duration-300 hover:shadow-lg group border border-gray-200 rounded-xl">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="rounded-lg bg-gradient-to-r from-blue-100 to-purple-100 p-3 mr-4">
+                      <Book className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full">
+                      {course.courseCode || "N/A"}
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl mt-4 group-hover:text-blue-600 transition-colors">
+                    {course.courseTitle}
+                  </CardTitle>
+                  <CardDescription>
+                    {course.categoryName || "Uncategorized"}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-2">Category: {course.categoryName || "Uncategorized"}</p>
-                  <p className="text-sm text-slate-700 dark:text-slate-300">Updated: {format(new Date(course.updatedAt), 'MMM dd, yyyy')}</p>
+                <CardContent className="pb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="font-medium">{formatPrice(course.price)}</div>
+                    <div className="text-muted-foreground">
+                      Updated {format(new Date(course.updatedAt), 'MMM d, yyyy')}
+                    </div>
+                  </div>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button
-                    variant="outline"
-                    size="sm"
+                <CardFooter className="pt-0 border-t border-gray-100 flex justify-between">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs hover:bg-blue-50"
                     onClick={() => handleViewCourse(course.id)}
-                    className="border-slate-200 dark:border-slate-600"
                   >
-                    <Eye className="mr-1 h-4 w-4" />
-                    View
+                    <Eye className="mr-1 h-3 w-3" /> Preview
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditCourse(course.id)}
-                    className="border-slate-200 dark:border-slate-600"
-                  >
-                    <Pencil className="mr-1 h-4 w-4" />
-                    Edit
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs hover:bg-blue-50"
+                      onClick={() => handleEditCourse(course.id)}
+                    >
+                      <Pencil className="mr-1 h-3 w-3" /> Edit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => openDeleteDialog(course.id)}
+                    >
+                      <Trash2 className="mr-1 h-3 w-3" /> Delete
+                    </Button>
+                  </div>
                 </CardFooter>
               </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    );
+            ))
+          )}
+        </div>
+      );
+    }
   }
 };
 

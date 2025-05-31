@@ -68,20 +68,20 @@ const Groups = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Group Management
               </h1>
-              <p className="text-slate-600 dark:text-slate-300 mt-1">Organize and manage your learning groups</p>
+              <p className="text-gray-600 mt-1">Organize and manage your learning groups</p>
             </div>
             <Button 
               onClick={() => setIsAddDialogOpen(true)}
-              className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Plus className="mr-2 h-4 w-4" /> Create Group
             </Button>
@@ -89,13 +89,13 @@ const Groups = () => {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/80 to-blue-50/80 dark:from-slate-800/80 dark:to-slate-700/80 px-6 py-4">
-              <TabsList className="h-12 p-1 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm rounded-xl shadow-md border border-slate-200/50 dark:border-slate-600/50">
+            <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4">
+              <TabsList className="h-12 p-1 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200">
                 <TabsTrigger 
                   value="all" 
-                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
                 >
                   <Users className="mr-2 h-4 w-4" />
                   All Groups
@@ -106,10 +106,10 @@ const Groups = () => {
             <div className="p-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Search groups by name, description, or creator..."
-                    className="pl-10 h-12 border-slate-200 dark:border-slate-600 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 backdrop-blur-sm transition-all duration-200"
+                    className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -117,7 +117,7 @@ const Groups = () => {
                 <Button 
                   variant="outline" 
                   size="icon"
-                  className="h-12 w-12 border-slate-200 dark:border-slate-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-xl transition-all duration-200"
+                  className="h-12 w-12 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all duration-200"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
@@ -125,7 +125,7 @@ const Groups = () => {
 
               <TabsContent value="all" className="mt-0">
                 {isLoading ? (
-                  <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                  <div className="bg-white rounded-xl border border-gray-100">
                     <LoadingState 
                       message="Loading groups" 
                       variant="spinner"
@@ -133,7 +133,7 @@ const Groups = () => {
                     />
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg">
+                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                     <GroupTable 
                       groups={filteredGroups}
                       isLoading={isLoading}
