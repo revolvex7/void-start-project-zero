@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Plus, Search, SlidersHorizontal, Users as UsersIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,14 +45,14 @@ const Users = () => {
       });
       
       toast.success("User added successfully");
-      setIsAddingUser(false);
       setIsAddUserOpen(false);
       refetch();
     } catch (error) {
-      setIsAddingUser(false);
       toast.error("Failed to add user", {
         description: error instanceof Error ? error.message : "Unknown error occurred",
       });
+    } finally {
+      setIsAddingUser(false);
     }
   };
 
@@ -147,125 +146,158 @@ const Users = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={() => openAddParentForm()} className="flex items-center">
-            <UserPlus className="mr-2 h-4 w-4" /> Add parent
-          </Button>
-          <Button onClick={() => setIsAddUserOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add user
-          </Button>
-        </div>
-      </div>
-
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between mb-4">
-          <TabsList className="h-10 p-1 bg-muted/30 rounded-xl">
-            <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow transition-all">
-              <UsersIcon className="mr-2 h-4 w-4" />
-              All Users
-            </TabsTrigger>
-            <TabsTrigger   className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow transition-all" value="administrator">Administrators</TabsTrigger>
-            <TabsTrigger   className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow transition-all" value="instructor">Instructors</TabsTrigger>
-            <TabsTrigger  className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow transition-all" value="learner">Learners</TabsTrigger>
-            <TabsTrigger  className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-primary data-[state=active]:shadow transition-all" value="parent">Parents</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <div className="flex items-center gap-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search users..."
-              className="pl-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                User Management
+              </h1>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">Manage and organize your platform users</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={() => openAddParentForm()} 
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-0 hover:from-emerald-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              >
+                <UserPlus className="mr-2 h-4 w-4" /> Add Parent
+              </Button>
+              <Button 
+                onClick={() => setIsAddUserOpen(true)}
+                className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add User
+              </Button>
+            </div>
           </div>
-          <Button variant="outline" size="icon">
-            <SlidersHorizontal className="h-4 w-4" />
-          </Button>
         </div>
 
-        <TabsContent value="all" className="mt-0">
-          {renderUserTable()}
-        </TabsContent>
-        <TabsContent value="administrator" className="mt-0">
-          {renderUserTable()}
-        </TabsContent>
-        <TabsContent value="instructor" className="mt-0">
-          {renderUserTable()}
-        </TabsContent>
-        <TabsContent value="learner" className="mt-0">
-          {renderUserTable()}
-        </TabsContent>
-        <TabsContent value="parent" className="mt-0">
-          {renderUserTable()}
-        </TabsContent>
-      </Tabs>
+        {/* Main Content */}
+        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 overflow-hidden">
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/80 to-blue-50/80 dark:from-slate-800/80 dark:to-slate-700/80 px-6 py-4">
+              <TabsList className="h-12 p-1 bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm rounded-xl shadow-md border border-slate-200/50 dark:border-slate-600/50">
+                <TabsTrigger 
+                  value="all" 
+                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                >
+                  <UsersIcon className="mr-2 h-4 w-4" />
+                  All Users
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="administrator"
+                  className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                >
+                  Administrators
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="instructor"
+                  className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                >
+                  Instructors
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="learner"
+                  className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                >
+                  Learners
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="parent"
+                  className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:via-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                >
+                  Parents
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-      <AddUserDialog 
-        isOpen={isAddUserOpen} 
-        onClose={() => setIsAddUserOpen(false)} 
-        onSubmit={handleAddUser}
-        isLoading={isAddingUser}
-      />
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <Input
+                    placeholder="Search users by name, email, or role..."
+                    className="pl-10 h-12 border-slate-200 dark:border-slate-600 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 backdrop-blur-sm transition-all duration-200"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className="h-12 w-12 border-slate-200 dark:border-slate-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-xl transition-all duration-200"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
 
-      <AddParentDialog
-        isOpen={isAddParentOpen}
-        onClose={() => {
-          setIsAddParentOpen(false);
-          setSelectedLearnerId(undefined);
-        }}
-        onSubmit={handleAddParent}
-        isLoading={isAddingParent}
-        learners={users}
-        currentLearnerId={selectedLearnerId}
-      />
+              <TabsContent value="all" className="mt-0">
+                {renderUserTable()}
+              </TabsContent>
+              <TabsContent value="administrator" className="mt-0">
+                {renderUserTable()}
+              </TabsContent>
+              <TabsContent value="instructor" className="mt-0">
+                {renderUserTable()}
+              </TabsContent>
+              <TabsContent value="learner" className="mt-0">
+                {renderUserTable()}
+              </TabsContent>
+              <TabsContent value="parent" className="mt-0">
+                {renderUserTable()}
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+
+        <AddUserDialog 
+          isOpen={isAddUserOpen} 
+          onClose={() => setIsAddUserOpen(false)} 
+          onSubmit={handleAddUser}
+          isLoading={isAddingUser}
+        />
+
+        <AddParentDialog
+          isOpen={isAddParentOpen}
+          onClose={() => {
+            setIsAddParentOpen(false);
+            setSelectedLearnerId(undefined);
+          }}
+          onSubmit={handleAddParent}
+          isLoading={isAddingParent}
+          learners={users}
+          currentLearnerId={selectedLearnerId}
+        />
+      </div>
     </div>
   );
 
   function renderUserTable() {
     if (isLoading) {
-      // Structural loading for users table:
       return (
-        <div className="rounded-md border bg-white dark:bg-gray-900 animate-fade-in">
-          <div className="flex items-center justify-between px-4 py-3 border-b">
-            <div className="h-6 w-48 bg-muted rounded animate-pulse" />
-            <div className="flex gap-2">
-              <div className="h-9 w-24 bg-muted rounded animate-pulse" />
-              <div className="h-9 w-24 bg-muted rounded animate-pulse" />
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="flex flex-col gap-2">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 border-b py-3">
-                  <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
-                  <div className="flex-1">
-                    <div className="h-4 w-2/5 mb-2 bg-muted rounded animate-pulse" />
-                    <div className="h-3 w-1/4 bg-muted rounded animate-pulse" />
-                  </div>
-                  <div className="h-4 w-16 bg-muted rounded animate-pulse" />
-                  <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+          <LoadingState 
+            message="Loading users" 
+            variant="spinner"
+            className="py-16"
+          />
         </div>
       );
     }
     
     return (
-      <UserTable 
-        users={filteredUsers} 
-        onDelete={handleDeleteUser} 
-        onUpdate={handleUpdateUser}
-        onAddParent={handleAddParentName}
-        onCreateParent={openAddParentForm}
-      />
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg">
+        <UserTable 
+          users={filteredUsers} 
+          onDelete={handleDeleteUser} 
+          onUpdate={handleUpdateUser}
+          onAddParent={handleAddParentName}
+          onCreateParent={openAddParentForm}
+        />
+      </div>
     );
   }
 };

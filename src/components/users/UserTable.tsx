@@ -52,10 +52,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { LoadingState } from "@/components/LoadingState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 interface UserTableProps {
   users: ApiUser[];
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
   onUpdate: (user: ApiUser) => void;
   onAddParent: (userId: string, parentName: string) => Promise<any>;
   onCreateParent?: (learnerId: string) => void;
@@ -72,6 +73,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   const [sortBy, setSortBy] = useState<keyof ApiUser>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [parentDialogOpen, setParentDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [parentName, setParentName] = useState("");
@@ -108,10 +110,17 @@ export const UserTable: React.FC<UserTableProps> = ({
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (userToDelete) {
-      onDelete(userToDelete);
-      setUserToDelete(null);
+      try {
+        setIsDeleting(true);
+        await onDelete(userToDelete);
+        setUserToDelete(null);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -209,14 +218,14 @@ export const UserTable: React.FC<UserTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedUsers.length === 0 ? (
+            {users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
-              sortedUsers.map((user) => (
+              users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -324,12 +333,20 @@ export const UserTable: React.FC<UserTableProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? (
+                <div className="flex items-center">
+                  <Spinner size="sm" className="mr-2" />
+                  Deleting...
+                </div>
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
