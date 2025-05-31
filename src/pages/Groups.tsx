@@ -67,92 +67,100 @@ const Groups = () => {
     );
   });
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-xl p-6 mb-8 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Group Management
-              </h1>
-              <p className="text-gray-600 mt-1">Organize and manage your learning groups</p>
+              <h1 className="text-3xl font-bold">Group Management</h1>
+              <p className="text-slate-200 dark:text-slate-300 mt-1">Organize and manage your learning groups</p>
             </div>
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Create Group
-            </Button>
           </div>
         </div>
-
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4">
-              <TabsList className="h-12 p-1 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200">
-                <TabsTrigger 
-                  value="all" 
-                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  All Groups
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search groups by name, description, or creator..."
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="h-12 w-12 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all duration-200"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <TabsContent value="all" className="mt-0">
-                {isLoading ? (
-                  <div className="bg-white rounded-xl border border-gray-100">
-                    <LoadingState 
-                      message="Loading groups" 
-                      variant="spinner"
-                      className="py-16"
-                    />
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                    <GroupTable 
-                      groups={filteredGroups}
-                      isLoading={isLoading}
-                      onUpdateGroup={handleUpdateGroup}
-                      onDeleteGroup={handleDeleteGroup}
-                    />
-                  </div>
-                )}
-              </TabsContent>
-            </div>
-          </Tabs>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <LoadingState 
+            message="Loading groups" 
+            variant="spinner"
+            className="py-20"
+          />
         </div>
-
-        <AddGroupDialog 
-          open={isAddDialogOpen} 
-          onOpenChange={setIsAddDialogOpen}
-          onCreateGroup={handleCreateGroup}
-        />
       </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-xl p-6 mb-8 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Group Management</h1>
+            <p className="text-slate-200 dark:text-slate-300 mt-1">Organize and manage your learning groups</p>
+          </div>
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create Group
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-6 py-4">
+            <TabsList className="h-10 p-1 bg-slate-100 dark:bg-slate-600">
+              <TabsTrigger 
+                value="all" 
+                className="px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
+              >
+                <Users className="mr-2 h-4 w-4" />
+                All Groups
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search groups by name, description, or creator..."
+                  className="pl-10 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="icon"
+                className="border-slate-200 dark:border-slate-600"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <TabsContent value="all" className="mt-0">
+              <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <GroupTable 
+                  groups={filteredGroups}
+                  isLoading={isLoading}
+                  onUpdateGroup={handleUpdateGroup}
+                  onDeleteGroup={handleDeleteGroup}
+                />
+              </div>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </div>
+
+      <AddGroupDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen}
+        onCreateGroup={handleCreateGroup}
+      />
     </div>
   );
 };

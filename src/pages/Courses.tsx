@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,7 +13,8 @@ import {
   Eye,
   Pencil,
   Trash2, 
-  Book 
+  Book,
+  SlidersHorizontal
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -179,15 +181,21 @@ const Courses: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <LoadingState 
-              message="Loading courses" 
-              variant="spinner"
-              className="py-20"
-            />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-xl p-6 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Course Management</h1>
+              <p className="text-slate-200 dark:text-slate-300 mt-1">Create and manage your educational content</p>
+            </div>
           </div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <LoadingState 
+            message="Loading courses" 
+            variant="spinner"
+            className="py-20"
+          />
         </div>
       </div>
     );
@@ -195,18 +203,17 @@ const Courses: React.FC = () => {
 
   if (coursesError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
-            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Courses
-            </h1>
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Courses</h2>
-              <p className="text-gray-700">
-                We couldn't load your courses. Please try again later.
-              </p>
-            </div>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-xl p-6 mb-8 text-white">
+          <h1 className="text-3xl font-bold">Course Management</h1>
+          <p className="text-slate-200 dark:text-slate-300 mt-1">Create and manage your educational content</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 text-center">
+          <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Courses</h2>
+            <p className="text-gray-700 dark:text-gray-300">
+              We couldn't load your courses. Please try again later.
+            </p>
           </div>
         </div>
       </div>
@@ -214,136 +221,139 @@ const Courses: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Course Management
-              </h1>
-              <p className="text-gray-600 mt-1">Create and manage your educational content</p>
-            </div>
-            <Button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add Course
-            </Button>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-xl p-6 mb-8 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Course Management</h1>
+            <p className="text-slate-200 dark:text-slate-300 mt-1">Create and manage your educational content</p>
           </div>
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Course
+          </Button>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4">
-              <TabsList className="h-12 p-1 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200">
+      {/* Main Content */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-6 py-4">
+            <TabsList className="h-10 p-1 bg-slate-100 dark:bg-slate-600">
+              <TabsTrigger 
+                value="all" 
+                className="px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
+              >
+                <Book className="mr-2 h-4 w-4" />
+                All Courses
+              </TabsTrigger>
+              {uniqueCategories.map((category) => (
                 <TabsTrigger 
-                  value="all" 
-                  className="rounded-lg px-6 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+                  key={category} 
+                  value={category.toLowerCase()} 
+                  className="px-3 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
                 >
-                  <Book className="mr-2 h-4 w-4" />
-                  All Courses
+                  {category}
                 </TabsTrigger>
-                {uniqueCategories.map((category) => (
-                  <TabsTrigger 
-                    key={category} 
-                    value={category.toLowerCase()} 
-                    className="rounded-lg px-4 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
-                  >
-                    {category}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              ))}
+            </TabsList>
+          </div>
+
+          <div className="p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search courses by title, code, or category..."
+                  className="pl-10 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={toggleViewMode}
+                      className="border-slate-200 dark:border-slate-600"
+                    >
+                      {viewMode === "grid" ? (
+                        <List className="h-4 w-4" />
+                      ) : (
+                        <Grid2X2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Toggle {viewMode === "grid" ? "list" : "grid"} view</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Button 
+                variant="outline" 
+                size="icon"
+                className="border-slate-200 dark:border-slate-600"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
             </div>
 
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search courses by title, code, or category..."
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={toggleViewMode}
-                        className="h-12 w-12 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all duration-200"
-                      >
-                        {viewMode === "grid" ? (
-                          <List className="h-4 w-4" />
-                        ) : (
-                          <Grid2X2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Toggle {viewMode === "grid" ? "list" : "grid"} view</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+            {/* Content for all tabs */}
+            <TabsContent value="all" className="mt-0">
+              {renderCourseContent()}
+            </TabsContent>
 
-              {/* Content for all tabs */}
-              <TabsContent value="all" className="mt-0">
+            {uniqueCategories.map((category) => (
+              <TabsContent key={category} value={category.toLowerCase()} className="mt-0">
                 {renderCourseContent()}
               </TabsContent>
-
-              {uniqueCategories.map((category) => (
-                <TabsContent key={category} value={category.toLowerCase()} className="mt-0">
-                  {renderCourseContent()}
-                </TabsContent>
-              ))}
-            </div>
-          </Tabs>
-        </div>
-        
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent className="rounded-xl">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete this course?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the course and remove all associated data.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-lg">Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDeleteCourse} 
-                className="bg-red-500 text-white hover:bg-red-600 rounded-lg"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        
-        <CreateCourseModal 
-          isOpen={isCreateModalOpen} 
-          onClose={() => setIsCreateModalOpen(false)} 
-          onSuccess={() => {
-            refetch();
-          }} 
-        />
+            ))}
+          </div>
+        </Tabs>
       </div>
+        
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this course?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the course and remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-lg">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteCourse} 
+              className="bg-red-500 text-white hover:bg-red-600 rounded-lg"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+        
+      <CreateCourseModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSuccess={() => {
+          refetch();
+        }} 
+      />
     </div>
   );
 
   function renderCourseContent() {
     if (viewMode === "list") {
       return (
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
+              <TableRow className="bg-slate-50 dark:bg-slate-700/50">
                 <TableHead className="w-[25%]">
                   <Button 
                     variant="ghost" 
@@ -387,14 +397,13 @@ const Courses: React.FC = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedCourses.map((course) => (
-                  <TableRow key={course.id} className="hover:bg-gray-50 transition-colors">
+                  <TableRow key={course.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                     <TableCell className="font-medium">{course.courseTitle}</TableCell>
                     <TableCell>{course.courseCode}</TableCell>
                     <TableCell>{course.categoryName}</TableCell>
                     <TableCell>{format(new Date(course.updatedAt), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {/* Action buttons remain the same */}
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -461,22 +470,22 @@ const Courses: React.FC = () => {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAndSortedCourses.length === 0 ? (
-            <div className="col-span-full text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-              <Book className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">No courses found</h2>
-              <p className="text-gray-600 mb-6">
+            <div className="col-span-full text-center py-12 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-700">
+              <Book className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">No courses found</h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
                 No courses matching your search criteria.
               </p>
             </div>
           ) : (
             filteredAndSortedCourses.map((course) => (
-              <Card key={course.id} className="h-full transition-all duration-300 hover:shadow-lg group border border-gray-200 rounded-xl">
+              <Card key={course.id} className="h-full transition-all duration-300 hover:shadow-lg group border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="rounded-lg bg-gradient-to-r from-blue-100 to-purple-100 p-3 mr-4">
-                      <Book className="h-6 w-6 text-blue-600" />
+                    <div className="rounded-lg bg-blue-100 dark:bg-blue-900/50 p-3 mr-4">
+                      <Book className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <div className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full">
+                    <div className="text-xs text-muted-foreground bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
                       {course.courseCode || "N/A"}
                     </div>
                   </div>
@@ -495,11 +504,11 @@ const Courses: React.FC = () => {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0 border-t border-gray-100 flex justify-between">
+                <CardFooter className="pt-0 border-t border-slate-100 dark:border-slate-700 flex justify-between">
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-xs hover:bg-blue-50"
+                    className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/50"
                     onClick={() => handleViewCourse(course.id)}
                   >
                     <Eye className="mr-1 h-3 w-3" /> Preview
@@ -508,7 +517,7 @@ const Courses: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-xs hover:bg-blue-50"
+                      className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/50"
                       onClick={() => handleEditCourse(course.id)}
                     >
                       <Pencil className="mr-1 h-3 w-3" /> Edit
@@ -516,7 +525,7 @@ const Courses: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50"
+                      className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50"
                       onClick={() => openDeleteDialog(course.id)}
                     >
                       <Trash2 className="mr-1 h-3 w-3" /> Delete
