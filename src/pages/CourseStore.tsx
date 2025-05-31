@@ -26,6 +26,7 @@ interface IlmeeLibraryCourse {
   image: string;
   isFeatured: boolean;
   avgrating?: string;
+  // Additional properties as needed
 }
 
 interface OtherProviderCourse {
@@ -38,6 +39,7 @@ interface OtherProviderCourse {
   price: string;
   providerName: string;
   avgrating?: string;
+  // Additional properties as needed
 }
 
 // Type guard functions to check course types
@@ -156,6 +158,7 @@ const CourseStore = () => {
 
   // Transform API data to the structure expected by the UI
   const transformedIlmeeLibraryCourses = filterCourses(courseData.ilmeeLibrary).map(course => {
+    // We know this is an IlmeeLibraryCourse because it comes from ilmeeLibrary array
     const ilmeeCourse = course as IlmeeLibraryCourse;
     return {
       id: ilmeeCourse.id,
@@ -170,6 +173,7 @@ const CourseStore = () => {
   });
 
   const transformedOtherProviderCourses = filterCourses(courseData.otherProviders).map(course => {
+    // We know this is an OtherProviderCourse because it comes from otherProviders array
     const otherCourse = course as OtherProviderCourse;
     return {
       id: otherCourse.id,
