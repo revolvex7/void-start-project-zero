@@ -160,7 +160,7 @@ const MyCourses = () => {
 
                   <div className="ml-6">
                     <Button 
-                      onClick={() => navigate(`/course/${course.courseId}`)}
+                      onClick={() => navigate(`/course/${course.courseId}/preview`)}
                       className={cn(
                         "kid-button",
                         parseFloat(course.progress) === 100 

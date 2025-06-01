@@ -133,6 +133,7 @@ const Login = () => {
 					// Redirect to subdomain
 					window.location.href = `${window.location.protocol}//${userDomain}.${baseDomain}/`;
 				} else {
+					
 					navigate("/");
 				}
 			}
@@ -300,3 +301,4 @@ const Login = () => {
 };
 
 export default Login;
+// http://localhost:8080/course/fb23d28f-f558-4b78-a0c9-920a614833fa/preview

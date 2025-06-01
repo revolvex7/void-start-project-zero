@@ -128,7 +128,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
               <TableHead className="min-w-[250px]">Description</TableHead>
               <TableHead className="w-[120px]">Due Date</TableHead>
               <TableHead className="w-[80px]">Marks</TableHead>
-              <TableHead className="w-[100px]">Type</TableHead>
+              {/* <TableHead className="w-[100px]">Type</TableHead> */}
               <TableHead className="text-right w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -140,7 +140,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                   <TableCell className="line-clamp-2 max-w-[300px]">{assignment.description}</TableCell>
                   <TableCell>{new Date(assignment.dueDate).toLocaleDateString()}</TableCell>
                   <TableCell>{assignment.totalMarks || "—"}</TableCell>
-                  <TableCell>{assignment.isAiGenerated ? "AI Generated" : "Manual"}</TableCell>
+                  {/* <TableCell>{assignment.isAiGenerated ? "AI Generated" : "Manual"}</TableCell> */}
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-1">
                       <TooltipProvider>
