@@ -7,7 +7,7 @@ import {
   BookOpen, 
   Home, 
   GraduationCap, 
-  Trophy, 
+  FileText, 
   UserRound, 
   Star,
   Puzzle,
@@ -36,9 +36,9 @@ export function LearnerSidebar() {
       icon: BookOpen
     },
     {
-      title: "My Achievements",
-      url: "/achievements",
-      icon: Trophy
+      title: "Assignments",
+      url: "/assignments",
+      icon: FileText
     },
     {
       title: "Fun Activities",
