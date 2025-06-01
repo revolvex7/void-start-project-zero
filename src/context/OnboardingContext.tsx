@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -30,30 +31,42 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [userRange, setUserRange] = useState<string | null>(null);
   const [industry, setIndustry] = useState<string | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(false);
+  const [hasInitialRedirectHappened, setHasInitialRedirectHappened] = useState<boolean>(false);
   const navigate = useNavigate();
   const auth = useAuth();
 
-  // Helper function to handle role-based redirects
-  const handleRoleBasedRedirect = () => {
-    if (!auth.user?.role) return;
+  // Helper function to handle role-based redirects - only called once on initial load
+  const handleInitialRoleBasedRedirect = () => {
+    if (!auth.user?.role || hasInitialRedirectHappened) return;
 
+    // Only redirect if we're currently on a page that doesn't match the user's role
+    const currentPath = window.location.pathname;
+    
     switch (auth.user.role) {
       case 'Learner':
-        navigate('/learner-dashboard');
+        // Don't redirect if already on learner pages
+        if (!currentPath.includes('/learner-dashboard') && 
+            !currentPath.includes('/assignments') && 
+            !currentPath.includes('/my-courses') &&
+            !currentPath.includes('/courses') &&
+            currentPath !== '/') {
+          navigate('/learner-dashboard');
+        }
         break;
       case 'Instructor':
-        navigate('/instructor-dashboard');
+        if (!currentPath.includes('/instructor-dashboard') && currentPath !== '/') {
+          navigate('/instructor-dashboard');
+        }
         break;
       case 'Administrator':
         // Only administrators need to complete onboarding
-        if (!isOnboardingComplete && !window.location.pathname.includes('/onboarding')) {
+        if (!isOnboardingComplete && !currentPath.includes('/onboarding')) {
           navigate('/onboarding/step1');
         }
         break;
-      default:
-        // For any other role, redirect to the main dashboard
-        navigate('/');
     }
+    
+    setHasInitialRedirectHappened(true);
   };
   
   // Check if onboarding is complete based on user.mainGoal and role
@@ -64,7 +77,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       if (isLearnerOrInstructor) {
         setIsOnboardingComplete(true);
-        handleRoleBasedRedirect();
+        // Only do initial redirect once
+        if (!hasInitialRedirectHappened) {
+          handleInitialRoleBasedRedirect();
+        }
         return;
       }
 
@@ -106,7 +122,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (savedUserRange) setUserRange(savedUserRange);
       if (savedIndustry) setIndustry(savedIndustry);
     }
-  }, [auth.user, auth.isAuthenticated, navigate]);
+  }, [auth.user, auth.isAuthenticated, navigate, hasInitialRedirectHappened]);
 
   // Safe reference to refreshUserData
   const refreshUserData = auth.refreshUserData;

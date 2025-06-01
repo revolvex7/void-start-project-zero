@@ -6,14 +6,17 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { LearnerSidebar } from "@/components/dashboard/LearnerSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const MainLayout = () => {
   const { role } = useRole();
+  const { user } = useAuth();
   const location = useLocation();
   
-  // Check if this is a learner route or parent dashboard
-  const isLearnerRoute = role === 'learner' || location.pathname.includes('learner-dashboard');
+  // Check if this is a learner route or parent dashboard based on actual user role
+  const isActualLearner = user?.role === 'Learner';
+  const isLearnerRoute = isActualLearner || role === 'learner' || location.pathname.includes('learner-dashboard');
   const isParentDashboard = location.pathname.includes('parent-dashboard');
   // Check if this is a course preview page
   const isCoursePreview = location.pathname.includes('/preview');

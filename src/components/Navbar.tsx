@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 interface NavbarProps {
@@ -28,10 +29,12 @@ export const Navbar: React.FC<NavbarProps> = ({ hideDropdown = false }) => {
   const isCollapsed = state === "collapsed";
   const isMobile = useIsMobile();
   const { role } = useRole();
+  const { user } = useAuth();
   const location = useLocation();
   
-  // Check if this is a learner route
-  const isLearnerRoute = role === 'learner' || location.pathname.includes('learner-dashboard');
+  // Check if this is a learner route based on actual user role
+  const isActualLearner = user?.role === 'Learner';
+  const isLearnerRoute = isActualLearner || role === 'learner' || location.pathname.includes('learner-dashboard');
 
   return (
     <header className={cn(
