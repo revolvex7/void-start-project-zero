@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, Edit, Search, SlidersHorizontal, ArrowUpDown, MoreHorizontal, Trash, FolderOpen } from 'lucide-react';
@@ -64,11 +63,16 @@ const Categories = () => {
   const queryClient = useQueryClient();
 
   // Fetch categories
-  const { data: categories, isLoading } = useQuery({
+  const { data: categories, isLoading, error } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
       const response = await api.get('/administrator/categories');
       return response.data.data;
+    },
+    meta: {
+      onError: () => {
+        toast.error('Failed to fetch categories. Please try again later.');
+      }
     }
   });
 
@@ -180,21 +184,69 @@ const Categories = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-xl p-6 mb-8 text-white">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section - Consistent with loaded state */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Category Management</h1>
-              <p className="text-slate-200 dark:text-slate-300 mt-1">Organize your content with categories</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Category Management</h1>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">Organize your content with categories</p>
             </div>
+            <div className="w-32 h-10 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-lg animate-pulse"></div>
           </div>
         </div>
+
+        {/* Main Content with Loading State */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <LoadingState 
-            message="Loading categories" 
-            variant="spinner"
-            className="py-20"
-          />
+          {/* Loading Tabs Skeleton */}
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700/50 dark:to-blue-900/20 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-36 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <LoadingState 
+              message="Loading categories" 
+              variant="spinner"
+              className="py-16"
+              statusMessage="Fetching category data and content..."
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section - Consistent */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Category Management</h1>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">Organize your content with categories</p>
+            </div>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="p-12 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <FolderOpen className="h-10 w-10 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Categories</h2>
+            <p className="text-gray-700 dark:text-gray-300 max-w-md mx-auto">
+              We encountered an issue while fetching your categories. Please check your connection and try again.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -221,11 +273,11 @@ const Categories = () => {
       {/* Main Content */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-6 py-4">
-            <TabsList className="h-10 p-1 bg-slate-100 dark:bg-slate-600">
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700/50 dark:to-blue-900/20 px-6 py-5">
+            <TabsList className="h-12 p-1 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-slate-200 dark:border-slate-600 shadow-sm rounded-xl">
               <TabsTrigger 
                 value="all" 
-                className="px-4 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
+                className="px-6 py-2.5 rounded-lg font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300"
               >
                 <FolderOpen className="mr-2 h-4 w-4" />
                 All Categories
@@ -239,7 +291,7 @@ const Categories = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Search categories by name..."
-                  className="pl-10 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                  className="pl-10 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700 dark:to-blue-900/20 border-slate-200 dark:border-slate-600 focus:border-blue-400 dark:focus:border-blue-500 transition-all duration-200 shadow-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -247,7 +299,7 @@ const Categories = () => {
               <Button 
                 variant="outline" 
                 size="icon"
-                className="border-slate-200 dark:border-slate-600"
+                className="h-10 w-10 border-slate-200 dark:border-slate-600 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all duration-200"
               >
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>

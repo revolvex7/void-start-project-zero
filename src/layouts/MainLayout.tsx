@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -14,11 +13,19 @@ const MainLayout = () => {
   const { user } = useAuth();
   const location = useLocation();
   
-  // Check if this is a learner route or parent dashboard based on actual user role
-  const isActualLearner = user?.role === 'Learner';
-  const isLearnerRoute = isActualLearner || role === 'learner' || location.pathname.includes('learner-dashboard');
+  // Determine the effective role based on user's actual role and selected role context
+  const isActualLearner = user?.role === 'Learner' || user?.role === 'learner';
+  const isActualInstructor = user?.role === 'Instructor' || user?.role === 'instructor';
+  const isActualAdmin = user?.role === 'Administrator' || user?.role === 'administrator';
+  
+  // Check role context for admins who can switch roles
+  const isAdminAsLearner = isActualAdmin && role === 'learner';
+  const isAdminAsInstructor = isActualAdmin && role === 'instructor';
+  
+  // Determine which view/layout to show
+  const isLearnerView = isActualLearner || isAdminAsLearner || location.pathname.includes('learner-dashboard');
+  const isInstructorView = isActualInstructor || isAdminAsInstructor || location.pathname.includes('instructor-dashboard');
   const isParentDashboard = location.pathname.includes('parent-dashboard');
-  // Check if this is a course preview page
   const isCoursePreview = location.pathname.includes('/preview');
   
   // For course preview, return just the outlet without any navigation
@@ -44,20 +51,33 @@ const MainLayout = () => {
     );
   }
 
+  // Determine background styling based on view
+  const getBackgroundStyle = () => {
+    if (isLearnerView) {
+      return "bg-gradient-to-br from-blue-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950";
+    }
+    if (isInstructorView) {
+      return "bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950";
+    }
+    return "bg-gradient-to-br from-background to-muted/50 dark:from-gray-900 dark:to-gray-950";
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className={cn(
         "min-h-screen flex flex-col w-full transition-colors duration-200",
-        isLearnerRoute 
-          ? "bg-gradient-to-br from-blue-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950" 
-          : "bg-gradient-to-br from-background to-muted/50 dark:from-gray-900 dark:to-gray-950"
+        getBackgroundStyle()
       )}>
         <Navbar />
         <div className="flex flex-1">
-          {isLearnerRoute ? <LearnerSidebar /> : <DashboardSidebar />}
+          {isLearnerView ? (
+            <LearnerSidebar key={`learner-${role}`} />
+          ) : (
+            <DashboardSidebar key={`dashboard-${role}-${user?.role}`} />
+          )}
           <main className={cn(
             "flex-1 overflow-auto",
-            isLearnerRoute ? "p-5 md:p-8" : "p-4 md:p-6"
+            isLearnerView ? "p-5 md:p-8" : "p-4 md:p-6"
           )}>
             <Outlet />
           </main>

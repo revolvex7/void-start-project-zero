@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { BarChart, Users, LayoutGrid, BookText, ChevronRight } from "lucide-react";
+import { BarChart, Users, LayoutGrid, BookText, ChevronRight, TrendingUp, Activity } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 import { PieChart, Pie, ResponsiveContainer, Cell, Tooltip as RechartsTooltip } from "recharts";
@@ -12,6 +11,9 @@ import { dashboardService } from "@/services/dashboardService";
 import { UserRoles, AdminDashboardData } from "@/types/dashboard";
 import { useRole } from "@/context/RoleContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingState } from "@/components/LoadingState";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -23,6 +25,11 @@ const Dashboard = () => {
     queryKey: ['dashboardData', 'administrator'],
     queryFn: () => dashboardService.getDashboardData(UserRoles.Administrator),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    meta: {
+      onError: () => {
+        toast.error('Failed to load dashboard data. Please try again later.');
+      }
+    }
   });
 
   const adminData = dashboardData?.data as AdminDashboardData | undefined;
@@ -67,8 +74,8 @@ const Dashboard = () => {
   const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 shadow-lg rounded-lg border">
-          <p className="font-medium">{`${payload[0].name}: ${payload[0].value}`}</p>
+        <div className="bg-white dark:bg-slate-800 p-3 shadow-lg rounded-lg border border-slate-200 dark:border-slate-700">
+          <p className="font-medium text-slate-900 dark:text-white">{`${payload[0].name}: ${payload[0].value}`}</p>
         </div>
       );
     }
@@ -78,30 +85,44 @@ const Dashboard = () => {
   // Show loading state while fetching data
   if (isLoading) {
     return (
-      <div className="space-y-4 p-8 pt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Welcome back, {firstName}!
-          </h2>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section - Loading */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Admin Dashboard</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                Welcome back, {firstName}!
+              </h1>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">Monitor your platform's performance and analytics</p>
+            </div>
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center animate-pulse">
+              <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
         </div>
-        <Separator />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+
+        {/* Stats Cards Loading */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card className="p-6" key={i}>
-              <Skeleton className="h-4 w-32 mb-2" />
-              <Skeleton className="h-8 w-16 mt-4" />
-            </Card>
+            <div key={i} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-slate-200 dark:bg-slate-600 rounded-lg animate-pulse"></div>
+                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-600 rounded animate-pulse"></div>
+              </div>
+              <div className="h-8 w-16 bg-slate-200 dark:bg-slate-600 rounded animate-pulse"></div>
+            </div>
           ))}
         </div>
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-          <Card className="p-6">
-            <Skeleton className="h-4 w-32 mb-4" />
-            <Skeleton className="h-[200px] w-full rounded-md" />
-          </Card>
-          <Card className="p-6">
-            <Skeleton className="h-4 w-32 mb-4" />
-            <Skeleton className="h-[200px] w-full rounded-md" />
-          </Card>
+
+        {/* Charts Loading */}
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+              <div className="h-6 w-32 bg-slate-200 dark:bg-slate-600 rounded mb-4 animate-pulse"></div>
+              <div className="h-[200px] bg-slate-100 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -109,174 +130,234 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="space-y-4 p-8 pt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Welcome back, {firstName}!
-          </h2>
-        </div>
-        <Separator />
-        <Card className="p-6">
-          <div className="text-center py-8">
-            <p className="text-red-500 mb-2">Error loading dashboard data</p>
-            <p className="text-muted-foreground">Please try again later</p>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section - Error */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Admin Dashboard</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                Welcome back, {firstName}!
+              </h1>
+              <p className="text-slate-600 dark:text-slate-300 mt-1">Monitor your platform's performance and analytics</p>
+            </div>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Try Again
+            </Button>
           </div>
-        </Card>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="p-12 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <Activity className="h-10 w-10 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Dashboard</h2>
+            <p className="text-gray-700 dark:text-gray-300 max-w-md mx-auto">
+              We encountered an issue while fetching dashboard data. Please check your connection and try again.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Welcome back, {firstName}!
-        </h2>
-      </div>
-      <Separator />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <LayoutGrid className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium">Total Courses</span>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Header Section */}
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Admin Dashboard</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Welcome back, {firstName}!
+            </h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-1">Monitor your platform's performance and analytics</p>
           </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold">{adminData?.totalCourses || 0}</span>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium">Active Users</span>
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold">{adminData?.activeUsers || 0}</span>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <BookText className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium">Course Completions</span>
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold">{adminData?.courseCompletion || 0}%</span>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <BarChart className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium">Activity Rate</span>
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold">{adminData?.activityRate || 0}%</span>
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Users Donut Chart */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Users</h3>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </div>
-          
-          <div className="flex flex-col items-center">
-            <div className="relative h-[200px] w-full">
-              <ChartContainer config={chartConfig} className="w-full h-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={userData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      dataKey="value"
-                      startAngle={90}
-                      endAngle={-270}
-                      paddingAngle={4}
-                    >
-                      {userData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={COLORS[index % COLORS.length]} 
-                          strokeWidth={0}
-                        />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              
-              {/* Total count in center */}
-              <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-3xl font-bold">{totalUsers}</span>
-                <span className="text-xs text-muted-foreground">Total</span>
-              </div>
-            </div>
-            
-            <div className="flex justify-center gap-6 mt-4">
-              {userData.map((entry, index) => (
-                <div key={`legend-${index}`} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[index] }}
-                  />
-                  <span className="text-xs">{entry.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-        
-        {/* Course Progress Status */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Courses' progress status</h3>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </div>
-          
-          <div className="flex flex-col items-center justify-center p-6 min-h-[200px] text-center">
-            <div className="p-4 mb-3 rounded-full bg-blue-100 text-blue-600">
-              <BookText className="h-8 w-8" />
-            </div>
-            <p className="text-muted-foreground font-medium">
-              {adminData?.totalCourses ? `${adminData.totalCourses} courses available` : 'No stats to show'}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {adminData?.totalCourses ? `${adminData.courseCompletion}% completion rate` : 'Create your first course now'}
-            </p>
-            
-            <Link 
-              to="/courses" 
-              className="mt-4 text-sm text-blue-600 hover:underline"
-            >
-              Go to courses
-            </Link>
-          </div>
-        </Card>
-      </div>
-
-      {/* Quick Actions Card */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="grid gap-2">
-          <Link to="/upload-syllabus" className="flex items-center p-2 hover:bg-muted rounded-md transition-colors cursor-pointer">
-            <BookText className="h-5 w-5 mr-2 text-muted-foreground" />
-            <span>Upload a new syllabus</span>
-          </Link>
-          <Link to="/courses" className="flex items-center p-2 hover:bg-muted rounded-md transition-colors cursor-pointer">
-            <LayoutGrid className="h-5 w-5 mr-2 text-muted-foreground" />
-            <span>View courses</span>
-          </Link>
-          <div className="flex items-center p-2 hover:bg-muted rounded-md transition-colors cursor-pointer">
-            <Users className="h-5 w-5 mr-2 text-muted-foreground" />
-            <span>Invite users</span>
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+            <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-      </Card>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg flex items-center justify-center">
+              <LayoutGrid className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Courses</span>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">{adminData?.totalCourses || 0}</span>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg flex items-center justify-center">
+              <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Active Users</span>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">{adminData?.activeUsers || 0}</span>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-lg flex items-center justify-center">
+              <BookText className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Course Completions</span>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">{adminData?.courseCompletion || 0}%</span>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-lg flex items-center justify-center">
+              <BarChart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Activity Rate</span>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">{adminData?.activityRate || 0}%</span>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        {/* Users Donut Chart */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700/50 dark:to-blue-900/20 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                Users Distribution
+              </h3>
+              <ChevronRight className="h-5 w-5 text-slate-400" />
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex flex-col items-center">
+              <div className="relative h-[200px] w-full">
+                <ChartContainer config={chartConfig} className="w-full h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={userData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                        paddingAngle={4}
+                      >
+                        {userData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalUsers}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Total Users</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap justify-center gap-4 mt-4">
+                {userData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      {entry.name}: {entry.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700/50 dark:to-blue-900/20 px-6 py-4">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              Quick Actions
+            </h3>
+          </div>
+          
+          <div className="p-6">
+            <div className="grid gap-4">
+              <Link 
+                to="/users" 
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h4 className="font-medium text-slate-900 dark:text-white">Manage Users</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Add, edit, and manage user accounts</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-slate-400" />
+              </Link>
+              
+              <Link 
+                to="/courses" 
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-700 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutGrid className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div>
+                    <h4 className="font-medium text-slate-900 dark:text-white">Manage Courses</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Create and organize learning content</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-slate-400" />
+              </Link>
+              
+              <Link 
+                to="/reports" 
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200 dark:border-orange-700 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <BarChart className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  <div>
+                    <h4 className="font-medium text-slate-900 dark:text-white">View Reports</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Analytics and performance metrics</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-slate-400" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

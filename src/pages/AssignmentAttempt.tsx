@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { learnerAssignmentService, Question } from "@/services/learnerAssignmentService";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LearnerSkeleton } from "@/components/LoadingSpinner";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -196,8 +196,68 @@ const AssignmentAttempt = () => {
 
   if (isLoading || !assignment) {
     return (
-      <div className="min-h-screen p-6">
-        <LoadingSpinner message="Loading assignment..." />
+      <div className="min-h-screen p-6 space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-300 mb-2">
+            Loading Assignment... 📝
+          </h1>
+          <p className="text-purple-600 dark:text-purple-400 text-lg">
+            Getting your assignment ready!
+          </p>
+        </div>
+        
+        {/* Assignment Attempt Skeleton */}
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header Card */}
+          <div className="kid-card p-6 animate-pulse">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <div className="h-7 bg-purple-200 dark:bg-purple-700 rounded-xl w-64 mb-3 animate-pulse" />
+                <div className="h-4 bg-purple-100 dark:bg-purple-800 rounded w-48 mb-2 animate-pulse" />
+                <div className="h-3 bg-purple-100 dark:bg-purple-800 rounded w-32 animate-pulse" />
+              </div>
+              <div className="w-20 h-8 bg-gradient-to-r from-indigo-200 to-purple-200 dark:from-indigo-800 to-purple-800 rounded-full animate-pulse" />
+            </div>
+            
+            {/* Progress */}
+            <div className="mb-4">
+              <div className="flex justify-between mb-2">
+                <div className="h-3 bg-purple-100 dark:bg-purple-800 rounded w-16 animate-pulse" />
+                <div className="h-3 bg-purple-100 dark:bg-purple-800 rounded w-12 animate-pulse" />
+              </div>
+              <div className="kid-progress">
+                <div className="kid-progress-bar w-1/3 animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          {/* Question Card */}
+          <div className="kid-card p-6 animate-pulse">
+            <div className="mb-6">
+              <div className="h-6 bg-purple-200 dark:bg-purple-700 rounded-xl w-48 mb-4 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-4 bg-purple-100 dark:bg-purple-800 rounded w-full animate-pulse" />
+                <div className="h-4 bg-purple-100 dark:bg-purple-800 rounded w-3/4 animate-pulse" />
+              </div>
+            </div>
+
+            {/* Answer Options */}
+            <div className="space-y-4 mb-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <div className="w-4 h-4 bg-purple-200 dark:bg-purple-700 rounded-full animate-pulse" />
+                  <div className="h-4 bg-purple-100 dark:bg-purple-800 rounded w-48 animate-pulse" />
+                </div>
+              ))}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between">
+              <div className="h-10 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 to-gray-800 rounded-full w-24 animate-pulse" />
+              <div className="h-10 bg-gradient-to-r from-indigo-200 to-purple-200 dark:from-indigo-800 to-purple-800 rounded-full w-24 animate-pulse" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

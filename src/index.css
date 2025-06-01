@@ -192,6 +192,15 @@
 .animate-delay-500 {
   animation-delay: 500ms;
 }
+.animate-delay-600 {
+  animation-delay: 600ms;
+}
+.animate-delay-700 {
+  animation-delay: 700ms;
+}
+.animate-delay-800 {
+  animation-delay: 800ms;
+}
 
 /* Transitions */
 .transition-smooth {

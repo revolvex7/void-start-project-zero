@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -12,7 +11,8 @@ import {
   Star,
   Puzzle,
   Menu, 
-  X
+  X,
+  Brain
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -39,6 +39,11 @@ export function LearnerSidebar() {
       title: "Assignments",
       url: "/assignments",
       icon: FileText
+    },
+    {
+      title: "Homework Tutor",
+      url: "/homework-tutor",
+      icon: Brain
     },
     {
       title: "Fun Activities",

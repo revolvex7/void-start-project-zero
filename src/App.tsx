@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { OnboardingProvider } from "./context/OnboardingContext";
-import { RoleProvider } from "./context/RoleContext";
+import { RoleProvider, useRole } from "./context/RoleContext";
 import { LoadingState } from "./components/LoadingState";
 import { useSocketProgress } from "./hooks/useSocketProgress";
 import { useEffect } from "react";
@@ -51,6 +51,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import LearnerAssignments from "./pages/LearnerAssignments";
 import AssignmentAttempt from "./pages/AssignmentAttempt";
+import HomeworkTutor from "./pages/HomeworkTutor";
 
 const queryClient = new QueryClient();
 
@@ -139,7 +140,60 @@ const SubdomainHandler = ({ children }: { children: React.ReactNode }) => {
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   
-  if (user?.role !== 'Administrator') {
+  if (user?.role !== 'Administrator' && user?.role !== 'administrator') {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Instructor route protection component - allows admins with instructor role context
+const InstructorRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const { role } = useRole();
+  
+  // Allow if user is actually an instructor OR if user is admin with instructor role selected
+  const isInstructor = user?.role === 'Instructor' || user?.role === 'instructor';
+  const isAdminAsInstructor = (user?.role === 'Administrator' || user?.role === 'administrator') && role === 'instructor';
+  
+  if (!isInstructor && !isAdminAsInstructor) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Learner route protection component - allows admins with learner role context
+const LearnerRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const { role } = useRole();
+  
+  // Allow if user is actually a learner OR if user is admin with learner role selected
+  const isLearner = user?.role === 'Learner' || user?.role === 'learner';
+  const isAdminAsLearner = (user?.role === 'Administrator' || user?.role === 'administrator') && role === 'learner';
+  
+  if (!isLearner && !isAdminAsLearner) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Multi-role route protection component (for routes accessible by multiple roles)
+const MultiRoleRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) => {
+  const { user } = useAuth();
+  const { role } = useRole();
+  
+  const userRole = user?.role?.toLowerCase();
+  const selectedRole = role?.toLowerCase();
+  
+  // Check if user's actual role is in allowed roles
+  const isActualRoleAllowed = allowedRoles.some(allowedRole => allowedRole.toLowerCase() === userRole);
+  
+  // Check if user is admin and their selected role is in allowed roles
+  const isAdminWithAllowedRole = (userRole === 'administrator') && allowedRoles.some(allowedRole => allowedRole.toLowerCase() === selectedRole);
+  
+  if (!isActualRoleAllowed && !isAdminWithAllowedRole) {
     return <Navigate to="/" replace />;
   }
   
@@ -154,57 +208,70 @@ const AppRoutes = () => {
     <>
       <Routes>
         <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+          {/* Root dashboard - accessible by all authenticated users */}
           <Route path="/" element={<Dashboard />} />
-          <Route path="/instructor-dashboard" element={<InstructorDashboard />} />
-          <Route path="/learner-dashboard" element={<LearnerDashboard />} />
+          
+          {/* Role-specific dashboards */}
+          <Route path="/instructor-dashboard" element={<InstructorRoute><InstructorDashboard /></InstructorRoute>} />
+          <Route path="/learner-dashboard" element={<LearnerRoute><LearnerDashboard /></LearnerRoute>} />
           <Route path="/parent-dashboard" element={<ParentDashboard />} />
-          <Route path="/upload-syllabus" element={<UploadSyllabus />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/my-courses" element={<MyCourses />} />
-          <Route path="/assignments" element={<LearnerAssignments />} />
-          <Route path="/assignment/:assignmentId/attempt" element={<AssignmentAttempt />} />
           
           {/* Admin-only routes */}
+          <Route path="/upload-syllabus" element={<AdminRoute><UploadSyllabus /></AdminRoute>} />
           <Route path="/categories" element={<AdminRoute><Categories /></AdminRoute>} />
           <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/users/:userId" element={<AdminRoute><UserDetails /></AdminRoute>} />
           <Route path="/course-store" element={<AdminRoute><CourseStore /></AdminRoute>} />
           <Route path="/course-store/course/:courseId" element={<AdminRoute><CourseStoreDetails /></AdminRoute>} />
           <Route path="/subscription" element={<AdminRoute><Subscription /></AdminRoute>} />
-          <Route path="/reports" element={<AdminRoute><Reports /></AdminRoute>} />
+          
+          {/* Instructor-only routes */}
+          <Route path="/grading-hub" element={<InstructorRoute><GradingHub /></InstructorRoute>} />
+          <Route path="/grading-hub/assignment/:assignmentId" element={<InstructorRoute><AssignmentGrading /></InstructorRoute>} />
+          <Route path="/conferences" element={<InstructorRoute><Conferences /></InstructorRoute>} />
+          
+          {/* Learner-only routes */}
+          <Route path="/assignments" element={<LearnerRoute><LearnerAssignments /></LearnerRoute>} />
+          <Route path="/assignment/:assignmentId/attempt" element={<LearnerRoute><AssignmentAttempt /></LearnerRoute>} />
+          <Route path="/homework-tutor" element={<LearnerRoute><HomeworkTutor /></LearnerRoute>} />
+          
+          {/* Multi-role routes (Admin + Instructor) */}
+          <Route path="/courses" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Courses /></MultiRoleRoute>} />
+          <Route path="/groups" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Groups /></MultiRoleRoute>} />
+          <Route path="/groups/:groupId" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><GroupDetails /></MultiRoleRoute>} />
+          <Route path="/reports" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Reports /></MultiRoleRoute>} />
           <Route path="/reports/courses" element={<AdminRoute><Reports /></AdminRoute>} />
           <Route path="/reports/groups" element={<AdminRoute><Reports /></AdminRoute>} />
           <Route path="/reports/users" element={<AdminRoute><Reports /></AdminRoute>} />
           <Route path="/reports/categories" element={<AdminRoute><Reports /></AdminRoute>} />
+          <Route path="/reports/students" element={<InstructorRoute><Reports /></InstructorRoute>} />
+          <Route path="/reports/assignments" element={<InstructorRoute><Reports /></InstructorRoute>} />
           
-          {/* Regular protected routes */}
-          <Route path="/course/:courseId" element={<CourseDetail />} />
-          <Route path="/course/:courseId/preview" element={<CoursePreview />} />
-          <Route path="/class/:moduleId/:classId" element={<ClassDetails />} />
-          <Route path="/quiz/:classId" element={<Quiz />} />
+          {/* Multi-role routes (Admin + Instructor + Learner) */}
+          <Route path="/my-courses" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><MyCourses /></MultiRoleRoute>} />
+          <Route path="/course/:courseId" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><CourseDetail /></MultiRoleRoute>} />
+          <Route path="/course/:courseId/preview" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><CoursePreview /></MultiRoleRoute>} />
+          <Route path="/class/:moduleId/:classId" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><ClassDetails /></MultiRoleRoute>} />
+          <Route path="/quiz/:classId" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><Quiz /></MultiRoleRoute>} />
+          <Route path="/calendar" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><Calendar /></MultiRoleRoute>} />
+          
+          {/* Universal routes (accessible by all roles) */}
           <Route path="/profile" element={<Profile />} />
-          <Route path="/groups" element={<Groups />} />
-          <Route path="/groups/:groupId" element={<GroupDetails />} />
           <Route path="/help" element={<HelpCenter />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/grading-hub" element={<GradingHub />} />
-          <Route path="/grading-hub/assignment/:assignmentId" element={<AssignmentGrading />} />
-          <Route path="/conferences" element={<Conferences />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/reports/students" element={<Reports />} />
-          <Route path="/reports/assignments" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
         
-        {/* Route for course editor - outside MainLayout because we want a custom sidebar */}
-        <Route path="/course/:courseId/edit" element={<PrivateRoute><CourseEditor /></PrivateRoute>} />
+        {/* Route for course editor - outside MainLayout, accessible by Admin + Instructor */}
+        <Route path="/course/:courseId/edit" element={<PrivateRoute><MultiRoleRoute allowedRoles={['administrator', 'instructor']}><CourseEditor /></MultiRoleRoute></PrivateRoute>} />
         
         {/* Routes outside MainLayout for sidebar-less parent pages */}
         <Route path="/parent/child/:childId" element={<PrivateRoute><ChildDetails /></PrivateRoute>} />
         
-        <Route path="/onboarding/step1" element={<PrivateRoute><Step1Goals /></PrivateRoute>} />
-        <Route path="/onboarding/step2" element={<PrivateRoute><Step2Users /></PrivateRoute>} />
-        <Route path="/onboarding/step3" element={<PrivateRoute><Step3Industry /></PrivateRoute>} />
+        {/* Onboarding routes - Admin only */}
+        <Route path="/onboarding/step1" element={<PrivateRoute><AdminRoute><Step1Goals /></AdminRoute></PrivateRoute>} />
+        <Route path="/onboarding/step2" element={<PrivateRoute><AdminRoute><Step2Users /></AdminRoute></PrivateRoute>} />
+        <Route path="/onboarding/step3" element={<PrivateRoute><AdminRoute><Step3Industry /></AdminRoute></PrivateRoute>} />
         
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />

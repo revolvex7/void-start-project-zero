@@ -41,6 +41,7 @@ export interface ApiUser {
   registrationDate: string;
   parentName?: string;
   parentId?: string;
+  createdAt?: string;
 }
 
 // Updated interface to match the actual API response

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -41,20 +40,25 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Only redirect if we're currently on a page that doesn't match the user's role
     const currentPath = window.location.pathname;
-    
+     
     switch (auth.user.role) {
       case 'Learner':
-        // Don't redirect if already on learner pages
-        if (!currentPath.includes('/learner-dashboard') && 
-            !currentPath.includes('/assignments') && 
-            !currentPath.includes('/my-courses') &&
-            !currentPath.includes('/courses') &&
-            currentPath !== '/') {
+        // Redirect to learner dashboard if on root path or other non-learner pages
+        if (currentPath === '/' || 
+            (!currentPath.includes('/learner-dashboard') && 
+             !currentPath.includes('/assignments') && 
+             !currentPath.includes('/my-courses') &&
+             !currentPath.includes('/courses') &&
+             !currentPath.includes('/profile') &&
+             !currentPath.includes('/help') &&
+             !currentPath.includes('/contact') &&
+             !currentPath.includes('/calendar') &&
+             !currentPath.includes('/settings'))) {
           navigate('/learner-dashboard');
         }
         break;
       case 'Instructor':
-        if (!currentPath.includes('/instructor-dashboard') && currentPath !== '/') {
+        if (currentPath === '/' || !currentPath.includes('/instructor-dashboard')) {
           navigate('/instructor-dashboard');
         }
         break;

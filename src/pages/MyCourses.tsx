@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { ArrowLeft, BookOpen, Clock, Users, Star, ChevronRight, Trophy, PlayCirc
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LearnerSkeleton } from "@/components/LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { toast } from "sonner";
@@ -66,7 +65,7 @@ const MyCourses = () => {
             Keep exploring and learning awesome things!
           </p>
         </div>
-        <LoadingSpinner message="Loading your courses..." />
+        <LearnerSkeleton type="courses" count={3} />
       </div>
     );
   }

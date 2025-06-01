@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "@/services/dashboardService";
 import { UserRoles, LearnerDashboardData } from "@/types/dashboard";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LearnerSkeleton } from "@/components/LoadingSpinner";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "@/components/ui/icons";
@@ -53,45 +53,15 @@ const LearnerDashboard = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-10 w-48" />
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-bold tracking-tight text-purple-800 dark:text-purple-300">
+            Hello, {firstName}! 👋
+          </h2>
+          <div className="h-10 bg-gradient-to-r from-purple-200 to-indigo-200 dark:from-purple-800 dark:to-indigo-800 rounded-full w-32 animate-pulse" />
         </div>
         <Separator className="bg-indigo-100 dark:bg-indigo-800" />
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="kid-stat-card animate-pulse">
-              <Skeleton className="kid-icon-container h-12 w-12 rounded-full" />
-              <Skeleton className="h-4 w-24 mt-2" />
-              <Skeleton className="h-6 w-12 mt-2" />
-            </div>
-          ))}
-        </div>
-
-        <div className="grid gap-6 grid-cols-1">
-          <Card className="kid-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-10 w-24 rounded-full" />
-            </div>
-            
-            <div className="space-y-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="space-y-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-5 w-48" />
-                    <Skeleton className="h-6 w-12 rounded-full" />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                  <Skeleton className="h-2 w-full rounded-full" />
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+        <LearnerSkeleton type="dashboard" />
       </div>
     );
   }

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { learnerAssignmentService, LearnerAssignment } from "@/services/learnerAssignmentService";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LearnerSkeleton } from "@/components/LoadingSpinner";
 import { toast } from "sonner";
 
 const LearnerAssignments = () => {
@@ -112,7 +111,7 @@ const LearnerAssignments = () => {
             Complete your assignments and show what you've learned!
           </p>
         </div>
-        <LoadingSpinner message="Loading your assignments..." />
+        <LearnerSkeleton type="assignments" count={6} />
       </div>
     );
   }
