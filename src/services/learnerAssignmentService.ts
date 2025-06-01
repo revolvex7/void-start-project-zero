@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export interface Question {
@@ -27,7 +26,6 @@ export interface LearnerAssignment {
   isSubmitted?: boolean;
   submittedAt?: string;
   obtainedMarks?: number;
-  status?: 'pending' | 'submitted' | 'graded' | 'overdue';
 }
 
 export interface AssignmentSubmission {
@@ -46,39 +44,93 @@ export interface AssignmentDetailResponse {
   data: LearnerAssignment;
 }
 
-export const learnerAssignmentService = {
-  // Get all assignments for learner
-  getLearnerAssignments: async (): Promise<LearnerAssignmentResponse> => {
-    try {
-      const response = await api.get('/user/learner/assignments');
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch learner assignments:', error);
-      throw error;
-    }
+const mockAssignments: LearnerAssignment[] = [
+  {
+    id: '1',
+    creatorId: 'creator1',
+    courseId: 'course1',
+    title: 'Introduction to React Hooks',
+    description: 'Complete the exercises to demonstrate your understanding of React Hooks, including useState, useEffect, and custom hooks.',
+    courseName: 'Advanced React Development',
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    classNumbers: null,
+    isAiGenerated: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    published: true,
+    totalMarks: 100,
+    isSubmitted: false,
+    questions: [
+      {
+        id: 'q1',
+        question: 'Explain the difference between useState and useRef.',
+        type: 'brief',
+        options: null,
+        correctAnswer: null
+      },
+      {
+        id: 'q2',
+        question: 'Which hook is used for side effects in React?',
+        type: 'mcq',
+        options: ['useEffect', 'useState', 'useContext', 'useReducer'],
+        correctAnswer: 'useEffect'
+      }
+    ]
   },
-
-  // Get assignment details with questions
-  getAssignmentDetails: async (assignmentId: string): Promise<AssignmentDetailResponse> => {
-    try {
-      const response = await api.get(`/user/learner/assignment/${assignmentId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch assignment details:', error);
-      throw error;
-    }
-  },
-
-  // Submit assignment answers
-  submitAssignment: async (submission: AssignmentSubmission) => {
-    try {
-      const response = await api.post(`/user/learner/assignment/${submission.assignmentId}/submit`, {
-        answers: submission.answers
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Failed to submit assignment:', error);
-      throw error;
-    }
+  {
+    id: '2',
+    creatorId: 'creator1',
+    courseId: 'course2',
+    title: 'CSS Grid Layout Project',
+    description: 'Create a responsive layout using CSS Grid. Your submission should include both the code and a brief explanation of your approach.',
+    courseName: 'Modern CSS Techniques',
+    dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    classNumbers: null,
+    isAiGenerated: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    published: true,
+    totalMarks: 50,
+    isSubmitted: true,
+    obtainedMarks: 45,
+    questions: [
+      {
+        id: 'q1',
+        question: 'What is the main advantage of CSS Grid over Flexbox?',
+        type: 'brief',
+        options: null,
+        correctAnswer: null
+      },
+      {
+        id: 'q2',
+        question: 'Complete the grid template areas property:',
+        type: 'fill-blank',
+        options: null,
+        correctAnswer: 'grid-template-areas: "header header" "sidebar main" "footer footer";'
+      }
+    ]
   }
-};
+];
+
+class LearnerAssignmentService {
+  async getLearnerAssignments(): Promise<{ data: LearnerAssignment[] }> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { data: mockAssignments };
+  }
+
+  async getAssignmentById(id: string): Promise<LearnerAssignment | null> {
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const assignment = mockAssignments.find(a => a.id === id);
+    return assignment || null;
+  }
+
+  async submitAssignment(id: string, answers: Record<string, any>): Promise<void> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // In a real implementation, this would send the answers to the server
+    console.log('Submitting assignment:', id, answers);
+  }
+}
+
+export const learnerAssignmentService = new LearnerAssignmentService();

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
@@ -6,7 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const ThemeToggle: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, isPublicPage } = useTheme();
+
+  // Hide theme toggle on public pages
+  if (isPublicPage) {
+    return null;
+  }
 
   return (
     <Tooltip>

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +17,8 @@ import {
   CheckCircle,
   BookOpen,
   Trophy,
-  AlertTriangle
+  AlertTriangle,
+  Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -40,19 +40,17 @@ const AssignmentAttempt = () => {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
 
-  const { data: assignmentData, isLoading, error } = useQuery({
-    queryKey: ['assignmentDetails', assignmentId],
-    queryFn: () => learnerAssignmentService.getAssignmentDetails(assignmentId!),
-    enabled: !!assignmentId,
-    retry: 2
+  const { data: assignment, isLoading, error } = useQuery({
+    queryKey: ['assignment', assignmentId],
+    queryFn: () => learnerAssignmentService.getAssignmentById(assignmentId!),
+    enabled: !!assignmentId
   });
 
-  const assignment = assignmentData?.data;
   const questions = assignment?.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -93,11 +91,18 @@ const AssignmentAttempt = () => {
     }
   }, [error]);
 
-  const handleAnswerChange = (questionId: string, answer: string) => {
+  const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({
       ...prev,
-      [questionId]: answer
+      [questionId]: value
     }));
+  };
+
+  const handleFileUpload = (questionId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleAnswerChange(questionId, file);
+    }
   };
 
   const handleNextQuestion = () => {
@@ -113,24 +118,22 @@ const AssignmentAttempt = () => {
   };
 
   const handleSubmit = async () => {
-    if (!assignmentId) return;
+    if (!assignment) return;
 
-    setIsSubmitting(true);
+    // Validate that all questions are answered
+    const unansweredQuestions = questions.filter(q => !answers[q.id]);
+    if (unansweredQuestions.length > 0) {
+      toast.error('Please answer all questions before submitting.');
+      return;
+    }
+
     try {
-      const answersArray = questions.map(question => ({
-        questionId: question.id,
-        answer: answers[question.id] || ""
-      }));
-
-      await learnerAssignmentService.submitAssignment({
-        assignmentId,
-        answers: answersArray
-      });
-
-      toast.success("Assignment submitted successfully!");
-      navigate("/assignments");
+      setIsSubmitting(true);
+      await learnerAssignmentService.submitAssignment(assignment.id, answers);
+      toast.success('Assignment submitted successfully!');
+      navigate('/assignments');
     } catch (error) {
-      toast.error("Failed to submit assignment. Please try again.");
+      toast.error('Failed to submit assignment. Please try again.');
     } finally {
       setIsSubmitting(false);
       setShowSubmitDialog(false);
@@ -147,6 +150,26 @@ const AssignmentAttempt = () => {
     const currentAnswer = answers[question.id] || "";
 
     switch (question.type) {
+      case 'brief':
+        return (
+          <Textarea
+            placeholder="Write your detailed answer here..."
+            value={currentAnswer}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            className="min-h-[150px]"
+          />
+        );
+
+      case 'fill-blank':
+        return (
+          <Input
+            placeholder="Type your answer here..."
+            value={currentAnswer}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            className="py-4 text-lg"
+          />
+        );
+
       case 'mcq':
         return (
           <div className="space-y-4">
@@ -166,43 +189,12 @@ const AssignmentAttempt = () => {
           </div>
         );
 
-      case 'fill-blank':
-        return (
-          <div className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Type your answer here..."
-              value={currentAnswer}
-              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-              className="py-4 text-lg rounded-xl border-purple-200 dark:border-purple-700 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500"
-            />
-            <p className="text-sm text-purple-600 dark:text-purple-400">
-              💡 Tip: Fill in the blank with the most appropriate answer
-            </p>
-          </div>
-        );
-
-      case 'brief':
-        return (
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Write your detailed answer here..."
-              value={currentAnswer}
-              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-              className="min-h-32 text-lg rounded-xl border-purple-200 dark:border-purple-700 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500"
-            />
-            <p className="text-sm text-purple-600 dark:text-purple-400">
-              💡 Tip: Provide a clear and detailed explanation
-            </p>
-          </div>
-        );
-
       default:
         return null;
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !assignment) {
     return (
       <div className="min-h-screen p-6">
         <LoadingSpinner message="Loading assignment..." />
@@ -210,20 +202,7 @@ const AssignmentAttempt = () => {
     );
   }
 
-  if (!assignment) {
-    return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <Card className="kid-card max-w-md mx-auto p-8 text-center">
-          <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-red-600 mb-2">Assignment Not Found</h3>
-          <p className="text-red-500 mb-6">The assignment you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate("/assignments")} className="kid-button">
-            Back to Assignments
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  const isOverdue = new Date(assignment.dueDate) < new Date();
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -293,11 +272,11 @@ const AssignmentAttempt = () => {
                 className={cn(
                   "text-white px-3 py-1 rounded-full text-xs",
                   currentQuestion.type === 'mcq' ? "bg-blue-500" :
-                  currentQuestion.type === 'fill-blank' ? "bg-green-500" : "bg-orange-500"
+                  currentQuestion.type === 'brief' ? "bg-green-500" : "bg-orange-500"
                 )}
               >
                 {currentQuestion.type === 'mcq' ? 'Multiple Choice' :
-                 currentQuestion.type === 'fill-blank' ? 'Fill in the Blank' : 'Brief Answer'}
+                 currentQuestion.type === 'brief' ? 'Brief Answer' : 'Fill in the Blank'}
               </Badge>
             </div>
           </CardHeader>

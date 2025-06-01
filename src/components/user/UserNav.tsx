@@ -1,4 +1,3 @@
-
 import { LogOut, User, Settings, HelpCircle, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,8 +46,9 @@ export function UserNav() {
     navigate('/profile');
   };
 
-  // Check if user is admin to show role switching
-  const isAdmin = user?.role === 'Administrator' || role === 'administrator';
+  // Only show role switching for administrators
+  const canSwitchRoles = user?.role === 'Administrator';
+  console.log(user?.role);
 
   return (
     <DropdownMenu>
@@ -82,7 +82,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         
         {/* Only show role switching for administrators */}
-        {isAdmin && (
+        {canSwitchRoles && (
           <>
             <div className="p-2">
               <p className="text-sm font-medium mb-2 px-2">Switch role</p>

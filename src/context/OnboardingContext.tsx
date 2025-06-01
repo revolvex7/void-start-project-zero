@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -32,23 +31,52 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [industry, setIndustry] = useState<string | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(false);
   const navigate = useNavigate();
-  
-  // Use useAuth directly
   const auth = useAuth();
+
+  // Helper function to handle role-based redirects
+  const handleRoleBasedRedirect = () => {
+    if (!auth.user?.role) return;
+
+    switch (auth.user.role) {
+      case 'Learner':
+        navigate('/learner-dashboard');
+        break;
+      case 'Instructor':
+        navigate('/instructor-dashboard');
+        break;
+      case 'Administrator':
+        // Only administrators need to complete onboarding
+        if (!isOnboardingComplete && !window.location.pathname.includes('/onboarding')) {
+          navigate('/onboarding/step1');
+        }
+        break;
+      default:
+        // For any other role, redirect to the main dashboard
+        navigate('/');
+    }
+  };
   
-  // Check if onboarding is complete based on user.mainGoal
+  // Check if onboarding is complete based on user.mainGoal and role
   useEffect(() => {
-    // If user is authenticated, check if they have mainGoal
     if (auth.user) {
+      // For Learners and Instructors, onboarding is always considered complete
+      const isLearnerOrInstructor = auth.user.role === 'Learner' || auth.user.role === 'Instructor';
+      
+      if (isLearnerOrInstructor) {
+        setIsOnboardingComplete(true);
+        handleRoleBasedRedirect();
+        return;
+      }
+
+      // For Administrator, check if onboarding is complete
       const hasCompletedOnboarding = auth.user.mainGoal && 
                                     Array.isArray(auth.user.mainGoal) && 
                                     auth.user.mainGoal.length > 0;
       
       setIsOnboardingComplete(hasCompletedOnboarding);
       
-      // If onboarding is not complete, and we're checking this after authentication
-      if (auth.isAuthenticated && !hasCompletedOnboarding) {
-        // Check if we're not already on an onboarding page
+      // If administrator hasn't completed onboarding, redirect to onboarding
+      if (auth.isAuthenticated && !hasCompletedOnboarding && auth.user.role === 'Administrator') {
         if (!window.location.pathname.includes('/onboarding')) {
           navigate('/onboarding/step1');
         }
@@ -67,7 +95,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setIndustry(auth.user.industry);
       }
     } else {
-      // If no user, also load from localStorage as fallback (for the form state persistence)
+      // If no user, load from localStorage as fallback
       const savedGoals = localStorage.getItem('onboardingGoals');
       const savedMainGoal = localStorage.getItem('onboardingMainGoal');
       const savedUserRange = localStorage.getItem('onboardingUserRange');
@@ -85,24 +113,24 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const completeOnboarding = async () => {
     try {
-      // Update user profile with onboarding data
-      const onboardingData = getOnboardingData();
-      console.log("Completing onboarding with data:", onboardingData);
-      
-      await userService.updateUser({
-        mainGoal: onboardingData.mainGoal,
-        portalUsers: onboardingData.portalUsers,
-        industry: onboardingData.industry
-      });
-      
-      // Refresh user data to get the latest profile information
-      if (refreshUserData) {
-        await refreshUserData();
+      // Only proceed with onboarding completion for administrators
+      if (auth.user?.role === 'Administrator') {
+        const onboardingData = getOnboardingData();
+        console.log("Completing onboarding with data:", onboardingData);
+        
+        await userService.updateUser({
+          mainGoal: onboardingData.mainGoal,
+          portalUsers: onboardingData.portalUsers,
+          industry: onboardingData.industry
+        });
+        
+        if (refreshUserData) {
+          await refreshUserData();
+        }
+        
+        setIsOnboardingComplete(true);
+        toast.success('Profile updated successfully!');
       }
-      
-      // Set onboarding complete 
-      setIsOnboardingComplete(true);
-      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
       toast.error('Failed to save your preferences. Please try again.');
@@ -110,7 +138,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const getOnboardingData = () => {
-    // Make sure mainGoal is always an array
     const mainGoalValue = mainGoal || localStorage.getItem('onboardingMainGoal');
     return {
       mainGoal: mainGoalValue ? [mainGoalValue] : [],

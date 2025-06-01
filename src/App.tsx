@@ -1,4 +1,3 @@
-
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -50,6 +49,8 @@ import Conferences from "./pages/Conferences";
 import Calendar from "./pages/Calendar";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import LearnerAssignments from "./pages/LearnerAssignments";
+import AssignmentAttempt from "./pages/AssignmentAttempt";
 
 const queryClient = new QueryClient();
 
@@ -147,7 +148,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   useSocketProgress();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   
   return (
     <>
@@ -160,6 +161,8 @@ const AppRoutes = () => {
           <Route path="/upload-syllabus" element={<UploadSyllabus />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/my-courses" element={<MyCourses />} />
+          <Route path="/assignments" element={<LearnerAssignments />} />
+          <Route path="/assignment/:assignmentId/attempt" element={<AssignmentAttempt />} />
           
           {/* Admin-only routes */}
           <Route path="/categories" element={<AdminRoute><Categories /></AdminRoute>} />
