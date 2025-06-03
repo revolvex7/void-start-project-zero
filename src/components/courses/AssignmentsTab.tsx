@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -44,13 +43,15 @@ interface AssignmentsTabProps {
   assignments: Assignment[];
   onAssignmentAdded: () => Promise<void>;
   classes?: ClassOption[];
+  canModify?: boolean;
 }
 
 export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({ 
   courseId, 
   assignments = [],
   onAssignmentAdded,
-  classes = []
+  classes = [],
+  canModify = true
 }) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,9 +116,11 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
             className="w-full"
           />
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <FilePlus className="mr-2 h-4 w-4" /> Add Assignment
-        </Button>
+        {canModify && (
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <FilePlus className="mr-2 h-4 w-4" /> Add Assignment
+          </Button>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-md border">
@@ -143,41 +146,50 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                   {/* <TableCell>{assignment.isAiGenerated ? "AI Generated" : "Manual"}</TableCell> */}
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-1">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              size="icon" 
-                              variant="outline" 
-                              className="h-8 w-8"
-                              onClick={() => handleEditAssignment(assignment)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Edit</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                              onClick={() => handleDeletePrompt(assignment.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Delete</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      {canModify && (
+                        <>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="outline" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditAssignment(assignment)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => handleDeletePrompt(assignment.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </>
+                      )}
+                      {!canModify && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">
+                          View Only
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -191,10 +203,12 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({
                     <p className="text-sm text-muted-foreground mb-4">
                       Create assignments for your students to complete
                     </p>
-                    <Button onClick={() => setIsAddDialogOpen(true)}>
-                      <FilePlus className="mr-2 h-4 w-4" />
-                      Add Assignment
-                    </Button>
+                    {canModify && (
+                      <Button onClick={() => setIsAddDialogOpen(true)}>
+                        <FilePlus className="mr-2 h-4 w-4" />
+                        Add Assignment
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

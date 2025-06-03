@@ -37,57 +37,36 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const AssignmentAttempt = () => {
-  const { assignmentId } = useParams<{ assignmentId: string }>();
+  const { assignmentId: studentAssignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<string>("");
 
-  const { data: assignment, isLoading, error } = useQuery({
-    queryKey: ['assignment', assignmentId],
-    queryFn: () => learnerAssignmentService.getAssignmentById(assignmentId!),
-    enabled: !!assignmentId
+  // First get the assignment ID from student assignment ID
+  const { data: studentAssignmentDetails, isLoading: detailsLoading, error: detailsError } = useQuery({
+    queryKey: ['studentAssignmentDetails', studentAssignmentId],
+    queryFn: () => learnerAssignmentService.getStudentAssignmentDetails(studentAssignmentId!),
+    enabled: !!studentAssignmentId,
+    refetchOnWindowFocus: false
   });
 
-  const questions = assignment?.questions || [];
+  // Then fetch assignment questions using the assignment ID
+  const { data: questions = [], isLoading: questionsLoading, error: questionsError } = useQuery({
+    queryKey: ['assignmentQuestions', studentAssignmentDetails?.assignmentId],
+    queryFn: () => learnerAssignmentService.getAssignmentQuestions(studentAssignmentDetails!.assignmentId),
+    enabled: !!studentAssignmentDetails?.assignmentId,
+    refetchOnWindowFocus: false
+  });
+
   const currentQuestion = questions[currentQuestionIndex];
-
-  // Calculate time remaining
-  useEffect(() => {
-    if (!assignment?.dueDate) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const dueDate = new Date(assignment.dueDate);
-      const diff = dueDate.getTime() - now.getTime();
-
-      if (diff <= 0) {
-        setTimeRemaining("Time's up!");
-        clearInterval(interval);
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-      if (days > 0) {
-        setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
-      } else if (hours > 0) {
-        setTimeRemaining(`${hours}h ${minutes}m`);
-      } else {
-        setTimeRemaining(`${minutes}m`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [assignment?.dueDate]);
+  const isLoading = detailsLoading || questionsLoading;
+  const error = detailsError || questionsError;
 
   useEffect(() => {
     if (error) {
-      toast.error("Failed to load assignment. Please try again.");
+      toast.error("Failed to load assignment questions. Please try again.");
     }
   }, [error]);
 
@@ -118,7 +97,7 @@ const AssignmentAttempt = () => {
   };
 
   const handleSubmit = async () => {
-    if (!assignment) return;
+    if (!studentAssignmentId) return;
 
     // Validate that all questions are answered
     const unansweredQuestions = questions.filter(q => !answers[q.id]);
@@ -129,7 +108,7 @@ const AssignmentAttempt = () => {
 
     try {
       setIsSubmitting(true);
-      await learnerAssignmentService.submitAssignment(assignment.id, answers);
+      await learnerAssignmentService.submitAssignment(studentAssignmentId, answers);
       toast.success('Assignment submitted successfully!');
       navigate('/assignments');
     } catch (error) {
@@ -141,7 +120,7 @@ const AssignmentAttempt = () => {
   };
 
   const getAnsweredCount = () => {
-    return questions.filter(question => answers[question.id]?.trim()).length;
+    return questions.filter(question => answers[question.id]?.trim && answers[question.id]?.trim()).length;
   };
 
   const progress = questions.length > 0 ? (getAnsweredCount() / questions.length) * 100 : 0;
@@ -170,7 +149,7 @@ const AssignmentAttempt = () => {
           />
         );
 
-      case 'mcq':
+      case 'multiple-choice':
         return (
           <div className="space-y-4">
             <RadioGroup 
@@ -184,7 +163,9 @@ const AssignmentAttempt = () => {
                     {option}
                   </Label>
                 </div>
-              ))}
+              )) || (
+                <p className="text-gray-500 italic">No options available for this question.</p>
+              )}
             </RadioGroup>
           </div>
         );
@@ -194,7 +175,7 @@ const AssignmentAttempt = () => {
     }
   };
 
-  if (isLoading || !assignment) {
+  if (isLoading) {
     return (
       <div className="min-h-screen p-6 space-y-6">
         <div className="text-center mb-8">
@@ -262,7 +243,78 @@ const AssignmentAttempt = () => {
     );
   }
 
-  const isOverdue = new Date(assignment.dueDate) < new Date();
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-300 mb-2">
+            Assignment Unavailable 📝
+          </h1>
+          <p className="text-purple-600 dark:text-purple-400 text-lg">
+            There was an error loading your assignment.
+          </p>
+        </div>
+        <div className="text-center py-12">
+          <div className="kid-card max-w-md mx-auto p-8">
+            <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
+              Failed to Load Assignment Questions
+            </h3>
+            <p className="text-red-500 dark:text-red-400 mb-6">
+              We couldn't load the assignment questions. Please check your internet connection and try again.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                onClick={() => window.location.reload()}
+                className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+              >
+                Try Again
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/assignments')}
+                className="kid-button"
+              >
+                Back to Assignments
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen p-6 space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-300 mb-2">
+            Assignment Questions
+          </h1>
+          <p className="text-purple-600 dark:text-purple-400 text-lg">
+            No questions available for this assignment.
+          </p>
+        </div>
+        <div className="text-center py-12">
+          <div className="kid-card max-w-md mx-auto p-8">
+            <FileText className="h-16 w-16 text-purple-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-purple-800 dark:text-purple-300 mb-2">
+              No Questions Found
+            </h3>
+            <p className="text-purple-600 dark:text-purple-400 mb-6">
+              This assignment doesn't have any questions yet. Please contact your instructor.
+            </p>
+            <Button 
+              onClick={() => navigate('/assignments')}
+              className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+            >
+              Back to Assignments
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -279,20 +331,12 @@ const AssignmentAttempt = () => {
         
         <div className="text-center">
           <h1 className="text-2xl font-bold text-purple-800 dark:text-purple-300">
-            {assignment.title}
+            Assignment Questions
           </h1>
           <div className="flex items-center gap-4 text-sm text-purple-600 dark:text-purple-400 mt-1">
             <div className="flex items-center gap-1">
-              <BookOpen className="h-4 w-4" />
-              <span>{assignment.courseName}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Trophy className="h-4 w-4" />
-              <span>{assignment.totalMarks} points</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{timeRemaining}</span>
+              <FileText className="h-4 w-4" />
+              <span>{questions.length} Questions</span>
             </div>
           </div>
         </div>
@@ -331,11 +375,11 @@ const AssignmentAttempt = () => {
               <Badge 
                 className={cn(
                   "text-white px-3 py-1 rounded-full text-xs",
-                  currentQuestion.type === 'mcq' ? "bg-blue-500" :
+                  currentQuestion.type === 'multiple-choice' ? "bg-blue-500" :
                   currentQuestion.type === 'brief' ? "bg-green-500" : "bg-orange-500"
                 )}
               >
-                {currentQuestion.type === 'mcq' ? 'Multiple Choice' :
+                {currentQuestion.type === 'multiple-choice' ? 'Multiple Choice' :
                  currentQuestion.type === 'brief' ? 'Brief Answer' : 'Fill in the Blank'}
               </Badge>
             </div>
@@ -370,7 +414,7 @@ const AssignmentAttempt = () => {
                       "w-8 h-8 rounded-full text-sm font-medium transition-all",
                       index === currentQuestionIndex
                         ? "bg-purple-600 text-white scale-110"
-                        : answers[questions[index].id]?.trim()
+                        : answers[questions[index].id]?.trim && answers[questions[index].id]?.trim()
                           ? "bg-green-500 text-white"
                           : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-purple-200 dark:hover:bg-purple-800"
                     )}

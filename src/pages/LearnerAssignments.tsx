@@ -12,7 +12,8 @@ import {
   Search,
   Calendar,
   Trophy,
-  PlayCircle
+  PlayCircle,
+  Image
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,8 @@ const LearnerAssignments = () => {
   const { data: assignmentsData, isLoading, error } = useQuery({
     queryKey: ['learnerAssignments'],
     queryFn: learnerAssignmentService.getLearnerAssignments,
-    retry: 2
+    retry: 2,
+    refetchOnWindowFocus: false
   });
 
   React.useEffect(() => {
@@ -50,7 +52,7 @@ const LearnerAssignments = () => {
     const isOverdue = now > dueDate && !assignment.isSubmitted;
     
     if (assignment.isSubmitted) {
-      if (assignment.obtainedMarks !== undefined) {
+      if (assignment.obtainedMarks !== undefined && assignment.obtainedMarks !== null) {
         return {
           status: 'graded',
           label: 'Graded',
@@ -75,11 +77,21 @@ const LearnerAssignments = () => {
       };
     }
     
+    // Check if status is pending from API
+    if (assignment.status === 'pending') {
+      return {
+        status: 'pending',
+        label: 'Pending',
+        color: 'bg-yellow-500',
+        icon: Clock
+      };
+    }
+    
     return {
-      status: 'pending',
-      label: 'Pending',
-      color: 'bg-yellow-500',
-      icon: Clock
+      status: 'available',
+      label: 'Available',
+      color: 'bg-purple-500',
+      icon: PlayCircle
     };
   };
 
@@ -112,6 +124,38 @@ const LearnerAssignments = () => {
           </p>
         </div>
         <LearnerSkeleton type="assignments" count={6} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-300 mb-2">
+            My Assignments 📝
+          </h1>
+          <p className="text-purple-600 dark:text-purple-400 text-lg">
+            Complete your assignments and show what you've learned!
+          </p>
+        </div>
+        <div className="text-center py-12">
+          <div className="kid-card max-w-md mx-auto p-8">
+            <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
+              Failed to Load Assignments
+            </h3>
+            <p className="text-red-500 dark:text-red-400 mb-6">
+              There was an error loading your assignments. Please check your internet connection and try again.
+            </p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -157,6 +201,21 @@ const LearnerAssignments = () => {
               )}
             >
               <CardHeader className="pb-3">
+                {/* Course Image */}
+                {assignment.courseImage && (
+                  <div className="w-full h-32 mb-3 rounded-lg overflow-hidden">
+                    <img 
+                      src={assignment.courseImage} 
+                      alt={assignment.courseName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Hide image if it fails to load
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg font-bold text-purple-800 dark:text-purple-300 mb-2">
@@ -205,12 +264,12 @@ const LearnerAssignments = () => {
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-purple-500" />
                       <span className="text-purple-600 dark:text-purple-400">
-                        {assignment.questions?.length || 0} questions
+                        {assignment.totalquestions || assignment.questions?.length || 0} questions
                       </span>
                     </div>
                   </div>
 
-                  {assignment.isSubmitted && assignment.obtainedMarks !== undefined && (
+                  {assignment.isSubmitted && (assignment.obtainedMarks !== undefined && assignment.obtainedMarks !== null) && (
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-2xl">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-green-700 dark:text-green-300">

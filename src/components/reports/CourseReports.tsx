@@ -15,14 +15,20 @@ import {
 } from "@/components/ui/table";
 import { courseService } from "@/services/courseService";
 import { LoadingState } from "@/components/LoadingState";
+import { reportsService, ViewAs } from "@/services/reportsService";
+import { useRole } from "@/context/RoleContext";
 import { toast } from "sonner";
 
 const CourseReports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { role } = useRole();
+  
+  // Determine viewAs based on current role
+  const viewAs: ViewAs = role === 'administrator' ? 'admin' : 'instructor';
 
-  const { data: courses, isLoading, error } = useQuery({
-    queryKey: ["courses"],
-    queryFn: courseService.getCourses,
+  const { data: reportData, isLoading: reportLoading, error: reportError } = useQuery({
+    queryKey: ['courseReports', viewAs],
+    queryFn: () => reportsService.getCourseReports(viewAs),
     meta: {
       onError: () => {
         toast.error('Failed to fetch course reports. Please try again later.');
@@ -30,29 +36,39 @@ const CourseReports: React.FC = () => {
     }
   });
 
-  // Calculate stats from courses data
+  const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
+    queryKey: ["courses"],
+    queryFn: courseService.getCourses,
+    meta: {
+      onError: () => {
+        toast.error('Failed to fetch courses data. Please try again later.');
+      }
+    }
+  });
+
+  const isLoading = reportLoading || coursesLoading;
+  const error = reportError || coursesError;
+
+  // Calculate stats from API data
   const stats = React.useMemo(() => {
-    if (!courses) return {
-      completionRate: "0.0%",
-      completedLearners: 0,
-      learnersInProgress: 1,
-      learnersNotPassed: 0,
-      learnersNotStarted: 0,
-      trainingTime: "1m"
+    if (!reportData) return {
+      totalCourses: 0,
+      publishedCourses: 0,
+      totalStudentsEnrolled: 0,
+      averageCompletionRate: "0.0%",
+      totalClasses: 0,
+      totalTime: "0m"
     };
 
-    const totalCourses = courses.length;
-    const activeCourses = courses.filter(course => course.isPublished).length;
-    
     return {
-      completionRate: totalCourses > 0 ? `${((activeCourses / totalCourses) * 100).toFixed(1)}%` : "0.0%",
-      completedLearners: activeCourses,
-      learnersInProgress: Math.max(1, totalCourses - activeCourses),
-      learnersNotPassed: 0,
-      learnersNotStarted: 0,
-      trainingTime: `${totalCourses}m`
+      totalCourses: reportData.totalCourses,
+      publishedCourses: reportData.publishedCourses,
+      totalStudentsEnrolled: reportData.totalStudentsEnrolled,
+      averageCompletionRate: `${reportData.averageCompletionRate.toFixed(1)}%`,
+      totalClasses: reportData.totalClasses,
+      totalTime: `${Math.floor(reportData.totalTime / 60)}h ${reportData.totalTime % 60}m`
     };
-  }, [courses]);
+  }, [reportData]);
 
   const filteredCourses = courses?.filter(course =>
     course.courseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -159,7 +175,7 @@ const CourseReports: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           <div className="text-center p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 border border-slate-200 dark:border-slate-600">
             <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-              {stats.completionRate}
+              {stats.averageCompletionRate}
             </div>
             <div className="text-sm text-slate-600 dark:text-slate-400">
               Completion rate
@@ -167,42 +183,42 @@ const CourseReports: React.FC = () => {
           </div>
           <div className="text-center p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700">
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-              {stats.completedLearners}
+              {stats.totalCourses}
             </div>
             <div className="text-sm text-blue-600 dark:text-blue-400">
-              Active courses
+              Total courses
             </div>
           </div>
           <div className="text-center p-4 rounded-lg bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700">
             <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
-              {stats.learnersInProgress}
+              {stats.publishedCourses}
             </div>
             <div className="text-sm text-yellow-600 dark:text-yellow-400">
-              Inactive courses
+              Published courses
             </div>
           </div>
           <div className="text-center p-4 rounded-lg bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-700">
             <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">
-              {stats.learnersNotPassed}
+              {reportData?.totalAssignments || 0}
             </div>
             <div className="text-sm text-red-600 dark:text-red-400">
-              Courses not passed
-            </div>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 border border-slate-200 dark:border-slate-600">
-            <div className="text-3xl font-bold text-slate-600 dark:text-slate-400 mb-1">
-              {stats.learnersNotStarted}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              Courses not started
+              Total assignments
             </div>
           </div>
           <div className="text-center p-4 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700">
             <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
-              {stats.trainingTime}
+              {stats.totalStudentsEnrolled}
             </div>
             <div className="text-sm text-green-600 dark:text-green-400">
-              Training time
+              Students enrolled
+            </div>
+          </div>
+          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700">
+            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+              {stats.totalTime}
+            </div>
+            <div className="text-sm text-purple-600 dark:text-purple-400">
+              Total time
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 import { 
   ArrowLeft, 
   Search, 
@@ -59,6 +60,7 @@ import { Assignment } from "@/components/courses/AssignmentsTab";
 const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
@@ -104,6 +106,12 @@ const CourseDetailPage: React.FC = () => {
     
     return [];
   }, [courseDetail]);
+
+  // Helper function to check if current user can modify the course
+  const canModifyCourse = (): boolean => {
+    return user?.id === courseDetail?.data?.course?.course?.userId;
+  };
+
 
   if (isLoading) {
     return (
@@ -292,12 +300,22 @@ const CourseDetailPage: React.FC = () => {
             <p className="text-blue-100 max-w-2xl">{courseBasicInfo?.description}</p>
           </div>
           <div className="absolute top-6 right-6">
-            <Button 
-              onClick={() => navigate(`/course/${courseId}/edit`)}
+            {canModifyCourse() && (
+              <Button 
+                onClick={() => navigate(`/course/${courseId}/edit?isEdit=true`)}
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white"
+              >
+                <Pencil className="mr-2 h-4 w-4" /> Edit Course
+              </Button>
+            )}
+            {!canModifyCourse() && (
+              <Button 
+              onClick={() => navigate(`/course/${courseId}/preview`)}
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white"
             >
-              <Pencil className="mr-2 h-4 w-4" /> Edit Course
+              <Eye className="mr-2 h-4 w-4" /> Preview Course
             </Button>
+            )}
           </div>
         </div>
         
@@ -391,12 +409,12 @@ const CourseDetailPage: React.FC = () => {
                 </Button>
               </div>
               )}
-              {activeTab === "users" && (
+              {activeTab === "users" && canModifyCourse() && (
                 <Button onClick={() => setIsEnrollDialogOpen(true)} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <UserPlus className="mr-2 h-4 w-4" /> Enroll Users
                 </Button>
               )}
-              {activeTab === "files" && (
+              {activeTab === "files" && canModifyCourse() && (
                 <Button onClick={() => setIsFileUploaderOpen(true)} className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
                   <FilePlus className="mr-2 h-4 w-4" /> Upload File
                 </Button>
@@ -413,7 +431,9 @@ const CourseDetailPage: React.FC = () => {
                       <TableHead>Progress</TableHead>
                       <TableHead>Enrollment date</TableHead>
                       <TableHead>Completion date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      {canModifyCourse() && (
+                        <TableHead className="text-right">Actions</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -425,48 +445,50 @@ const CourseDetailPage: React.FC = () => {
                           <TableCell>{user.progress}%</TableCell>
                           <TableCell>{new Date(user.enrolledAt).toLocaleDateString()}</TableCell>
                           <TableCell>{user.completionDate ? new Date(user.completionDate).toLocaleDateString() : "-"}</TableCell>
-                          <TableCell className="text-right">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => navigate(`/users/${user.userId}`)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>View user</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                          {canModifyCourse() && (
+                            <TableCell className="text-right">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 p-0"
+                                      onClick={() => navigate(`/users/${user.userId}`)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>View user</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
 
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    onClick={() => handleUnenrollUser(user.userId)}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Unenroll user</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </TableCell>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                      onClick={() => handleUnenrollUser(user.userId)}
+                                    >
+                                      <XCircle className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Unenroll user</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
+                        <TableCell colSpan={canModifyCourse() ? 6 : 5} className="h-24 text-center">
                           No users found
                         </TableCell>
                       </TableRow>
@@ -513,23 +535,25 @@ const CourseDetailPage: React.FC = () => {
                               </Tooltip>
                             </TooltipProvider>
                             
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    onClick={() => handleDeleteFile(file.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            {canModifyCourse() && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                      onClick={() => handleDeleteFile(file.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
@@ -542,10 +566,12 @@ const CourseDetailPage: React.FC = () => {
                             <p className="text-sm text-muted-foreground mb-4">
                               Upload course materials, resources, or documents for your learners
                             </p>
-                            <Button onClick={() => setIsFileUploaderOpen(true)}>
-                              <Upload className="mr-2 h-4 w-4" />
-                              Upload Files
-                            </Button>
+                            {canModifyCourse() && (
+                              <Button onClick={() => setIsFileUploaderOpen(true)}>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Upload Files
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -585,10 +611,12 @@ const CourseDetailPage: React.FC = () => {
                             <p className="text-sm text-muted-foreground mb-4">
                               Create groups to enable collaborative learning and discussions
                             </p>
-                            <Button>
-                              <UserPlus className="mr-2 h-4 w-4" />
-                              Create Study Group
-                            </Button>
+                            {canModifyCourse() && (
+                              <Button>
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Create Study Group
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -604,6 +632,7 @@ const CourseDetailPage: React.FC = () => {
                 assignments={courseDetail.data.assignments || []} 
                 onAssignmentAdded={handleAssignmentAdded}
                 classes={courseClasses}
+                canModify={canModifyCourse()}
               />
             </TabsContent>
           </Tabs>

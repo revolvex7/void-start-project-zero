@@ -45,21 +45,6 @@ export function LearnerSidebar() {
       url: "/homework-tutor",
       icon: Brain
     },
-    {
-      title: "Fun Activities",
-      url: "/activities",
-      icon: Puzzle
-    },
-    {
-      title: "Stars & Rewards",
-      url: "/rewards",
-      icon: Star
-    },
-    {
-      title: "My Profile",
-      url: "/profile",
-      icon: UserRound
-    }
   ];
 
   return (

@@ -15,14 +15,26 @@ import {
 } from "@/components/ui/table";
 import { userService } from "@/services/userService";
 import { LoadingState } from "@/components/LoadingState";
+import { reportsService, ViewAs, UserReportsDataAdmin, UserReportsDataInstructor } from "@/services/reportsService";
+import { useRole } from "@/context/RoleContext";
 import { toast } from "sonner";
+
+type UserReportsData = UserReportsDataAdmin | UserReportsDataInstructor;
 
 const UserReports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { role } = useRole();
+  
+  // Determine viewAs based on current role
+  const viewAs: ViewAs = role === 'administrator' ? 'admin' : 'instructor';
 
-  const { data: users, isLoading, error } = useQuery({
-    queryKey: ["users"],
-    queryFn: userService.getAllUsers,
+  const { data: reportData, isLoading: reportLoading, error: reportError } = useQuery({
+    queryKey: ['userReports', viewAs],
+    queryFn: (): Promise<UserReportsData> => {
+      return viewAs === 'admin' 
+        ? reportsService.getUserReportsAdmin() 
+        : reportsService.getUserReportsInstructor();
+    },
     meta: {
       onError: () => {
         toast.error('Failed to fetch user reports. Please try again later.');
@@ -30,9 +42,22 @@ const UserReports: React.FC = () => {
     }
   });
 
-  // Calculate stats from users data
+  const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
+    queryKey: ["users"],
+    queryFn: userService.getAllUsers,
+    meta: {
+      onError: () => {
+        toast.error('Failed to fetch users data. Please try again later.');
+      }
+    }
+  });
+
+  const isLoading = reportLoading || usersLoading;
+  const error = reportError || usersError;
+
+  // Calculate stats from API data
   const stats = React.useMemo(() => {
-    if (!users) return {
+    if (!reportData) return {
       completionRate: "0.0%",
       completedCourses: 0,
       coursesInProgress: 1,
@@ -41,18 +66,36 @@ const UserReports: React.FC = () => {
       trainingTime: "1m"
     };
 
-    const totalUsers = users.length;
-    const activeUsers = users.filter(user => user.status === 'Active').length;
-    
-    return {
-      completionRate: totalUsers > 0 ? `${((activeUsers / totalUsers) * 100).toFixed(1)}%` : "0.0%",
-      completedCourses: activeUsers,
-      coursesInProgress: Math.max(1, totalUsers - activeUsers),
-      coursesNotPassed: 0,
-      coursesNotStarted: 0,
-      trainingTime: `${totalUsers}m`
-    };
-  }, [users]);
+    if (viewAs === 'admin') {
+      const adminData = reportData as UserReportsDataAdmin;
+      const totalUsers = adminData.totalUsers;
+      const activeUsers = adminData.totalActiveUsers;
+      const completionRate = totalUsers > 0 ? `${((activeUsers / totalUsers) * 100).toFixed(1)}%` : "0.0%";
+      
+      return {
+        completionRate,
+        completedCourses: activeUsers,
+        coursesInProgress: Math.max(1, totalUsers - activeUsers),
+        coursesNotPassed: adminData.totalInstructorUsers,
+        coursesNotStarted: adminData.totalLearnerUsers,
+        trainingTime: `${totalUsers}m`
+      };
+    } else {
+      const instructorData = reportData as UserReportsDataInstructor;
+      const totalStudents = instructorData.totalStudents;
+      const activeStudents = instructorData.totalActiveStudents;
+      const completionRate = instructorData.averageCompletionRate || "0.0%";
+      
+      return {
+        completionRate: typeof completionRate === 'string' ? completionRate : `${completionRate}%`,
+        completedCourses: activeStudents,
+        coursesInProgress: Math.max(0, totalStudents - activeStudents),
+        coursesNotPassed: 0,
+        coursesNotStarted: instructorData.totalAssignments,
+        trainingTime: `${instructorData.totalCourses || 0}`
+      };
+    }
+  }, [reportData, viewAs]);
 
   const filteredUsers = users?.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -157,54 +200,95 @@ const UserReports: React.FC = () => {
       {/* Stats Cards */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 border border-slate-200 dark:border-slate-600">
-            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-              {stats.completionRate}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              Active rate
-            </div>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700">
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-              {stats.completedCourses}
-            </div>
-            <div className="text-sm text-blue-600 dark:text-blue-400">
-              Active users
-            </div>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700">
-            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
-              {stats.coursesInProgress}
-            </div>
-            <div className="text-sm text-yellow-600 dark:text-yellow-400">
-              Inactive users
-            </div>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-700">
-            <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">
-              {stats.coursesNotPassed}
-            </div>
-            <div className="text-sm text-red-600 dark:text-red-400">
-              Courses not passed
-            </div>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 border border-slate-200 dark:border-slate-600">
-            <div className="text-3xl font-bold text-slate-600 dark:text-slate-400 mb-1">
-              {stats.coursesNotStarted}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              Courses not started
-            </div>
-          </div>
-          <div className="text-center p-4 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700">
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
-              {stats.trainingTime}
-            </div>
-            <div className="text-sm text-green-600 dark:text-green-400">
-              Training time
-            </div>
-          </div>
+          {viewAs === 'admin' ? (
+            // Admin view stats
+            <>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 border border-slate-200 dark:border-slate-600">
+                <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                  {(reportData as UserReportsDataAdmin)?.totalUsers || 0}
+                </div>
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  Total users
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                  {(reportData as UserReportsDataAdmin)?.totalActiveUsers || 0}
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400">
+                  Active users
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700">
+                <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
+                  {(reportData as UserReportsDataAdmin)?.totalInstructorUsers || 0}
+                </div>
+                <div className="text-sm text-yellow-600 dark:text-yellow-400">
+                  Instructors
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700">
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                  {(reportData as UserReportsDataAdmin)?.totalLearnerUsers || 0}
+                </div>
+                <div className="text-sm text-green-600 dark:text-green-400">
+                  Learners
+                </div>
+              </div>
+            </>
+          ) : (
+            // Instructor view stats
+            <>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 border border-slate-200 dark:border-slate-600">
+                <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                  {(reportData as UserReportsDataInstructor)?.totalStudents || 0}
+                </div>
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  Total students
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                  {(reportData as UserReportsDataInstructor)?.totalActiveStudents || 0}
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400">
+                  Active students
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700">
+                <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
+                  {(reportData as UserReportsDataInstructor)?.totalCourses || 0}
+                </div>
+                <div className="text-sm text-yellow-600 dark:text-yellow-400">
+                  Total courses
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700">
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                  {(reportData as UserReportsDataInstructor)?.totalAssignments || 0}
+                </div>
+                <div className="text-sm text-green-600 dark:text-green-400">
+                  Total assignments
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700">
+                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+                  {(reportData as UserReportsDataInstructor)?.totalEnrolled || 0}
+                </div>
+                <div className="text-sm text-purple-600 dark:text-purple-400">
+                  Total enrolled
+                </div>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border border-indigo-200 dark:border-indigo-700">
+                <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                  {(reportData as UserReportsDataInstructor)?.averageCompletionRate || '0.00'}%
+                </div>
+                <div className="text-sm text-indigo-600 dark:text-indigo-400">
+                  Completion rate
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

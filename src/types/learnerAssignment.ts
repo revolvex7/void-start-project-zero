@@ -2,7 +2,7 @@
 export interface Question {
   id: string;
   question: string;
-  type: 'brief' | 'fill-blank' | 'mcq';
+  type: 'brief' | 'fill-blank' | 'multiple-choice';
   options?: string[] | null;
   correctAnswer?: string | null;
 }

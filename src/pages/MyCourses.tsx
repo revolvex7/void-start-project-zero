@@ -65,7 +65,58 @@ const MyCourses = () => {
             Keep exploring and learning awesome things!
           </p>
         </div>
-        <LearnerSkeleton type="courses" count={3} />
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card
+              key={`skeleton-${index}`}
+              className="kid-card overflow-hidden animate-pulse"
+            >
+              {/* Header Skeleton */}
+              <div className="h-32 bg-gradient-to-r from-purple-200 to-indigo-200 dark:from-purple-800 dark:to-indigo-800 p-6">
+                <div className="h-7 bg-white/30 rounded-xl w-20 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-white/20 rounded w-32 animate-pulse"></div>
+              </div>
+
+              {/* Content Skeleton */}
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {/* Stats Row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-purple-200 dark:bg-purple-700 rounded animate-pulse"></div>
+                      <div className="h-4 bg-purple-200 dark:bg-purple-700 rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-purple-200 dark:bg-purple-700 rounded animate-pulse"></div>
+                      <div className="h-4 bg-purple-200 dark:bg-purple-700 rounded w-16 animate-pulse"></div>
+                    </div>
+                  </div>
+
+                  {/* Progress Section */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-purple-200 dark:bg-purple-700 rounded w-20 animate-pulse"></div>
+                      <div className="h-4 bg-purple-200 dark:bg-purple-700 rounded w-8 animate-pulse"></div>
+                    </div>
+                    <div className="h-2 bg-purple-100 dark:bg-purple-800 rounded-full">
+                      <div className="h-2 bg-purple-300 dark:bg-purple-600 rounded-full w-1/3 animate-pulse"></div>
+                    </div>
+                  </div>
+
+                  {/* Next Course Section */}
+                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl">
+                    <div className="h-3 bg-purple-200 dark:bg-purple-700 rounded w-16 mb-1 animate-pulse"></div>
+                    <div className="h-4 bg-purple-200 dark:bg-purple-700 rounded w-32 animate-pulse"></div>
+                  </div>
+
+                  {/* Button */}
+                  <div className="w-full h-10 bg-purple-200 dark:bg-purple-700 rounded-2xl animate-pulse"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }

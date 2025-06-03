@@ -11,19 +11,20 @@ import {
   Info,
   ArrowLeft,
   Presentation,
-  FileQuestion
+  FileQuestion,
+  PlayCircle,
+  CheckCircle,
+  Circle,
+  Clock,
+  Users,
+  Award,
+  BarChart3
 } from 'lucide-react';
 import api from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   Tabs,
   TabsContent,
@@ -92,7 +93,6 @@ const CoursePreview: React.FC = () => {
   const [activeClassIndex, setActiveClassIndex] = useState(0);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('content');
-  const [showSidebar, setShowSidebar] = useState(true);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const { theme } = useTheme();
   
@@ -138,29 +138,13 @@ const CoursePreview: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className={cn(
-        "min-h-screen flex items-center justify-center",
-        theme === 'dark' 
-          ? "bg-gradient-to-br from-violet-950 to-indigo-950 text-white" 
-          : "bg-gradient-to-br from-violet-50 to-indigo-100"
-      )}>
-        <div className="text-center animate-fade-in max-w-md">
-          <div className={cn(
-            "w-20 h-20 border-t-4 border-b-4 border-solid rounded-full animate-spin mx-auto mb-8",
-            theme === 'dark' ? "border-violet-400" : "border-violet-600"
-          )}></div>
-          <h2 className={cn(
-            "text-3xl font-bold text-transparent bg-clip-text mb-4",
-            theme === 'dark'
-              ? "bg-gradient-to-r from-violet-400 to-indigo-300"
-              : "bg-gradient-to-r from-violet-600 to-indigo-600"
-          )}>Loading your learning journey</h2>
-          <p className={cn(
-            "mx-auto leading-relaxed",
-            theme === 'dark' ? "text-gray-300" : "text-gray-600"
-          )}>
-            We're preparing an amazing learning experience just for you. This will only take a moment...
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
+        <div className="text-center space-y-8 animate-pulse">
+          <div className="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+          <div className="space-y-3">
+            <div className="h-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg w-64 mx-auto"></div>
+            <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded w-48 mx-auto"></div>
+          </div>
         </div>
       </div>
     );
@@ -168,54 +152,19 @@ const CoursePreview: React.FC = () => {
 
   if (error || !data) {
     return (
-      <div className={cn(
-        "min-h-screen flex items-center justify-center",
-        theme === 'dark' 
-          ? "bg-gradient-to-br from-violet-950 to-indigo-950" 
-          : "bg-gradient-to-br from-violet-50 to-indigo-100"
-      )}>
-        <div className={cn(
-          "max-w-lg w-full p-8 rounded-2xl shadow-lg text-center animate-fade-in",
-          theme === 'dark'
-            ? "bg-gray-800/90 backdrop-blur-md"
-            : "bg-white/90 backdrop-blur-md"
-        )}>
-          <div className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6",
-            theme === 'dark' ? "bg-red-900/30" : "bg-red-100"
-          )}>
-            <Info className={cn(
-              "h-10 w-10",
-              theme === 'dark' ? "text-red-400" : "text-red-600"
-            )} />
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950/20 dark:to-rose-950/20 flex items-center justify-center p-4">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-red-200/50 dark:border-red-800/50 p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Info className="h-8 w-8 text-red-600 dark:text-red-400" />
           </div>
-          <h2 className={cn(
-            "text-2xl md:text-3xl font-bold text-transparent bg-clip-text mb-4",
-            theme === 'dark'
-              ? "bg-gradient-to-r from-violet-400 to-indigo-400"
-              : "bg-gradient-to-r from-violet-700 to-indigo-700"
-          )}>
-            Oops! Unable to load course
-          </h2>
-          <p className={cn(
-            "mb-8 leading-relaxed",
-            theme === 'dark' ? "text-gray-300" : "text-gray-600"
-          )}>
-            We encountered an issue while loading this course. Please try again or contact support if the problem persists.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="outline" onClick={() => navigate(-1)} className="hover:scale-105 transition-all">
+          <h2 className="text-2xl font-bold text-red-800 dark:text-red-300 mb-4">Course Not Found</h2>
+          <p className="text-red-600 dark:text-red-400 mb-8">We couldn't load this course. Please try again or contact support.</p>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" onClick={() => navigate(-1)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Go Back
             </Button>
-            <Button onClick={() => window.location.reload()} className={cn(
-              "hover:scale-105 transition-all text-white",
-              theme === 'dark'
-                ? "bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600"
-                : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
-            )}>
-              Try Again
-            </Button>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
           </div>
         </div>
       </div>
@@ -236,15 +185,20 @@ const CoursePreview: React.FC = () => {
     } else if (activeClassIndex < classes.length - 1) {
       setActiveClassIndex(activeClassIndex + 1);
       setActiveSlideIndex(0);
+      setActiveTab('content');
     }
   };
 
   const goToPreviousSlide = () => {
     if (activeSlideIndex > 0) {
       setActiveSlideIndex(activeSlideIndex - 1);
+      if (activeSlideIndex === slides.length - 1 && activeTab === 'quiz') {
+        setActiveTab('content');
+      }
     } else if (activeClassIndex > 0) {
       setActiveClassIndex(activeClassIndex - 1);
       setActiveSlideIndex(classes[activeClassIndex - 1].slides.length - 1);
+      setActiveTab('content');
     }
   };
 
@@ -255,6 +209,9 @@ const CoursePreview: React.FC = () => {
 
   const handleSlideSelect = (index: number) => {
     setActiveSlideIndex(index);
+    if (index !== slides.length - 1 && activeTab === 'quiz') {
+      setActiveTab('content');
+    }
   };
   
   const getSlideProgress = () => {
@@ -262,93 +219,12 @@ const CoursePreview: React.FC = () => {
     return ((activeSlideIndex + 1) / totalSlides) * 100;
   };
 
-  const renderClassAccordion = (classItem: Class, classIndex: number) => (
-    <AccordionItem 
-      key={classItem.classId} 
-      value={classItem.classId}
-      className={cn(
-        "border mb-3 overflow-hidden transition-all duration-300 rounded-lg",
-        theme === 'dark'
-          ? "border-violet-700/40" 
-          : "border-violet-100/60",
-        classIndex === activeClassIndex 
-          ? theme === 'dark'
-            ? "bg-gradient-to-br from-violet-900/40 to-indigo-900/50 shadow-lg" 
-            : "bg-gradient-to-br from-violet-50 to-indigo-50 shadow-lg"
-          : theme === 'dark'
-            ? "bg-violet-950/40 hover:bg-violet-900/30"
-            : "bg-white/90 hover:bg-violet-50/70"
-      )}
-    >
-      <AccordionTrigger className="py-3 px-4 hover:no-underline group">
-        <div className="flex items-center text-left">
-          <div 
-            className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center mr-3 text-sm font-medium shadow-md transition-colors",
-              classIndex === activeClassIndex 
-                ? "bg-gradient-to-br from-violet-500 to-indigo-600 text-white" 
-                : theme === 'dark'
-                  ? "bg-violet-800 text-violet-200 group-hover:bg-violet-700"
-                  : "bg-violet-100 text-violet-700 group-hover:bg-violet-200"
-            )}
-          >
-            {classItem.classNo}
-          </div>
-          <span className={cn(
-            "font-medium transition-colors text-lg",
-            classIndex === activeClassIndex 
-              ? theme === 'dark'
-                ? "text-violet-200" 
-                : "text-violet-900"
-              : theme === 'dark'
-                ? "text-gray-300 group-hover:text-violet-300"
-                : "text-gray-700 group-hover:text-violet-700"
-          )}>
-            {classItem.classTitle}
-          </span>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className={cn(
-        "px-4 pt-2 pb-4 backdrop-blur-sm",
-        theme === 'dark'
-          ? "bg-violet-950/80"
-          : "bg-white/80"
-      )}>
-        <ul className="space-y-1.5">
-          {classItem.slides.map((slide, slideIndex) => (
-            <li key={slide.id} className="animate-fade-in" style={{ animationDelay: `${slideIndex * 50}ms` }}>
-              <button
-                onClick={() => {
-                  handleClassSelect(classIndex);
-                  handleSlideSelect(slideIndex);
-                }}
-                className={cn(
-                  "w-full flex items-center text-left px-4 py-2.5 rounded-lg text-sm transition-all duration-300 hover:translate-x-1",
-                  classIndex === activeClassIndex && slideIndex === activeSlideIndex
-                    ? theme === 'dark'
-                      ? "bg-gradient-to-r from-violet-800/70 to-indigo-800/70 text-violet-100 font-medium shadow-sm"
-                      : "bg-gradient-to-r from-violet-100 to-indigo-100 text-violet-900 font-medium shadow-sm"
-                    : theme === 'dark'
-                      ? "hover:bg-violet-800/30 text-gray-300"
-                      : "hover:bg-violet-50/80 text-gray-700",
-                )}
-              >
-                <span className={cn(
-                  "mr-2.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs",
-                  theme === 'dark'
-                    ? "bg-violet-800/50 text-violet-300"
-                    : "bg-violet-100 text-violet-700"
-                )}>
-                  {slide.slideNo}
-                </span>
-                <span className="truncate">{slide.title}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </AccordionContent>
-    </AccordionItem>
-  );
+  const getOverallProgress = () => {
+    if (!classes.length) return 0;
+    const completedClasses = activeClassIndex;
+    const currentClassProgress = totalSlides > 0 ? (activeSlideIndex + 1) / totalSlides : 0;
+    return ((completedClasses + currentClassProgress) / classes.length) * 100;
+  };
 
   return (
     <>
@@ -362,420 +238,296 @@ const CoursePreview: React.FC = () => {
         />
       )}
 
-      <div className={cn(
-        "min-h-screen overflow-hidden",
-        theme === 'dark'
-          ? "bg-gradient-to-br from-violet-950/80 to-indigo-950/80" 
-          : "bg-gradient-to-br from-violet-50 to-indigo-100"
-      )}>
-        {/* Header */}
-        <header className={cn(
-          "py-4 px-6 sticky top-0 z-30 border-b shadow-sm",
-          theme === 'dark'
-            ? "bg-violet-950/80 backdrop-blur-md border-violet-700/40"
-            : "bg-white/80 backdrop-blur-md border-violet-100/60"
-        )}>
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-4 animate-fade-in">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate(-1)} 
-                className={cn(
-                  "rounded-full",
-                  theme === 'dark'
-                    ? "hover:bg-violet-800/50 text-violet-300"
-                    : "hover:bg-violet-100/80 text-violet-700"
-                )}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className={cn(
-                  "text-xl md:text-2xl font-bold text-transparent bg-clip-text truncate max-w-[300px] md:max-w-md animate-fade-in",
-                  theme === 'dark'
-                    ? "bg-gradient-to-r from-violet-300 to-indigo-300"
-                    : "bg-gradient-to-r from-violet-700 to-indigo-700"
-                )}>
-                  {course?.courseInfo.courseTitle}
-                </h1>
-                <p className={cn(
-                  "text-sm animate-fade-in",
-                  theme === 'dark' ? "text-gray-400" : "text-gray-500"
-                )} style={{ animationDelay: '100ms' }}>
-                  <span className={cn(
-                    "inline-block px-2 py-0.5 rounded text-xs mr-2",
-                    theme === 'dark'
-                      ? "bg-violet-800/40 text-violet-300"
-                      : "bg-violet-100/60 text-violet-700"
-                  )}>Learning Journey</span> 
-                  {totalClasses} Classes • {slides.length} Slides in current class
-                </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        {/* Modern Header */}
+        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 shadow-lg">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => navigate(-1)}
+                  className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-200"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {course?.courseInfo.courseTitle}
+                  </h1>
+                  <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
+                    <span className="flex items-center">
+                      <BookOpen className="w-4 h-4 mr-1" />
+                      {totalClasses} Classes
+                    </span>
+                    <span className="flex items-center">
+                      <FileText className="w-4 h-4 mr-1" />
+                      {totalSlides} Slides
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="hidden md:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2">
+                  <BarChart3 className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium">{Math.round(getOverallProgress())}% Complete</span>
+                </div>
+                <ThemeToggle />
+                <Button variant="outline" onClick={() => navigate(-1)} className="hidden md:flex">
+                  Exit Preview
+                </Button>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3">
-              {/* Theme toggle button */}
-              <ThemeToggle />
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className={cn(
-                  "hidden md:flex animate-fade-in",
-                  theme === 'dark'
-                    ? "border-violet-700 hover:bg-violet-800/60 text-violet-300"
-                    : "border-violet-200 hover:bg-violet-100/80 text-violet-700"
-                )}
-                onClick={() => navigate(-1)}
-                style={{ animationDelay: '150ms' }}
-              >
-                Exit Preview
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className={cn(
-                  "md:hidden",
-                  theme === 'dark' ? "text-violet-300" : "text-violet-700"
-                )}
-                onClick={() => setShowSidebar(!showSidebar)}
-              >
-                {showSidebar ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-              </Button>
+            {/* Progress Bar */}
+            <div className="mt-4">
+              <Progress value={getOverallProgress()} className="h-2 bg-slate-200 dark:bg-slate-700" />
             </div>
           </div>
         </header>
 
-        <div className="flex max-w-7xl mx-auto px-4 py-6 md:py-8 gap-5 md:gap-8">
-          {/* Course Content navigation panel - fixed when scrolling */}
-          <div 
-            className={cn(
-              "animate-fade-in transition-all duration-300",
-              showSidebar 
-                ? "w-80 sticky top-24 self-start max-h-[calc(100vh-96px)] flex-shrink-0 translate-x-0 opacity-100" 
-                : "-translate-x-full opacity-0 w-0 md:translate-x-0 md:opacity-100 md:w-0 md:overflow-hidden"
-            )}
-            style={{ animationDelay: '200ms' }}
-          >
-            <div className={cn(
-              "backdrop-blur-md rounded-2xl shadow-lg border overflow-hidden h-full flex flex-col",
-              theme === 'dark'
-                ? "bg-gradient-to-br from-violet-950/40 via-indigo-950/60 to-purple-950/40 border-violet-700/40"
-                : "bg-white/90 border-violet-100/60"
-            )}>
-              <div className={cn(
-                "p-5 border-b flex items-center space-x-3",
-                theme === 'dark' ? "border-violet-700/40" : "border-violet-100/60"
-              )}>
-                <BookOpen className={cn(
-                  "w-5 h-5",
-                  theme === 'dark' ? "text-violet-400" : "text-violet-600"
-                )} />
-                <h2 className={cn(
-                  "text-lg font-semibold",
-                  theme === 'dark' ? "text-violet-100" : "text-violet-900"
-                )}>
-                  Course Content
-                </h2>
-              </div>
-              
-              <div className="p-4 overflow-y-auto flex-grow custom-scrollbar">
-                <Accordion 
-                  type="single" 
-                  collapsible 
-                  className="w-full" 
-                  defaultValue={activeClass?.classId}
-                >
-                  {classes.map((classItem, classIndex) => renderClassAccordion(classItem, classIndex))}
-                </Accordion>
-              </div>
-            </div>
-          </div>
-
-          {/* Main content */}
-          <div className={cn(
-            "flex-1 animate-fade-in transition-all duration-300",
-            !showSidebar && "md:pl-0"
-          )} style={{ animationDelay: '300ms' }}>
-            {activeClass && activeSlide ? (
-              <div className={cn(
-                "backdrop-blur-md rounded-2xl shadow-lg border p-6 md:p-8",
-                theme === 'dark'
-                  ? "bg-violet-950/60 border-violet-700/40"
-                  : "bg-white/90 border-violet-100/60"
-              )}>
-                <div className="mb-6 md:mb-8">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 md:mb-4 gap-3">
-                    <div className="flex flex-col">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className={cn(
-                          "px-3 py-1 rounded-full text-xs font-medium",
-                          theme === 'dark'
-                            ? "bg-violet-800/60 text-violet-300"
-                            : "bg-violet-100/80 text-violet-700"
-                        )}>
-                          Class {activeClass.classNo} • Slide {activeSlide.slideNo}/{slides.length}
-                        </span>
-                        <Progress 
-                          value={getSlideProgress()} 
-                          className={cn(
-                            "w-24 h-1.5",
-                            theme === 'dark' ? "bg-violet-900/60" : "bg-violet-100"
-                          )}
-                        />
-                      </div>
-                      <h2 className={cn(
-                        "text-2xl md:text-3xl font-bold text-transparent bg-clip-text",
-                        theme === 'dark'
-                          ? "bg-gradient-to-r from-violet-300 to-indigo-300"
-                          : "bg-gradient-to-r from-violet-700 to-indigo-700"
-                      )}>
-                        {activeSlide.title}
-                      </h2>
-                    </div>
-                    
-                    {/* Presentation button for current slide */}
-                    <Button 
-                      onClick={startPresentation}
-                      size="sm" 
-                      className={cn(
-                        "flex items-center space-x-2 transition-all duration-300 hover:scale-105",
-                        theme === 'dark'
-                          ? "bg-gradient-to-r from-violet-700 to-indigo-700 hover:from-violet-600 hover:to-indigo-600 text-white"
-                          : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
-                      )}
-                    >
-                      <Presentation className="h-4 w-4 mr-1" />
-                      Start Presentation
-                    </Button>
-                  </div>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-12 gap-8">
+            {/* Modern Sidebar Navigation */}
+            <div className="col-span-12 lg:col-span-4 xl:col-span-3">
+              <div className="sticky top-32 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+                <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
+                  <h2 className="text-lg font-semibold flex items-center">
+                    <BookOpen className="w-5 h-5 mr-2 text-blue-500" />
+                    Course Content
+                  </h2>
                 </div>
                 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-                  <TabsList className={cn(
-                    "mb-6 p-1 rounded-xl",
-                    theme === 'dark' ? "bg-violet-900/40" : "bg-violet-50/80"
-                  )}>
-                    <TabsTrigger 
-                      value="content" 
+                <div className="p-4 max-h-[70vh] overflow-y-auto space-y-3">
+                  {classes.map((classItem, classIndex) => (
+                    <div
+                      key={classItem.classId}
                       className={cn(
-                        "rounded-lg transition-all",
-                        theme === 'dark'
-                          ? "data-[state=active]:bg-violet-800/70 data-[state=active]:text-violet-100"
-                          : "data-[state=active]:bg-white data-[state=active]:text-violet-700",
-                        "data-[state=active]:shadow-sm"
+                        "rounded-xl overflow-hidden transition-all duration-300 border",
+                        classIndex === activeClassIndex
+                          ? "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700 shadow-lg"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-md"
                       )}
                     >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Content
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="quiz" 
-                      className={cn(
-                        "rounded-lg transition-all",
-                        theme === 'dark'
-                          ? "data-[state=active]:bg-violet-800/70 data-[state=active]:text-violet-100"
-                          : "data-[state=active]:bg-white data-[state=active]:text-violet-700",
-                        "data-[state=active]:shadow-sm"
-                      )}
-                    >
-                      <FileQuestion className="w-4 h-4 mr-2" />
-                      Attempt Quiz
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="content" className="pt-2 pb-6 animate-fade-in focus:outline-none">
-                    <div className={cn(
-                      "rounded-xl overflow-hidden border shadow-sm",
-                      theme === 'dark'
-                        ? "border-violet-700/40 bg-violet-900/40"
-                        : "border-violet-100/60 bg-white/80"
-                    )}>
-                      {activeSlide.imageUrl && (
-                        <div className="transition-all duration-300 hover:scale-[1.01] transform-gpu overflow-hidden">
-                          <AspectRatio ratio={16/9}>
-                            <img 
-                              src={activeSlide.imageUrl} 
-                              alt={activeSlide.title} 
-                              className="w-full h-full object-cover"
-                            />
-                          </AspectRatio>
+                      <button
+                        onClick={() => handleClassSelect(classIndex)}
+                        className="w-full p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <div className={cn(
+                              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3",
+                              classIndex === activeClassIndex
+                                ? "bg-blue-500 text-white"
+                                : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                            )}>
+                              {classItem.classNo}
+                            </div>
+                            <span className="font-medium text-slate-800 dark:text-slate-200">
+                              {classItem.classTitle}
+                            </span>
+                          </div>
+                          {classIndex < activeClassIndex && (
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          )}
                         </div>
-                      )}
+                        
+                        {classIndex === activeClassIndex && (
+                          <div className="space-y-2 ml-11">
+                            {classItem.slides.map((slide, slideIndex) => (
+                              <button
+                                key={slide.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSlideSelect(slideIndex);
+                                }}
+                                className={cn(
+                                  "w-full flex items-center p-2 rounded-lg text-sm transition-all duration-200",
+                                  slideIndex === activeSlideIndex
+                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                                    : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+                                )}
+                              >
+                                <div className={cn(
+                                  "w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3",
+                                  slideIndex < activeSlideIndex
+                                    ? "bg-green-100 dark:bg-green-900/30"
+                                    : slideIndex === activeSlideIndex
+                                      ? "bg-blue-100 dark:bg-blue-900/30"
+                                      : "bg-slate-100 dark:bg-slate-700"
+                                )}>
+                                  {slideIndex < activeSlideIndex ? (
+                                    <CheckCircle className="w-3 h-3 text-green-600" />
+                                  ) : slideIndex === activeSlideIndex ? (
+                                    <PlayCircle className="w-3 h-3 text-blue-600" />
+                                  ) : (
+                                    <Circle className="w-3 h-3 text-slate-400" />
+                                  )}
+                                </div>
+                                <span className="truncate">{slide.title}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="col-span-12 lg:col-span-8 xl:col-span-9">
+              {activeClass && activeSlide ? (
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+                  {/* Content Header */}
+                  <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                            Class {activeClass.classNo} • Slide {activeSlide.slideNo}/{slides.length}
+                          </span>
+                          <Progress value={getSlideProgress()} className="w-24 h-2" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                          {activeSlide.title}
+                        </h2>
+                      </div>
                       
-                      <div className="p-6 md:p-8 space-y-5">
+                      <Button 
+                        onClick={startPresentation}
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        <Presentation className="h-4 w-4 mr-2" />
+                        Start Presentation
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Tabs */}
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+                    <div className="px-6 pt-6">
+                      <TabsList className="bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                        <TabsTrigger 
+                          value="content" 
+                          className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 rounded-lg transition-all"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Content
+                        </TabsTrigger>
+                        {activeSlideIndex === slides.length - 1 && (
+                          <TabsTrigger 
+                            value="quiz" 
+                            className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 rounded-lg transition-all"
+                          >
+                            <FileQuestion className="w-4 h-4 mr-2" />
+                            Class Quiz
+                          </TabsTrigger>
+                        )}
+                      </TabsList>
+                    </div>
+                    
+                    <TabsContent value="content" className="p-6 pt-4 focus:outline-none">
+                      <div className="space-y-6">
+                        {activeSlide.imageUrl && (
+                          <div className="rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <AspectRatio ratio={16/9}>
+                              <img 
+                                src={activeSlide.imageUrl} 
+                                alt={activeSlide.title} 
+                                className="w-full h-full object-cover"
+                              />
+                            </AspectRatio>
+                          </div>
+                        )}
+                        
                         <div className="prose dark:prose-invert max-w-none">
-                          <p className={cn(
-                            "leading-relaxed text-lg",
-                            theme === 'dark' ? "text-gray-300" : "text-gray-700"
-                          )}>
+                          <p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300">
                             {activeSlide.content}
                           </p>
                         </div>
                         
                         {activeSlide.example && (
-                          <div className={cn(
-                            "mt-8 p-5 md:p-6 rounded-xl border-l-4 animate-fade-in shadow-inner",
-                            theme === 'dark'
-                              ? "bg-gradient-to-r from-violet-900/40 to-indigo-900/30 border-violet-500"
-                              : "bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-400"
-                          )}
-                            style={{ animationDelay: '400ms' }}
-                          >
-                            <h4 className={cn(
-                              "text-lg font-medium mb-3 flex items-center",
-                              theme === 'dark' ? "text-violet-300" : "text-violet-700"
-                            )}>
-                              <span className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center mr-2 text-xs font-bold",
-                                theme === 'dark'
-                                  ? "bg-violet-700 text-violet-200"
-                                  : "bg-violet-200 text-violet-700"
-                              )}>!</span>
+                          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-l-4 border-amber-400 rounded-lg p-6">
+                            <h4 className="text-lg font-semibold text-amber-800 dark:text-amber-300 mb-3 flex items-center">
+                              <Award className="w-5 h-5 mr-2" />
                               Example
                             </h4>
-                            <p className={theme === 'dark' ? "text-gray-300" : "text-gray-700"}>
+                            <p className="text-amber-700 dark:text-amber-200">
                               {activeSlide.example}
                             </p>
                           </div>
                         )}
                       </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="quiz" className="pt-2 pb-6 animate-fade-in focus:outline-none">
-                    <div className={cn(
-                      "flex flex-col items-center justify-center p-8 md:p-12 rounded-xl border text-center",
-                      theme === 'dark'
-                        ? "border-violet-700/40 bg-gradient-to-br from-violet-900/30 to-indigo-900/30"
-                        : "border-violet-100/60 bg-gradient-to-br from-violet-50/80 to-indigo-50/80"
-                    )}>
-                      <div className={cn(
-                        "w-16 h-16 rounded-full flex items-center justify-center mb-6", 
-                        theme === 'dark' ? "bg-violet-800/50" : "bg-violet-100"
-                      )}>
-                        <FileQuestion className={cn(
-                          "w-8 h-8", 
-                          theme === 'dark' ? "text-violet-300" : "text-violet-600"
-                        )} />
+                    </TabsContent>
+                    
+                    <TabsContent value="quiz" className="p-6 pt-4 focus:outline-none">
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <FileQuestion className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+                          Ready for the Class Quiz?
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
+                          Test your understanding of the concepts covered in {activeClass.classTitle}
+                        </p>
+                        <Button 
+                          onClick={() => navigate(`/quiz/${activeClass.classId}`)}
+                          size="lg"
+                          className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                          <FileQuestion className="mr-2 h-5 w-5" />
+                          Start Quiz
+                        </Button>
                       </div>
-                      <h3 className={cn(
-                        "text-2xl font-bold mb-3",
-                        theme === 'dark' ? "text-violet-100" : "text-violet-800"
-                      )}>
-                        Ready to test your knowledge?
-                      </h3>
-                      <p className={cn(
-                        "max-w-md mb-8",
-                        theme === 'dark' ? "text-gray-300" : "text-gray-600"
-                      )}>
-                        Take a quiz to assess your understanding of the concepts covered in this class.
-                      </p>
-                      <Button 
-                        onClick={() => navigate(`/quiz/${activeClass.classId}`)}
-                        className={cn(
-                          "px-8 py-6 text-white font-medium text-lg transition-all duration-300 hover:scale-105",
-                          theme === 'dark'
-                            ? "bg-gradient-to-r from-violet-700 to-indigo-700 hover:from-violet-600 hover:to-indigo-600"
-                            : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
-                        )}
+                    </TabsContent>
+                  </Tabs>
+                  
+                  {/* Navigation Footer */}
+                  <div className="p-6 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={goToPreviousSlide}
+                        disabled={activeClassIndex === 0 && activeSlideIndex === 0}
+                        className="flex items-center space-x-2 hover:shadow-md transition-all duration-200"
                       >
-                        <FileQuestion className="mr-2 h-5 w-5" />
-                        Start Quiz
+                        <ChevronLeft className="h-4 w-4" />
+                        <span>Previous</span>
+                      </Button>
+                      
+                      <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
+                        <Clock className="w-4 h-4" />
+                        <span>{activeSlideIndex + 1} of {slides.length}</span>
+                      </div>
+                      
+                      <Button
+                        onClick={goToNextSlide}
+                        disabled={activeClassIndex === classes.length - 1 && activeSlideIndex === slides.length - 1}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        <span>Next</span>
+                        <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TabsContent>
-                </Tabs>
-                
-                <div className={cn(
-                  "flex items-center justify-between pt-4 border-t",
-                  theme === 'dark' ? "border-violet-700/40" : "border-violet-100/60"
-                )}>
-                  <Button
-                    variant="outline"
-                    onClick={goToPreviousSlide}
-                    disabled={activeClassIndex === 0 && activeSlideIndex === 0}
-                    className={cn(
-                      "flex items-center space-x-2 transition-transform hover:translate-x-[-2px]",
-                      theme === 'dark'
-                        ? "border-violet-700 hover:bg-violet-800/60 text-violet-300"
-                        : "border-violet-200 hover:bg-violet-100/80 text-violet-700"
-                    )}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Previous</span>
-                  </Button>
-                  
-                  <div className={cn(
-                    "px-3 py-1 rounded-full hidden md:flex items-center shadow-inner",
-                    theme === 'dark' ? "bg-violet-800/40" : "bg-violet-50/80"
-                  )}>
-                    <span className={cn(
-                      "text-sm",
-                      theme === 'dark' ? "text-violet-300" : "text-violet-700"
-                    )}>
-                      {activeSlideIndex + 1} of {slides.length}
-                    </span>
                   </div>
-                  
-                  <Button
-                    onClick={goToNextSlide}
-                    disabled={activeClassIndex === classes.length - 1 && activeSlideIndex === slides.length - 1}
-                    className={cn(
-                      "flex items-center space-x-2 transition-transform hover:translate-x-[2px] hover:shadow-md text-white",
-                      theme === 'dark'
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500"
-                        : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
-                    )}
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
                 </div>
-              </div>
-            ) : (
-              <div className={cn(
-                "h-full flex items-center justify-center backdrop-blur-md rounded-2xl shadow-lg border p-12 animate-fade-in",
-                theme === 'dark'
-                  ? "bg-violet-950/60 border-violet-700/40"
-                  : "bg-white/90 border-violet-100/60"
-              )}>
-                <div className="text-center max-w-md">
-                  <div className="mb-8">
-                    <BookOpen className={cn(
-                      "h-24 w-24 mx-auto",
-                      theme === 'dark' ? "text-violet-700" : "text-violet-300"
-                    )} />
-                  </div>
-                  <h3 className={cn(
-                    "text-2xl md:text-3xl font-bold text-transparent bg-clip-text mb-4",
-                    theme === 'dark'
-                      ? "bg-gradient-to-r from-violet-300 to-indigo-300"
-                      : "bg-gradient-to-r from-violet-700 to-indigo-700"
-                  )}>No content available</h3>
-                  <p className={cn(
-                    "mb-8",
-                    theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                  )}>
-                    This course doesn't have any content yet. Please check back later or explore other courses.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate(-1)} 
-                    className={cn(
-                      "hover:scale-105 transition-transform",
-                      theme === 'dark'
-                        ? "border-violet-700 hover:bg-violet-800/60 text-violet-300"
-                        : "border-violet-200 hover:bg-violet-100/80 text-violet-700"
-                    )}
-                  >
+              ) : (
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-12 text-center">
+                  <BookOpen className="h-24 w-24 mx-auto text-slate-400 mb-6" />
+                  <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">No Content Available</h3>
+                  <p className="text-slate-600 dark:text-slate-400 mb-8">This course doesn't have any content yet.</p>
+                  <Button variant="outline" onClick={() => navigate(-1)}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Go Back
                   </Button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

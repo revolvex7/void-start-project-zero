@@ -7,7 +7,8 @@ import {
   Trash, 
   Check, 
   X,
-  UserPlus
+  UserPlus,
+  User
 } from "lucide-react";
 import { 
   Table, 
@@ -226,8 +227,21 @@ export const UserTable: React.FC<UserTableProps> = ({
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
+                <TableRow 
+                  key={user.id}
+                  className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                  onClick={() => handleEditUser(user.id)}
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-blue-100 dark:bg-blue-900/50 p-2 flex-shrink-0">
+                        <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <span className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        {user.name}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
                   <TableCell>{formatDate(user.registrationDate)}</TableCell>
@@ -258,7 +272,10 @@ export const UserTable: React.FC<UserTableProps> = ({
                               variant="outline" 
                                size="sm" 
                                className="h-8 text-xs" 
-                               onClick={() => handleCreateProperParent(user.id)}
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleCreateProperParent(user.id);
+                               }}
                               disabled={isAddingParent && selectedUserId === user.id}
                             >
                               {isAddingParent && selectedUserId === user.id ? (
@@ -292,6 +309,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8 p-0"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
@@ -302,12 +320,18 @@ export const UserTable: React.FC<UserTableProps> = ({
                           </TooltipContent>
                         </Tooltip>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditUser(user.id)}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditUser(user.id);
+                          }}>
                             <Edit className="mr-2 h-4 w-4" />
                             View & Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => setUserToDelete(user.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUserToDelete(user.id);
+                            }}
                             className="text-red-600"
                           >
                             <Trash className="mr-2 h-4 w-4" />

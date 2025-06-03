@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Plus, 
   Search, 
@@ -60,6 +61,7 @@ import { CreateCourseModal } from '@/components/courses/CreateCourseModal';
 
 const Courses: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchTerm, setSearchTerm] = useState("");
@@ -177,6 +179,11 @@ const Courses: React.FC = () => {
       style: 'currency',
       currency: 'USD',
     }).format(numericPrice);
+  };
+
+  // Helper function to check if current user can edit/delete a course
+  const canModifyCourse = (course: Course): boolean => {
+    return user?.id === course.userId;
   };
 
   if (isLoading) {
@@ -428,66 +435,76 @@ const Courses: React.FC = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedCourses.map((course) => (
-                  <TableRow key={course.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                    <TableCell className="font-medium">{course.courseTitle}</TableCell>
+                  <TableRow 
+                    key={course.id} 
+                    className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                    onClick={() => handleViewCourse(course.id)}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-blue-100 dark:bg-blue-900/50 p-2 flex-shrink-0">
+                          <Book className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <span className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                          {course.courseTitle}
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell>{course.courseCode}</TableCell>
                     <TableCell>{course.categoryName}</TableCell>
                     <TableCell>{format(new Date(course.updatedAt), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0"
-                                onClick={() => handleViewCourse(course.id)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Preview course</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0"
-                                onClick={() => handleEditCourse(course.id)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Edit course</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0 text-red-600"
-                                onClick={() => openDeleteDialog(course.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Delete course</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        {canModifyCourse(course) && (
+                          <>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditCourse(course.id);
+                                    }}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit course</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0 text-red-600"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openDeleteDialog(course.id);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete course</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </>
+                        )}
+                        {!canModifyCourse(course) && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">
+                            View Only
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -510,7 +527,8 @@ const Courses: React.FC = () => {
             </div>
           ) : (
             filteredAndSortedCourses.map((course) => (
-              <Card key={course.id} className="h-full transition-all duration-300 hover:shadow-lg group border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+              <Card key={course.id} className="h-full transition-all duration-300 hover:shadow-lg group border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
+                onClick={() => handleViewCourse(course.id)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="rounded-lg bg-blue-100 dark:bg-blue-900/50 p-3 mr-4">
@@ -535,32 +553,39 @@ const Courses: React.FC = () => {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0 border-t border-slate-100 dark:border-slate-700 flex justify-between">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/50"
-                    onClick={() => handleViewCourse(course.id)}
-                  >
-                    <Eye className="mr-1 h-3 w-3" /> Preview
-                  </Button>
+                <CardFooter className="pt-0 border-t border-slate-100 dark:border-slate-700 flex justify-end">
                   <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/50"
-                      onClick={() => handleEditCourse(course.id)}
-                    >
-                      <Pencil className="mr-1 h-3 w-3" /> Edit
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50"
-                      onClick={() => openDeleteDialog(course.id)}
-                    >
-                      <Trash2 className="mr-1 h-3 w-3" /> Delete
-                    </Button>
+                    {canModifyCourse(course) && (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditCourse(course.id);
+                          }}
+                        >
+                          <Pencil className="mr-1 h-3 w-3" /> Edit
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteDialog(course.id);
+                          }}
+                        >
+                          <Trash2 className="mr-1 h-3 w-3" /> Delete
+                        </Button>
+                      </>
+                    )}
+                    {!canModifyCourse(course) && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">
+                        View Only
+                      </span>
+                    )}
                   </div>
                 </CardFooter>
               </Card>

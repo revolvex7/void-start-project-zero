@@ -185,6 +185,7 @@ export interface Course {
   isPublished?: boolean;
   updatedAt: string;
   image?: string | null;
+  userId?: string; // Added userId for access control
 }
 
 export interface CategoryResponse {
