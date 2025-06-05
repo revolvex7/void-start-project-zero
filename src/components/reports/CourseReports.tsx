@@ -17,14 +17,34 @@ import { courseService } from "@/services/courseService";
 import { LoadingState } from "@/components/LoadingState";
 import { reportsService, ViewAs } from "@/services/reportsService";
 import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 const CourseReports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { role } = useRole();
+  const { user } = useAuth();
   
-  // Determine viewAs based on current role
-  const viewAs: ViewAs = role === 'administrator' ? 'admin' : 'instructor';
+  // Determine viewAs based on current role - use actual user role first, then role context for admins
+  const getUserRole = () => {
+    const userRole = user?.role?.toLowerCase();
+    const selectedRole = role?.toLowerCase();
+    
+    // If user is actually an instructor, always use instructor
+    if (userRole === 'instructor') {
+      return 'instructor';
+    }
+    
+    // If user is admin, use their selected role from role context
+    if (userRole === 'administrator') {
+      return selectedRole === 'instructor' ? 'instructor' : 'admin';
+    }
+    
+    // Default fallback
+    return 'instructor';
+  };
+  
+  const viewAs: ViewAs = getUserRole() as ViewAs;
 
   const { data: reportData, isLoading: reportLoading, error: reportError } = useQuery({
     queryKey: ['courseReports', viewAs],
@@ -61,12 +81,12 @@ const CourseReports: React.FC = () => {
     };
 
     return {
-      totalCourses: reportData.totalCourses,
-      publishedCourses: reportData.publishedCourses,
-      totalStudentsEnrolled: reportData.totalStudentsEnrolled,
-      averageCompletionRate: `${reportData.averageCompletionRate.toFixed(1)}%`,
-      totalClasses: reportData.totalClasses,
-      totalTime: `${Math.floor(reportData.totalTime / 60)}h ${reportData.totalTime % 60}m`
+      totalCourses: reportData.totalCourses || 0,
+      publishedCourses: reportData.publishedCourses || 0,
+      totalStudentsEnrolled: reportData.totalStudentsEnrolled || 0,
+      averageCompletionRate: reportData.averageCompletionRate != null ? `${reportData.averageCompletionRate.toFixed(1)}%` : "0.0%",
+      totalClasses: reportData.totalClasses || 0,
+      totalTime: reportData.totalTime != null ? `${Math.floor(reportData.totalTime / 60)}h ${reportData.totalTime % 60}m` : "0m"
     };
   }, [reportData]);
 

@@ -1,22 +1,47 @@
-
 import api from "./api";
+
+export interface AssignmentQuestion {
+  id: string;
+  question: string;
+  type: string;
+  options: string[] | null;
+  correctAnswer: string | null;
+}
+
+export interface SubmittedAnswer {
+  id: string;
+  studentAssignmentsId: string;
+  questionId: string;
+  answer: string;
+  isCorrect: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+  question: string;
+  type: string;
+  options: string[] | null;
+  correctAnswer: string | null;
+}
+
+export interface SubmittedAssignmentResponse {
+  data: SubmittedAnswer[];
+}
 
 export interface AssignmentSubmissionResponse {
   id: string;
-  assignmentId: string;
-  courseId: string;
   userId: string;
-  isSubmitted: boolean;
+  assignmentId: string;
+  fileUrl?: string | null;
   submittedAt?: string;
-  obtainMarks?: number;
-  feedback?: string;
+  feedback?: string | null;
+  obtainMarks?: number | null;
+  isSubmitted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  status: 'graded' | 'late' | 'submitted' | 'not submitted';
   courseName: string;
   studentName: string;
   studentEmail: string;
-  studentProfileImage?: string;
-  status: 'graded' | 'late' | 'submitted' | 'not submitted';
-  createdAt: string;
-  updatedAt: string;
+  studentProfileImage?: string | null;
 }
 
 export interface AssignmentDetail {
@@ -25,14 +50,15 @@ export interface AssignmentDetail {
   courseId: string;
   title: string;
   description: string;
-  fileUrl: string;
   dueDate: string;
-  classNumbers: string[];
+  classNumbers: string[] | null;
   isAiGenerated: boolean;
   createdAt: string;
   updatedAt: string;
   published: boolean;
   totalMarks: number;
+  courseName: string;
+  questions: AssignmentQuestion[];
   submissions: AssignmentSubmissionResponse[];
 }
 
@@ -59,6 +85,17 @@ export const assignmentService = {
       return response.data;
     } catch (error) {
       console.error('Failed to fetch assignment submissions:', error);
+      throw error;
+    }
+  },
+
+  // Get submitted assignment answers by student assignment ID
+  getSubmittedAssignment: async (studentAssignmentId: string): Promise<SubmittedAssignmentResponse> => {
+    try {
+      const response = await api.get(`/user/submtted-assignment/${studentAssignmentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch submitted assignment:', error);
       throw error;
     }
   },

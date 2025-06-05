@@ -14,16 +14,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LoadingState } from "@/components/LoadingState";
-import { reportsService, ViewAs } from "@/services/reportsService";
+import { reportsService, ViewAs, AssignmentReportsResponse } from "@/services/reportsService";
 import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 const AssignmentReports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { role } = useRole();
+  const { user } = useAuth();
   
-  // Determine viewAs based on current role
-  const viewAs: ViewAs = role === 'administrator' ? 'admin' : 'instructor';
+  // Determine viewAs based on current role - use actual user role first, then role context for admins
+  const getUserRole = () => {
+    const userRole = user?.role?.toLowerCase();
+    const selectedRole = role?.toLowerCase();
+    
+    // If user is actually an instructor, always use instructor
+    if (userRole === 'instructor') {
+      return 'instructor';
+    }
+    
+    // If user is admin, use their selected role from role context
+    if (userRole === 'administrator') {
+      return selectedRole === 'instructor' ? 'instructor' : 'admin';
+    }
+    
+    // Default fallback
+    return 'instructor';
+  };
+  
+  const viewAs: ViewAs = getUserRole() as ViewAs;
 
   const { data: reportData, isLoading, error } = useQuery({
     queryKey: ['assignmentReports', viewAs],
@@ -37,7 +57,7 @@ const AssignmentReports: React.FC = () => {
 
   // Calculate stats from API data
   const stats = React.useMemo(() => {
-    if (!reportData) return {
+    if (!reportData?.stats) return {
       completionRate: "0.0%",
       completedLearners: 0,
       learnersInProgress: 0,
@@ -46,47 +66,39 @@ const AssignmentReports: React.FC = () => {
       trainingTime: "0h"
     };
 
-    const total = reportData.totalAssignments || 1;
-    const completionRate = total > 0 ? `${((reportData.totalGraded / total) * 100).toFixed(1)}%` : "0.0%";
+    const { stats: reportStats } = reportData;
+    const total = reportStats.totalAssignments || 1;
+    const graded = reportStats.totalGraded || 0;
+    const completionRate = total > 0 ? `${((graded / total) * 100).toFixed(1)}%` : "0.0%";
     
     return {
       completionRate,
-      completedLearners: reportData.totalGraded,
-      learnersInProgress: reportData.totalPending,
-      learnersNotPassed: reportData.totalNotGraded,
-      learnersNotStarted: reportData.totalNotSubmitted,
-      trainingTime: `${Math.max(1, Math.floor(reportData.totalAssignments * 0.5))}h`
+      completedLearners: reportStats.totalGraded || 0,
+      learnersInProgress: reportStats.totalPending || 0,
+      learnersNotPassed: reportStats.totalNotGraded || 0,
+      learnersNotStarted: reportStats.totalNotSubmitted || 0,
+      trainingTime: `${Math.max(1, Math.floor((reportStats.totalAssignments || 0) * 0.5))}h`
     };
   }, [reportData]);
 
-  const mockAssignments = [
-    {
-      id: "1",
-      name: "React Components Assignment",
-      courseName: "Web Development",
-      dueDate: "2024-01-15",
-      submissions: reportData?.totalSubmitted || 0,
-      status: "active"
-    },
-    {
-      id: "2",
-      name: "Database Design Project", 
-      courseName: "Database Systems",
-      dueDate: "2024-01-20",
-      submissions: Math.floor((reportData?.totalSubmitted || 0) * 0.8),
-      status: "active"
-    },
-    {
-      id: "3",
-      name: "API Integration Task",
-      courseName: "Backend Development",
-      dueDate: "2024-01-25",
-      submissions: Math.floor((reportData?.totalSubmitted || 0) * 0.6),
-      status: "pending"
-    }
-  ];
+  // Use actual assignment data from API
+  const assignments = React.useMemo(() => {
+    if (!reportData?.assignment) return [];
+    
+    return reportData.assignment.map(assignment => ({
+      id: assignment.id,
+      name: assignment.title,
+      courseName: assignment.courseTitle,
+      dueDate: assignment.dueDate,
+      submissions: parseInt(assignment.totalSubmitted) || 0,
+      status: assignment.status,
+      isSubmitted: assignment.isSubmitted,
+      obtainMarks: assignment.obtainMarks,
+      published: assignment.published
+    }));
+  }, [reportData]);
 
-  const filteredAssignments = mockAssignments.filter(assignment =>
+  const filteredAssignments = assignments.filter(assignment =>
     assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     assignment.courseName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -315,10 +327,12 @@ const AssignmentReports: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Badge 
-                          variant={assignment.status === 'active' ? 'default' : 'secondary'}
-                          className={assignment.status === 'active' 
+                          variant={assignment.status === 'submitted' ? 'default' : 'secondary'}
+                          className={assignment.status === 'submitted' 
                             ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
-                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                            : assignment.status === 'pending'
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                            : "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300"
                           }
                         >
                           {assignment.status}

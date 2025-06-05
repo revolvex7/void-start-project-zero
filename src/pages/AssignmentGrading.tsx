@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   ArrowLeft, 
   FileText, 
@@ -14,11 +14,23 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Target
+  Target,
+  BookOpen,
+  Star,
+  MessageSquare,
+  Award,
+  GraduationCap,
+  Save,
+  X,
+  Calculator,
+  CheckCircle2,
+  XCircle,
+  MinusCircle
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -35,20 +47,34 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   TooltipProvider,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { GradingDialog } from "@/components/grading/GradingDialog";
-import { assignmentService, AssignmentSubmissionResponse } from "@/services/assignmentService";
+import { assignmentService, AssignmentSubmissionResponse, AssignmentDetail, SubmittedAnswer } from "@/services/assignmentService";
+import api from "@/services/api";
+import { toast } from "sonner";
 
 const AssignmentGrading: React.FC = () => {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const [searchTerm, setSearchTerm] = useState("");
-  const [gradingDialogOpen, setGradingDialogOpen] = useState(false);
+  const [viewSubmissionDialog, setViewSubmissionDialog] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmissionResponse | null>(null);
+  const [submittedAnswers, setSubmittedAnswers] = useState<SubmittedAnswer[]>([]);
+  const [questionGrades, setQuestionGrades] = useState<Record<string, number>>({});
+  const [totalObtainedMarks, setTotalObtainedMarks] = useState<number>(0);
+  const [isLoadingAnswers, setIsLoadingAnswers] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const { data: assignmentData, isLoading, error } = useQuery({
     queryKey: ["assignment-details", assignmentId],
@@ -56,8 +82,35 @@ const AssignmentGrading: React.FC = () => {
     enabled: !!assignmentId,
   });
 
-  const assignmentDetails = assignmentData?.data;
+  const gradeMutation = useMutation({
+    mutationFn: async ({ studentAssignmentId, obtainMarks }: { studentAssignmentId: string; obtainMarks: number }) => {
+      const response = await api.put(`/user/grade-assignment/${studentAssignmentId}`, {
+        obtainMarks: obtainMarks
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Grade saved successfully!");
+      queryClient.invalidateQueries({ queryKey: ["assignment-details", assignmentId] });
+      setViewSubmissionDialog(false);
+      setSelectedSubmission(null);
+      setSubmittedAnswers([]);
+      setQuestionGrades({});
+      setTotalObtainedMarks(0);
+    },
+    onError: () => {
+      toast.error("Failed to save grade. Please try again.");
+    }
+  });
+
+  const assignmentDetails: AssignmentDetail | undefined = assignmentData?.data;
   const submissions = assignmentDetails?.submissions || [];
+
+  // Calculate total obtained marks whenever question grades change
+  useEffect(() => {
+    const total = Object.values(questionGrades).reduce((sum, grade) => sum + grade, 0);
+    setTotalObtainedMarks(total);
+  }, [questionGrades]);
 
   const filteredSubmissions = submissions.filter((submission: AssignmentSubmissionResponse) =>
     submission.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,19 +141,123 @@ const AssignmentGrading: React.FC = () => {
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  const handleGradeSubmission = (submission: AssignmentSubmissionResponse) => {
+  const fetchSubmittedAnswers = async (studentAssignmentId: string) => {
+    setIsLoadingAnswers(true);
+    try {
+      const response = await assignmentService.getSubmittedAssignment(studentAssignmentId);
+      setSubmittedAnswers(response.data);
+      
+      // Initialize question grades - you can set default marks per question or leave as 0
+      const initialGrades: Record<string, number> = {};
+      response.data.forEach(answer => {
+        initialGrades[answer.questionId] = 0; // Default to 0, instructor will set marks
+      });
+      setQuestionGrades(initialGrades);
+    } catch (error) {
+      toast.error("Failed to load submission details");
+      console.error("Error fetching submitted answers:", error);
+    } finally {
+      setIsLoadingAnswers(false);
+    }
+  };
+
+  const handleViewSubmission = async (submission: AssignmentSubmissionResponse) => {
     setSelectedSubmission(submission);
-    setGradingDialogOpen(true);
+    setViewSubmissionDialog(true);
+    
+    // Fetch the submitted answers using the submission ID as studentAssignmentId
+    await fetchSubmittedAnswers(submission.id);
   };
 
-  const handleSaveGrade = (grade: number, feedback: string) => {
-    // Handle grade saving logic here
-    console.log('Saving grade:', grade, 'Feedback:', feedback);
+  const updateQuestionGrade = (questionId: string, grade: number) => {
+    setQuestionGrades(prev => ({
+      ...prev,
+      [questionId]: Math.max(0, grade) // Ensure non-negative grades
+    }));
   };
 
-  const truncateFeedback = (feedback: string) => {
-    if (feedback && feedback.length <= 100) return feedback;
-    return feedback ? feedback.substring(0, 100) + "..." : "-";
+  const getQuestionTypeIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'multiple-choice':
+        return <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      case 'brief':
+        return <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'fill-blank':
+        return <MinusCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
+    }
+  };
+
+  const getAnswerDisplay = (answer: SubmittedAnswer) => {
+    if (answer.type === 'multiple-choice' && answer.options) {
+      const isCorrect = answer.answer === answer.correctAnswer;
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Selected:</span>
+            <Badge variant={isCorrect ? "default" : "destructive"} className="text-xs">
+              {answer.answer}
+            </Badge>
+            {isCorrect ? (
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            ) : (
+              <XCircle className="h-4 w-4 text-red-600" />
+            )}
+          </div>
+          {!isCorrect && answer.correctAnswer && (
+            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+              <span>Correct answer:</span>
+              <Badge variant="outline" className="text-xs">
+                {answer.correctAnswer}
+              </Badge>
+            </div>
+          )}
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Options: {answer.options.join(", ")}
+          </div>
+        </div>
+      );
+    }
+
+    if (answer.type === 'fill-blank' && answer.correctAnswer) {
+      const isCorrect = answer.answer.toLowerCase().trim() === answer.correctAnswer.toLowerCase().trim();
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Answer:</span>
+            <span className="text-slate-900 dark:text-white">{answer.answer}</span>
+            {isCorrect ? (
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            ) : (
+              <XCircle className="h-4 w-4 text-red-600" />
+            )}
+          </div>
+          {!isCorrect && (
+            <div className="text-sm text-green-600 dark:text-green-400">
+              Expected: {answer.correctAnswer}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // For brief questions or others without predefined correct answers
+    return (
+      <div>
+        <span className="font-medium">Answer:</span>
+        <p className="text-slate-900 dark:text-white mt-1">{answer.answer}</p>
+      </div>
+    );
+  };
+
+  const handleSaveGrade = () => {
+    if (!selectedSubmission) return;
+
+    gradeMutation.mutate({
+      studentAssignmentId: selectedSubmission.id,
+      obtainMarks: totalObtainedMarks
+    });
   };
 
   if (isLoading) {
@@ -118,29 +275,9 @@ const AssignmentGrading: React.FC = () => {
           </div>
         </div>
 
-        {/* Assignment Banner Loading */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="h-32 bg-slate-200 dark:bg-slate-600 animate-pulse"></div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="h-6 bg-slate-200 dark:bg-slate-600 rounded animate-pulse"></div>
-              <div className="h-6 bg-slate-200 dark:bg-slate-600 rounded animate-pulse"></div>
-              <div className="h-6 bg-slate-200 dark:bg-slate-600 rounded animate-pulse"></div>
-            </div>
-            <div className="h-20 bg-slate-200 dark:bg-slate-600 rounded animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* Content Loading */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div className="p-6">
-            <div className="h-12 w-full bg-slate-200 dark:bg-slate-600 rounded-lg animate-pulse mb-6"></div>
-            <div className="h-10 w-full bg-slate-200 dark:bg-slate-600 rounded-lg animate-pulse mb-4"></div>
-            <div className="space-y-4">
-              <div className="h-16 bg-slate-200 dark:bg-slate-600 rounded-lg animate-pulse"></div>
-              <div className="h-16 bg-slate-200 dark:bg-slate-600 rounded-lg animate-pulse"></div>
-              <div className="h-16 bg-slate-200 dark:bg-slate-600 rounded-lg animate-pulse"></div>
-            </div>
+            <LoadingSpinner />
           </div>
         </div>
       </div>
@@ -150,7 +287,6 @@ const AssignmentGrading: React.FC = () => {
   if (error || !assignmentDetails) {
     return (
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Section - Error */}
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
@@ -211,12 +347,12 @@ const AssignmentGrading: React.FC = () => {
             </div>
           </div>
           <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
-            <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <GraduationCap className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
       </div>
 
-      {/* Assignment Info Card */}
+      {/* Assignment Overview */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="relative h-32 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
           <div className="absolute inset-0 bg-black/20"></div>
@@ -227,24 +363,42 @@ const AssignmentGrading: React.FC = () => {
         </div>
         
         <div className="p-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-700/50 dark:to-blue-900/20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                Due: {new Date(assignmentDetails.dueDate).toLocaleDateString()}
-              </span>
+              <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Due Date</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  {new Date(assignmentDetails.dueDate).toLocaleDateString()}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                Total Marks: {assignmentDetails.totalMarks}
-              </span>
+              <Target className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Total Marks</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  {assignmentDetails.totalMarks}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-              <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                Submissions: {submittedCount}
-              </span>
+              <BookOpen className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Questions</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  {assignmentDetails.questions?.length || 0}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Submissions</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  {submittedCount}
+                </p>
+              </div>
             </div>
           </div>
           <div>
@@ -254,55 +408,104 @@ const AssignmentGrading: React.FC = () => {
         </div>
       </div>
 
+      {/* Assignment Questions */}
+      {assignmentDetails.questions && assignmentDetails.questions.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-purple-50 dark:from-slate-700/50 dark:to-purple-900/20 px-6 py-4">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              Assignment Questions ({assignmentDetails.questions.length})
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Review the questions students need to answer
+            </p>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {assignmentDetails.questions.map((question, index) => (
+                <div key={question.id} className="bg-gradient-to-r from-slate-50 to-purple-50 dark:from-slate-700/30 dark:to-purple-900/10 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-medium text-purple-600 dark:text-purple-400">{index + 1}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-slate-900 dark:text-white font-medium mb-2">{question.question}</p>
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline" className="text-xs">
+                          {question.type}
+                        </Badge>
+                        {question.options && (
+                          <Badge variant="outline" className="text-xs">
+                            {question.options.length} options
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Submissions</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{submittedCount}</p>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Submissions</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{submittedCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-200 dark:bg-blue-800/50 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-              <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Graded</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{gradedCount}</p>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">Graded</p>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{gradedCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-200 dark:bg-green-800/50 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Pending</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{pendingCount}</p>
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Pending</p>
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">{pendingCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-orange-200 dark:bg-orange-800/50 rounded-lg flex items-center justify-center">
+                <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
-            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-              <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Late Submissions</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{lateCount}</p>
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">Late</p>
+                <p className="text-2xl font-bold text-red-900 dark:text-red-100">{lateCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-200 dark:bg-red-800/50 rounded-lg flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
             </div>
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-              <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Submissions Table */}
@@ -337,11 +540,9 @@ const AssignmentGrading: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 dark:bg-slate-700/50">
-                  <TableHead className="font-semibold">Student Name</TableHead>
-                  <TableHead className="font-semibold">Student Email</TableHead>
-                  <TableHead className="font-semibold">Submission Date</TableHead>
+                  <TableHead className="font-semibold">Student</TableHead>
+                  <TableHead className="font-semibold">Submitted</TableHead>
                   <TableHead className="font-semibold">Grade</TableHead>
-                  <TableHead className="font-semibold">Feedback</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
                   <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
@@ -350,31 +551,44 @@ const AssignmentGrading: React.FC = () => {
                 {filteredSubmissions.length > 0 ? (
                   filteredSubmissions.map((submission) => (
                     <TableRow key={submission.id} className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                      <TableCell className="font-medium text-slate-900 dark:text-white">{submission.studentName}</TableCell>
-                      <TableCell className="text-slate-600 dark:text-slate-400">{submission.studentEmail}</TableCell>
-                      <TableCell className="text-slate-600 dark:text-slate-400">
-                        {submission.submittedAt ? 
-                          new Date(submission.submittedAt).toLocaleDateString() : 
-                          "-"
-                        }
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                              {submission.studentName.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900 dark:text-white">{submission.studentName}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{submission.studentEmail}</p>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>
-                        {submission.obtainMarks !== undefined ? (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                          <span className="text-slate-900 dark:text-white">
+                            {submission.submittedAt ? 
+                              new Date(submission.submittedAt).toLocaleDateString() : 
+                              "Not submitted"
+                            }
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {submission.obtainMarks !== undefined && submission.obtainMarks !== null ? (
                           <div className="flex items-center gap-2">
-                            <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <Star className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                             <span className="font-medium text-slate-900 dark:text-white">
-                              {submission.obtainMarks}/{assignmentDetails.totalMarks}
+                              {submission.obtainMarks}/{assignmentDetails?.totalMarks}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-slate-400">-</span>
+                          <span className="text-slate-400">Not graded</span>
                         )}
                       </TableCell>
-                      <TableCell className="max-w-xs text-slate-600 dark:text-slate-400">
-                        {truncateFeedback(submission.feedback || "")}
-                      </TableCell>
                       <TableCell>{getStatusBadge(submission.status)}</TableCell>
-                      <TableCell className="text-right space-x-2">
+                      <TableCell className="text-right">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -382,30 +596,13 @@ const AssignmentGrading: React.FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                onClick={() => handleViewSubmission(submission)}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>View submission</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0 hover:bg-green-50 dark:hover:bg-green-900/20"
-                                onClick={() => handleGradeSubmission(submission)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Grade submission</p>
+                              <p>View & Grade Submission</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -414,7 +611,7 @@ const AssignmentGrading: React.FC = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-32">
+                    <TableCell colSpan={5} className="h-32">
                       <div className="flex flex-col items-center justify-center text-center">
                         <Users className="h-8 w-8 text-slate-400 mb-3" />
                         <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">No submissions found</p>
@@ -431,15 +628,172 @@ const AssignmentGrading: React.FC = () => {
         </div>
       </div>
 
-      <GradingDialog
-        isOpen={gradingDialogOpen}
-        onClose={() => setGradingDialogOpen(false)}
-        onSave={handleSaveGrade}
-        studentName={selectedSubmission?.studentName || ""}
-        totalMarks={assignmentDetails?.totalMarks || 100}
-        currentGrade={selectedSubmission?.obtainMarks}
-        currentFeedback={selectedSubmission?.feedback}
-      />
+      {/* View Submission Dialog */}
+      <Dialog open={viewSubmissionDialog} onOpenChange={setViewSubmissionDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Submission Details & Grading - {selectedSubmission?.studentName}
+            </DialogTitle>
+            <DialogDescription>
+              Review the student's answers and provide grades for each question
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedSubmission && (
+            <div className="space-y-6">
+              {/* Student Info Header */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium">
+                        {selectedSubmission.studentName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white">{selectedSubmission.studentName}</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{selectedSubmission.studentEmail}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {getStatusBadge(selectedSubmission.status)}
+                    <div className="text-right">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Submitted</p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-white">
+                        {selectedSubmission.submittedAt ? 
+                          new Date(selectedSubmission.submittedAt).toLocaleString() : 
+                          "Not submitted"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Grade Summary */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Calculator className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    <div>
+                      <h4 className="font-semibold text-green-900 dark:text-green-100">Grade Summary</h4>
+                      <p className="text-sm text-green-700 dark:text-green-300">Current total marks</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+                      {totalObtainedMarks} / {assignmentDetails?.totalMarks}
+                    </div>
+                    <div className="text-sm text-green-700 dark:text-green-300">
+                      {assignmentDetails?.totalMarks ? 
+                        `${((totalObtainedMarks / assignmentDetails.totalMarks) * 100).toFixed(1)}%` : 
+                        '0%'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submitted Answers with Grading */}
+              {isLoadingAnswers ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner />
+                  <span className="ml-2 text-slate-600 dark:text-slate-400">Loading submission details...</span>
+                </div>
+              ) : submittedAnswers.length > 0 ? (
+                <div>
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Student Answers & Grading ({submittedAnswers.length} Questions)
+                  </h4>
+                  <div className="space-y-4">
+                    {submittedAnswers.map((answer, index) => (
+                      <div key={answer.id} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        {/* Question Header */}
+                        <div className="bg-slate-50 dark:bg-slate-700/50 px-4 py-3 border-b border-slate-200 dark:border-slate-600">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-sm font-medium text-purple-600 dark:text-purple-400">{index + 1}</span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  {getQuestionTypeIcon(answer.type)}
+                                  <Badge variant="outline" className="text-xs">
+                                    {answer.type}
+                                  </Badge>
+                                </div>
+                                <p className="text-slate-900 dark:text-white font-medium">{answer.question}</p>
+                              </div>
+                            </div>
+                            {/* Grade Input */}
+                            <div className="flex items-center gap-2 ml-4">
+                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Marks:</span>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="10"
+                                value={questionGrades[answer.questionId] || 0}
+                                onChange={(e) => updateQuestionGrade(answer.questionId, Number(e.target.value))}
+                                className="w-20 h-8 text-center bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                placeholder="0"
+                              />
+                              <span className="text-sm text-slate-500 dark:text-slate-400">/ 10</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Answer Content */}
+                        <div className="p-4">
+                          {getAnswerDisplay(answer)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-slate-400 mx-auto mb-3" />
+                  <p className="text-slate-600 dark:text-slate-400">No answers found for this submission</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-6 border-t border-slate-200 dark:border-slate-700">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setViewSubmissionDialog(false);
+                    setSelectedSubmission(null);
+                    setSubmittedAnswers([]);
+                    setQuestionGrades({});
+                    setTotalObtainedMarks(0);
+                  }}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <div className="flex items-center gap-3">
+                  <div className="text-right text-sm text-slate-600 dark:text-slate-400">
+                    <div>Total Grade: <span className="font-semibold text-slate-900 dark:text-white">{totalObtainedMarks}</span></div>
+                    <div>Max Possible: <span className="font-semibold">{assignmentDetails?.totalMarks}</span></div>
+                  </div>
+                  <Button 
+                    onClick={handleSaveGrade} 
+                    disabled={gradeMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {gradeMutation.isPending ? "Saving Grade..." : "Save Grade"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

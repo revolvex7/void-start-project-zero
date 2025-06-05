@@ -17,6 +17,7 @@ import { userService } from "@/services/userService";
 import { LoadingState } from "@/components/LoadingState";
 import { reportsService, ViewAs, UserReportsDataAdmin, UserReportsDataInstructor } from "@/services/reportsService";
 import { useRole } from "@/context/RoleContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 type UserReportsData = UserReportsDataAdmin | UserReportsDataInstructor;
@@ -24,9 +25,28 @@ type UserReportsData = UserReportsDataAdmin | UserReportsDataInstructor;
 const UserReports: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { role } = useRole();
+  const { user } = useAuth();
   
-  // Determine viewAs based on current role
-  const viewAs: ViewAs = role === 'administrator' ? 'admin' : 'instructor';
+  // Determine viewAs based on current role - use actual user role first, then role context for admins
+  const getUserRole = () => {
+    const userRole = user?.role?.toLowerCase();
+    const selectedRole = role?.toLowerCase();
+    
+    // If user is actually an instructor, always use instructor
+    if (userRole === 'instructor') {
+      return 'instructor';
+    }
+    
+    // If user is admin, use their selected role from role context
+    if (userRole === 'administrator') {
+      return selectedRole === 'instructor' ? 'instructor' : 'admin';
+    }
+    
+    // Default fallback
+    return 'instructor';
+  };
+  
+  const viewAs: ViewAs = getUserRole() as ViewAs;
 
   const { data: reportData, isLoading: reportLoading, error: reportError } = useQuery({
     queryKey: ['userReports', viewAs],

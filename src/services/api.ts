@@ -34,21 +34,21 @@ api.interceptors.response.use(
 		console.error("API Error:", errorMessage);
 
 		// Check if the error is an authentication issue
-		if (error.response?.status === 401) {
-			if (
-				window.location.pathname !== "/login" &&
-				window.location.pathname !== "/register"
-			) {
-				toast.error("Session expired. Please log in again.");
-				// Clear local storage and reload the page to trigger a full logout
-				localStorage.removeItem("token");
-				localStorage.removeItem("refreshToken");
-				localStorage.removeItem("user");
-				setTimeout(() => {
-					window.location.href = "/login";
-				}, 1000);
-			}
-		}
+		// if (error.response?.status === 401) {
+		// 	if (
+		// 		window.location.pathname !== "/login" &&
+		// 		window.location.pathname !== "/register"
+		// 	) {
+		// 		toast.error("Session expired. Please log in again.");
+		// 		// Clear local storage and reload the page to trigger a full logout
+		// 		localStorage.removeItem("token");
+		// 		localStorage.removeItem("refreshToken");
+		// 		localStorage.removeItem("user");
+		// 		setTimeout(() => {
+		// 			window.location.href = "/login";
+		// 		}, 1000);
+		// 	}
+		// }
 
 		return Promise.reject(error);
 	}

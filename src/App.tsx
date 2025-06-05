@@ -240,12 +240,12 @@ const AppRoutes = () => {
           <Route path="/groups" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Groups /></MultiRoleRoute>} />
           <Route path="/groups/:groupId" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><GroupDetails /></MultiRoleRoute>} />
           <Route path="/reports" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Reports /></MultiRoleRoute>} />
-          <Route path="/reports/courses" element={<AdminRoute><Reports /></AdminRoute>} />
+          <Route path="/reports/courses" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Reports /></MultiRoleRoute>} />
           <Route path="/reports/groups" element={<AdminRoute><Reports /></AdminRoute>} />
           <Route path="/reports/users" element={<AdminRoute><Reports /></AdminRoute>} />
           <Route path="/reports/categories" element={<AdminRoute><Reports /></AdminRoute>} />
-          <Route path="/reports/students" element={<InstructorRoute><Reports /></InstructorRoute>} />
-          <Route path="/reports/assignments" element={<InstructorRoute><Reports /></InstructorRoute>} />
+          <Route path="/reports/students" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Reports /></MultiRoleRoute>} />
+          <Route path="/reports/assignments" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor']}><Reports /></MultiRoleRoute>} />
           
           {/* Multi-role routes (Admin + Instructor + Learner) */}
           <Route path="/my-courses" element={<MultiRoleRoute allowedRoles={['administrator', 'instructor', 'learner']}><MyCourses /></MultiRoleRoute>} />

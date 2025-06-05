@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Camera, UserCircle, X } from 'lucide-react';
@@ -16,6 +15,7 @@ export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [initials, setInitials] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (name) {
@@ -96,8 +96,14 @@ export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
   const gradientColor = gradientColors[colorIndex];
 
   return (
-    <div className="flex flex-col items-center mb-8">
-      <div className="relative">
+    <div className="flex flex-col items-center mb-4">
+      <motion.div 
+        className="relative"
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+        whileHover={{ scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
         {preview ? (
           <motion.div 
             className="relative"
@@ -105,39 +111,100 @@ export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Avatar className="w-24 h-24 border-2 border-white dark:border-gray-800 shadow-xl">
+            <Avatar className="w-20 h-20 border-3 border-white dark:border-gray-800 shadow-lg ring-2 ring-blue-100 dark:ring-blue-900/20">
               <AvatarImage src={preview} alt="Avatar preview" />
               {isUploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full">
-                  <Spinner size="md" color="primary" />
-                </div>
+                <motion.div 
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <Spinner size="sm" color="primary" />
+                </motion.div>
               )}
             </Avatar>
-            <button 
+            
+            {/* Hover overlay for preview */}
+            <motion.div
+              className={`absolute inset-0 rounded-full bg-black/20 flex items-center justify-center transition-opacity ${
+                isHovered && !isUploading ? 'opacity-100' : 'opacity-0'
+              }`}
+              initial={false}
+              animate={{ opacity: isHovered && !isUploading ? 1 : 0 }}
+            >
+              <Camera className="h-6 w-6 text-white" />
+            </motion.div>
+            
+            <motion.button 
               type="button"
               onClick={removeAvatar} 
-              className="absolute -top-2 -right-2 bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+              className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors border-2 border-white dark:border-gray-800"
               disabled={isUploading}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
             >
-              <X size={16} className="text-gray-600 dark:text-gray-400" />
-            </button>
+              <X size={12} />
+            </motion.button>
           </motion.div>
         ) : (
           <motion.div 
-            className={`w-24 h-24 rounded-full bg-gradient-to-br ${gradientColor} flex items-center justify-center text-white text-xl font-semibold shadow-xl`}
+            className={`w-20 h-20 rounded-full bg-gradient-to-br ${gradientColor} flex items-center justify-center text-white text-lg font-semibold shadow-lg ring-2 ring-blue-100 dark:ring-blue-900/20 relative overflow-hidden`}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            {initials || <UserCircle size={42} className="text-white/90" />}
+            {/* Animated background effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
+              animate={{ 
+                background: isHovered 
+                  ? "linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%)"
+                  : "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)"
+              }}
+              transition={{ duration: 0.3 }}
+            />
+            
+            {/* Hover overlay */}
+            <motion.div
+              className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity ${
+                isHovered ? 'opacity-100' : 'opacity-0'
+              }`}
+              initial={false}
+              animate={{ opacity: isHovered ? 1 : 0 }}
+            >
+              <Upload className="h-6 w-6 text-white" />
+            </motion.div>
+            
+            {/* Avatar content */}
+            <motion.div
+              animate={{ opacity: isHovered ? 0.7 : 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              {initials || <UserCircle size={36} className="text-white/90" />}
+            </motion.div>
           </motion.div>
         )}
         
-        <label 
+        <motion.label 
           htmlFor="avatar-upload" 
-          className={`absolute -bottom-2 -right-2 bg-white dark:bg-gray-700 rounded-full p-2.5 cursor-pointer shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`absolute -bottom-1 -right-1 bg-gradient-to-r from-[#1B68B3] to-blue-600 hover:from-[#1A5DA0] hover:to-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition-all duration-200 border-2 border-white dark:border-gray-800 ${
+            isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+          }`}
+          whileHover={!isUploading ? { scale: 1.1, rotate: 5 } : {}}
+          whileTap={!isUploading ? { scale: 0.95 } : {}}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
         >
-          <Camera size={18} className="text-[#1B68B3] dark:text-blue-400" />
+          <motion.div
+            animate={{ rotate: isUploading ? 360 : 0 }}
+            transition={{ duration: 1, repeat: isUploading ? Infinity : 0, ease: "linear" }}
+          >
+            <Camera size={14} />
+          </motion.div>
           <input 
             id="avatar-upload" 
             type="file" 
@@ -146,11 +213,26 @@ export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
             onChange={handleFileChange} 
             disabled={isUploading}
           />
-        </label>
-      </div>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mt-4 font-medium">
-        {isUploading ? 'Uploading...' : 'Upload profile photo'}
-      </p>
+        </motion.label>
+      </motion.div>
+      
+      <motion.p 
+        className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-medium text-center"
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.3 }}
+      >
+        {isUploading ? (
+          <motion.span
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            Uploading...
+          </motion.span>
+        ) : (
+          'Upload profile photo'
+        )}
+      </motion.p>
     </div>
   );
 };

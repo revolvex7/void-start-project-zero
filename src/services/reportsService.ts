@@ -9,6 +9,24 @@ export interface AssignmentReportsData {
   totalNotSubmitted: number;
 }
 
+export interface AssignmentItem {
+  id: string;
+  title: string;
+  dueDate: string;
+  published: boolean;
+  courseTitle: string;
+  status: string;
+  obtainMarks: number | null;
+  isSubmitted: boolean;
+  assignmentId: string;
+  totalSubmitted: string;
+}
+
+export interface AssignmentReportsResponse {
+  stats: AssignmentReportsData;
+  assignment: AssignmentItem[];
+}
+
 export interface UserReportsDataInstructor {
   totalStudents: number;
   totalActiveStudents: number;
@@ -53,8 +71,8 @@ class ReportsService {
     }
   }
 
-  async getAssignmentReports(viewAs: ViewAs): Promise<AssignmentReportsData> {
-    return this.getReports<AssignmentReportsData>('assignment', viewAs);
+  async getAssignmentReports(viewAs: ViewAs): Promise<AssignmentReportsResponse> {
+    return this.getReports<AssignmentReportsResponse>('assignment', viewAs);
   }
 
   async getUserReportsInstructor(): Promise<UserReportsDataInstructor> {
