@@ -49,21 +49,27 @@ export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
         },
       });
 
-      // Get image URL from response
-      const imageUrl = response.data.data;
+      // Get image data from response
+      const imageData = response.data.data;
       
-      if (imageUrl) {
-        setPreview(imageUrl);
-        onChange({ 
-          name: file.name, 
-          size: file.size, 
-          url: imageUrl 
-        });
+      if (imageData && imageData.url) {
+        console.log('🔍 Image upload successful:', imageData);
+        console.log('🔍 Setting preview to URL:', imageData.url);
+        setPreview(imageData.url);
+        
+        const avatarObject = { 
+          name: imageData.name, 
+          size: imageData.size, 
+          url: imageData.url 
+        };
+        console.log('🔍 Calling onChange with:', avatarObject);
+        onChange(avatarObject);
         
         // Store in localStorage for persistence across pages
-        localStorage.setItem('userAvatar', imageUrl);
+        localStorage.setItem('userAvatar', imageData.url);
         toast.success('Profile image uploaded successfully');
       } else {
+        console.error('🔍 Invalid image data received:', imageData);
         throw new Error('Invalid response from server');
       }
     } catch (error) {

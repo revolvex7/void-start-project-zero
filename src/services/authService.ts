@@ -1,4 +1,3 @@
-
 import api from './api';
 
 export interface LoginRequest {
@@ -80,6 +79,10 @@ export const authService = {
       // Store the domain in localStorage for subdomain routing
       localStorage.setItem('userDomain', userData.domain);
     }
+    
+    console.log('🔍 AuthService register - userData being sent:', userData);
+    console.log('🔍 AuthService register - profileImage type:', typeof userData.profileImage);
+    console.log('🔍 AuthService register - profileImage value:', userData.profileImage);
     
     try {
       const response = await api.post(AUTH_ENDPOINTS.REGISTER, userData);

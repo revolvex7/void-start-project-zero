@@ -110,7 +110,10 @@ const Register = () => {
       
       // Only add profileImage if it exists
       if (avatar) {
+        console.log('🔍 Avatar object:', avatar);
+        console.log('🔍 Avatar URL being extracted:', avatar.url);
         registrationData.profileImage = avatar.url;
+        console.log('🔍 Registration data after adding profileImage:', registrationData);
       }
       
       const result = await register(
