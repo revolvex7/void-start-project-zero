@@ -8,7 +8,7 @@ import { Spinner } from '@/components/ui/spinner';
 
 interface AvatarUploadProps {
   name: string;
-  onChange: (base64: string | null) => void;
+  onChange: (imageData: { name: string; size: number; url: string } | null) => void;
 }
 
 export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
@@ -54,7 +54,11 @@ export const AvatarUpload = ({ name, onChange }: AvatarUploadProps) => {
       
       if (imageUrl) {
         setPreview(imageUrl);
-        onChange(imageUrl);
+        onChange({ 
+          name: file.name, 
+          size: file.size, 
+          url: imageUrl 
+        });
         
         // Store in localStorage for persistence across pages
         localStorage.setItem('userAvatar', imageUrl);

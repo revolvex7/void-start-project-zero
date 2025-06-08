@@ -170,10 +170,22 @@ const AssignmentGrading: React.FC = () => {
   };
 
   const updateQuestionGrade = (questionId: string, grade: number) => {
-    setQuestionGrades(prev => ({
-      ...prev,
-      [questionId]: Math.max(0, grade) // Ensure non-negative grades
-    }));
+    const newGrade = Math.max(0, grade); // Ensure non-negative grades
+    const newGrades = {
+      ...questionGrades,
+      [questionId]: newGrade
+    };
+    
+    // Calculate what the new total would be
+    const newTotal = Object.values(newGrades).reduce((sum, g) => sum + g, 0);
+    
+    // Check if new total would exceed max possible marks
+    if (assignmentDetails && newTotal > assignmentDetails.totalMarks) {
+      toast.error(`Total marks cannot exceed ${assignmentDetails.totalMarks}`);
+      return;
+    }
+    
+    setQuestionGrades(newGrades);
   };
 
   const getQuestionTypeIcon = (type: string) => {
@@ -260,6 +272,15 @@ const AssignmentGrading: React.FC = () => {
     });
   };
 
+  // Calculate submission stats
+  const submittedCount = submissions.filter((s: AssignmentSubmissionResponse) => s.status === "submitted" || s.status === "graded" || s.status === "late").length;
+  const gradedCount = submissions.filter((s: AssignmentSubmissionResponse) => s.status === "graded").length;
+  const lateCount = submissions.filter((s: AssignmentSubmissionResponse) => s.status === "late").length;
+  const pendingCount = submittedCount - gradedCount;
+
+  // Check if grading actions should be shown
+  const showGradingActions = pendingCount > 0 && !gradeMutation.isPending;
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto space-y-8">
@@ -320,12 +341,6 @@ const AssignmentGrading: React.FC = () => {
       </div>
     );
   }
-
-  // Calculate submission stats
-  const submittedCount = submissions.filter((s: AssignmentSubmissionResponse) => s.status === "submitted" || s.status === "graded" || s.status === "late").length;
-  const gradedCount = submissions.filter((s: AssignmentSubmissionResponse) => s.status === "graded").length;
-  const lateCount = submissions.filter((s: AssignmentSubmissionResponse) => s.status === "late").length;
-  const pendingCount = submittedCount - gradedCount;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -536,6 +551,23 @@ const AssignmentGrading: React.FC = () => {
             </Button>
           </div>
 
+          {/* Status message when actions are hidden */}
+          {!showGradingActions && (
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  {gradeMutation.isPending 
+                    ? "Grading in progress..."
+                    : pendingCount === 0 
+                    ? "All submissions have been graded."
+                    : "No pending submissions to grade."
+                  }
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
             <Table>
               <TableHeader>
@@ -544,7 +576,9 @@ const AssignmentGrading: React.FC = () => {
                   <TableHead className="font-semibold">Submitted</TableHead>
                   <TableHead className="font-semibold">Grade</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
+                  {showGradingActions && (
                   <TableHead className="text-right font-semibold">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -588,6 +622,7 @@ const AssignmentGrading: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>{getStatusBadge(submission.status)}</TableCell>
+                      {showGradingActions && (
                       <TableCell className="text-right">
                         <TooltipProvider>
                           <Tooltip>
@@ -607,11 +642,12 @@ const AssignmentGrading: React.FC = () => {
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
+                      )}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32">
+                    <TableCell colSpan={showGradingActions ? 5 : 4} className="h-32">
                       <div className="flex flex-col items-center justify-center text-center">
                         <Users className="h-8 w-8 text-slate-400 mb-3" />
                         <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">No submissions found</p>
@@ -673,20 +709,68 @@ const AssignmentGrading: React.FC = () => {
               </div>
 
               {/* Current Grade Summary */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+              <div className={`rounded-lg p-4 border transition-all duration-200 ${
+                assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                  ? 'bg-gradient-to-r from-red-50 to-red-50 dark:from-red-900/20 dark:to-red-900/20 border-red-200 dark:border-red-700'
+                  : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-700'
+                  : 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700'
+              }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Calculator className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    <Calculator className={`h-6 w-6 ${
+                      assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                        ? 'text-red-600 dark:text-red-400'
+                        : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-green-600 dark:text-green-400'
+                    }`} />
                     <div>
-                      <h4 className="font-semibold text-green-900 dark:text-green-100">Grade Summary</h4>
-                      <p className="text-sm text-green-700 dark:text-green-300">Current total marks</p>
+                      <h4 className={`font-semibold ${
+                        assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                          ? 'text-red-900 dark:text-red-100'
+                          : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                          ? 'text-blue-900 dark:text-blue-100'
+                          : 'text-green-900 dark:text-green-100'
+                      }`}>
+                        {assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                          ? 'Grade Exceeds Maximum!'
+                          : 'Grade Summary'
+                        }
+                      </h4>
+                      <p className={`text-sm ${
+                        assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                          ? 'text-red-700 dark:text-red-300'
+                          : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                          ? 'text-blue-700 dark:text-blue-300'
+                          : 'text-green-700 dark:text-green-300'
+                      }`}>
+                        {assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                          ? `Reduce by ${totalObtainedMarks - assignmentDetails.totalMarks} marks`
+                          : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                          ? 'Perfect score achieved'
+                          : `${assignmentDetails ? assignmentDetails.totalMarks - totalObtainedMarks : 0} marks remaining`
+                        }
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+                    <div className={`text-2xl font-bold ${
+                      assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                        ? 'text-red-900 dark:text-red-100'
+                        : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                        ? 'text-blue-900 dark:text-blue-100'
+                        : 'text-green-900 dark:text-green-100'
+                    }`}>
                       {totalObtainedMarks} / {assignmentDetails?.totalMarks}
                     </div>
-                    <div className="text-sm text-green-700 dark:text-green-300">
+                    <div className={`text-sm ${
+                      assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                        ? 'text-red-700 dark:text-red-300'
+                        : assignmentDetails && totalObtainedMarks === assignmentDetails.totalMarks
+                        ? 'text-blue-700 dark:text-blue-300'
+                        : 'text-green-700 dark:text-green-300'
+                    }`}>
                       {assignmentDetails?.totalMarks ? 
                         `${((totalObtainedMarks / assignmentDetails.totalMarks) * 100).toFixed(1)}%` : 
                         '0%'
@@ -734,13 +818,11 @@ const AssignmentGrading: React.FC = () => {
                               <Input
                                 type="number"
                                 min="0"
-                                max="10"
                                 value={questionGrades[answer.questionId] || 0}
                                 onChange={(e) => updateQuestionGrade(answer.questionId, Number(e.target.value))}
                                 className="w-20 h-8 text-center bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
                                 placeholder="0"
                               />
-                              <span className="text-sm text-slate-500 dark:text-slate-400">/ 10</span>
                             </div>
                           </div>
                         </div>
@@ -782,11 +864,20 @@ const AssignmentGrading: React.FC = () => {
                   </div>
                   <Button 
                     onClick={handleSaveGrade} 
-                    disabled={gradeMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={gradeMutation.isPending || (assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks)}
+                    className={`${
+                      assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks
+                        ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700'
+                    } text-white`}
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    {gradeMutation.isPending ? "Saving Grade..." : "Save Grade"}
+                    {gradeMutation.isPending 
+                      ? "Saving Grade..." 
+                      : (assignmentDetails && totalObtainedMarks > assignmentDetails.totalMarks)
+                      ? "Exceeds Maximum"
+                      : "Save Grade"
+                    }
                   </Button>
                 </div>
               </div>

@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { AvatarUpload } from '@/components/auth/AvatarUpload';
 import { PasswordStrength } from '@/components/auth/PasswordStrength';
+import { CheckMailboxScreen } from '@/components/auth/CheckMailboxScreen';
 import { 
   UserPlus, 
   User,
@@ -31,8 +32,10 @@ const Register = () => {
   const { register, isLoading: authLoading, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<{ name: string; size: number; url: string } | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showCheckMailbox, setShowCheckMailbox] = useState(false);
+  const [registrationResult, setRegistrationResult] = useState<{ domain: string; email: string } | null>(null);
   
   const { values, errors, touched, handleChange, handleBlur, validateForm, setValues } = useFormValidation({
     name: '',
@@ -107,7 +110,7 @@ const Register = () => {
       
       // Only add profileImage if it exists
       if (avatar) {
-        registrationData.profileImage = avatar;
+        registrationData.profileImage = avatar.url;
       }
       
       const result = await register(
@@ -120,22 +123,11 @@ const Register = () => {
       );
       
       if (result.success && result.domain) {
-        toast.success('Account created successfully! Please log in to continue.');
+        toast.success('Account created successfully! Please check your email for the confirmation link.');
         
-        // Redirect to the login page on the correct subdomain
-        const hostname = window.location.hostname;
-        
-        // For development environments (localhost)
-        if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          // Navigate to login with domain parameter for local development
-          navigate(`/login?domain=${result.domain}`);
-        } else {
-          // For production environments, redirect to the subdomain
-          const baseDomain = hostname.split('.').slice(-2).join('.');
-          const subdomain = result.domain === 'ilmee' ? '' : `${result.domain}.`;
-          const loginUrl = `${window.location.protocol}//${subdomain}${baseDomain}/login`;
-          window.location.href = loginUrl;
-        }
+        // Set registration result with email from form values
+        setRegistrationResult({ domain: result.domain, email: values.email });
+        setShowCheckMailbox(true);
       }
     } catch (error) {
       console.error('Registration submission error:', error);
@@ -149,8 +141,8 @@ const Register = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleAvatarChange = (imageUrl: string | null) => {
-    setAvatar(imageUrl);
+  const handleAvatarChange = (imageData: { name: string; size: number; url: string } | null) => {
+    setAvatar(imageData);
   };
 
   const handleSwitchChange = (checked: boolean) => {
@@ -181,6 +173,27 @@ const Register = () => {
     handleBlur(e);
   };
 
+  const handleContinueToLogin = () => {
+    if (registrationResult) {
+      const { domain } = registrationResult;
+      
+      // Redirect to the login page on the correct subdomain
+      const hostname = window.location.hostname;
+      
+      // For development environments (localhost)
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Navigate to login with domain parameter for local development
+        navigate(`/login?domain=${domain}`);
+      } else {
+        // For production environments, redirect to the subdomain
+        const baseDomain = hostname.split('.').slice(-2).join('.');
+        const subdomain = domain === 'ilmee' ? '' : `${domain}.`;
+        const loginUrl = `${window.location.protocol}//${subdomain}${baseDomain}/login`;
+        window.location.href = loginUrl;
+      }
+    }
+  };
+
   const isLoading = isSubmitting || authLoading;
 
   if (isLoading) {
@@ -196,6 +209,17 @@ const Register = () => {
           className="py-8"
         />
       </AuthLayout>
+    );
+  }
+
+  // Show check mailbox screen after successful registration
+  if (showCheckMailbox && registrationResult) {
+    return (
+      <CheckMailboxScreen
+        email={registrationResult.email}
+        onContinue={handleContinueToLogin}
+        autoRedirectDelay={8}
+      />
     );
   }
 

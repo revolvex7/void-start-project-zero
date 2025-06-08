@@ -92,7 +92,7 @@ export const assignmentService = {
   // Get submitted assignment answers by student assignment ID
   getSubmittedAssignment: async (studentAssignmentId: string): Promise<SubmittedAssignmentResponse> => {
     try {
-      const response = await api.get(`/user/submtted-assignment/${studentAssignmentId}`);
+      const response = await api.get(`/user/submitted-assignment/${studentAssignmentId}`);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch submitted assignment:', error);
