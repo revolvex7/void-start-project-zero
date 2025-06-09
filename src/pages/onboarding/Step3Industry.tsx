@@ -17,7 +17,7 @@ const Step3Industry: React.FC = () => {
 	const [industry, setIndustry] = useState<string>("");
 	const [messages, setMessages] = useState<any[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const { completeOnboarding } = useOnboarding();
+	const { completeOnboarding, setIndustry: setOnboardingIndustry } = useOnboarding();
 	const { user } = useAuth();
 	const messagesInitializedRef = useRef(false);
 
@@ -105,7 +105,7 @@ const Step3Industry: React.FC = () => {
 
 		setIsSubmitting(true);
 
-		// Save industry to localStorage
+		// Save industry to localStorage and onboarding context
 		localStorage.setItem("onboardingIndustry", industry);
 
 		// Add final messages
@@ -125,38 +125,21 @@ const Step3Industry: React.FC = () => {
 		]);
 
 		try {
-			// Get data from previous onboarding steps
-			const savedGoals = localStorage.getItem("onboardingGoals");
-			const portalUsers = localStorage.getItem("onboardingUserRange") || "";
+			// Update the onboarding context with the industry selection
+			setOnboardingIndustry(industry);
 
-			// Parse savedGoals as an array or use the first goal if only mainGoal is available
-			const mainGoal = savedGoals
-				? JSON.parse(savedGoals)
-				: localStorage.getItem("onboardingMainGoal")
-				? [localStorage.getItem("onboardingMainGoal")]
-				: [];
+			// Mark onboarding as complete (this handles the API call and navigation)
+			await completeOnboarding();
 
-			// Call the API to update user information
-			await userService.updateUser({
-				mainGoal,
-				portalUsers,
-				industry,
-			});
-
-			// Mark onboarding as complete
-			completeOnboarding();
-
-			// Navigate to dashboard page after a brief delay
-			setTimeout(() => {
-				setIsSubmitting(false);
-				navigate("/");
-				toast.success("Welcome to your dashboard!");
-			}, 2000);
+			// Don't navigate manually - let OnboardingContext handle the redirect
+			// The context will automatically redirect to the appropriate dashboard
+			setIsSubmitting(false);
+			toast.success("Welcome to your dashboard!");
 		} catch (error: any) {
-			console.error("Failed to update user information:", error);
+			console.error("Failed to complete onboarding:", error);
 			setIsSubmitting(false);
 			toast.error(
-				error.response?.data?.message || "Failed to update user information"
+				error.response?.data?.message || "Failed to complete onboarding"
 			);
 		}
 	};

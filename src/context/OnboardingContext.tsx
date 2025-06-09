@@ -31,6 +31,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [industry, setIndustry] = useState<string | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(false);
   const [hasInitialRedirectHappened, setHasInitialRedirectHappened] = useState<boolean>(false);
+  const [isCompletingOnboarding, setIsCompletingOnboarding] = useState<boolean>(false);
   const navigate = useNavigate();
   const auth = useAuth();
 
@@ -63,8 +64,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
         break;
       case 'Administrator':
-        // Only administrators need to complete onboarding
-        if (!isOnboardingComplete && !currentPath.includes('/onboarding')) {
+        // Only administrators need to complete onboarding, but don't redirect if currently completing
+        if (!isOnboardingComplete && !isCompletingOnboarding && !currentPath.includes('/onboarding')) {
           navigate('/onboarding/step1');
         }
         break;
@@ -96,7 +97,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsOnboardingComplete(hasCompletedOnboarding);
       
       // If administrator hasn't completed onboarding, redirect to onboarding
-      if (auth.isAuthenticated && !hasCompletedOnboarding && auth.user.role === 'Administrator') {
+      // But don't redirect if we're currently in the process of completing onboarding
+      if (auth.isAuthenticated && !hasCompletedOnboarding && auth.user.role === 'Administrator' && !isCompletingOnboarding) {
         if (!window.location.pathname.includes('/onboarding')) {
           navigate('/onboarding/step1');
         }
@@ -126,13 +128,16 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (savedUserRange) setUserRange(savedUserRange);
       if (savedIndustry) setIndustry(savedIndustry);
     }
-  }, [auth.user, auth.isAuthenticated, navigate, hasInitialRedirectHappened]);
+  }, [auth.user, auth.isAuthenticated, navigate, hasInitialRedirectHappened, isCompletingOnboarding]);
 
   // Safe reference to refreshUserData
   const refreshUserData = auth.refreshUserData;
 
   const completeOnboarding = async () => {
     try {
+      // Set flag to prevent redirects during completion
+      setIsCompletingOnboarding(true);
+      
       // Only proceed with onboarding completion for administrators
       if (auth.user?.role === 'Administrator') {
         const onboardingData = getOnboardingData();
@@ -150,10 +155,18 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         
         setIsOnboardingComplete(true);
         toast.success('Profile updated successfully!');
+        
+        // Navigate to the main dashboard after successful completion
+        setTimeout(() => {
+          navigate('/');
+        }, 500);
       }
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
       toast.error('Failed to save your preferences. Please try again.');
+    } finally {
+      // Always clear the flag, even if there was an error
+      setIsCompletingOnboarding(false);
     }
   };
 

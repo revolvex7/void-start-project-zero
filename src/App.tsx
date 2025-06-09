@@ -35,6 +35,7 @@ import Step2Users from "./pages/onboarding/Step2Users";
 import Step3Industry from "./pages/onboarding/Step3Industry";
 import Categories from "./pages/Categories";
 import ParentDashboard from "./pages/ParentDashboard";
+import ParentProfile from "./pages/ParentProfile";
 import ChildDetails from "./pages/ChildDetails";
 import Groups from "./pages/Groups";
 import GroupDetails from "./pages/GroupDetails";
@@ -179,6 +180,20 @@ const LearnerRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Parent route protection component
+const ParentRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  
+  // Allow if user is actually a parent
+  const isParent = user?.role === 'Parent' || user?.role === 'parent';
+  
+  if (!isParent) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 // Multi-role route protection component (for routes accessible by multiple roles)
 const MultiRoleRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) => {
   const { user } = useAuth();
@@ -214,7 +229,6 @@ const AppRoutes = () => {
           {/* Role-specific dashboards */}
           <Route path="/instructor-dashboard" element={<InstructorRoute><InstructorDashboard /></InstructorRoute>} />
           <Route path="/learner-dashboard" element={<LearnerRoute><LearnerDashboard /></LearnerRoute>} />
-          <Route path="/parent-dashboard" element={<ParentDashboard />} />
           
           {/* Admin-only routes */}
           <Route path="/upload-syllabus" element={<AdminRoute><UploadSyllabus /></AdminRoute>} />
@@ -266,6 +280,8 @@ const AppRoutes = () => {
         <Route path="/course/:courseId/edit" element={<PrivateRoute><MultiRoleRoute allowedRoles={['administrator', 'instructor']}><CourseEditor /></MultiRoleRoute></PrivateRoute>} />
         
         {/* Routes outside MainLayout for sidebar-less parent pages */}
+        <Route path="/parent-dashboard" element={<PrivateRoute><ParentRoute><ParentDashboard /></ParentRoute></PrivateRoute>} />
+        <Route path="/parent/profile" element={<PrivateRoute><ParentRoute><ParentProfile /></ParentRoute></PrivateRoute>} />
         <Route path="/parent/child/:childId" element={<PrivateRoute><ChildDetails /></PrivateRoute>} />
         
         {/* Onboarding routes - Admin only */}

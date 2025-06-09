@@ -9,7 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { AvatarUpload } from '@/components/auth/AvatarUpload';
 import { PasswordStrength } from '@/components/auth/PasswordStrength';
-import { CheckMailboxScreen } from '@/components/auth/CheckMailboxScreen';
 import { 
   UserPlus, 
   User,
@@ -134,7 +133,7 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Registration submission error:', error);
-      toast.error('An unexpected error occurred');
+      // Don't show generic error toast here since AuthContext handles specific API errors
     } finally {
       setIsSubmitting(false);
     }
@@ -212,17 +211,6 @@ const Register = () => {
           className="py-8"
         />
       </AuthLayout>
-    );
-  }
-
-  // Show check mailbox screen after successful registration
-  if (showCheckMailbox && registrationResult) {
-    return (
-      <CheckMailboxScreen
-        email={registrationResult.email}
-        onContinue={handleContinueToLogin}
-        autoRedirectDelay={8}
-      />
     );
   }
 

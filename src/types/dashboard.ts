@@ -1,4 +1,3 @@
-
 export enum UserRoles {
   User = 'User',
   SuperAdmin = 'SuperAdmin',
@@ -54,27 +53,54 @@ export interface LearnerDashboardData {
   }>;
 }
 
-export interface ParentDashboardData {
-  children: number;
-  activeChildren: number;
-  totalCourses: number;
-  avgGrade: number;
-  childrenProgress: Array<{
-    childName: string;
-    coursesInProgress: number;
-    completedCourses: number;
-    overallProgress: number;
-  }>;
-  upcomingAssignments: Array<{
-    childName: string;
-    assignmentName: string;
-    dueDate: string;
-    completed: boolean;
-  }>;
+export interface ParentChildData {
+  id: string;
+  name: string;
+  profileImage: string;
+  enrolledCourses: string;
+  lastLogin: string;
+  overAllProgress: string;
 }
+
+export type ParentDashboardData = ParentChildData[];
 
 export type DashboardResponse = AdminDashboardData | InstructorDashboardData | LearnerDashboardData | ParentDashboardData | null;
 
 export interface ApiResponse<T> {
   data: T;
+}
+
+// Child Details API Types
+export interface ChildUserData {
+  name: string;
+  profileImage: string | null;
+  lastLogin: string;
+  enrolledCourses: number;
+  overAllProgress: string | null;
+}
+
+export interface ChildEnrolledCourse {
+  id: string;
+  progress: string;
+  completionDate: string | null;
+  enrolledAt: string;
+  userName: string;
+  userRole: string;
+  userId: string;
+  courseId: string;
+  classNo: string;
+  courseName: string;
+  courseDescription: string;
+  courseImage: string;
+  categoryName: string;
+  instructorName: string;
+  totalClasses: string;
+  avgAssignmentGrades: number | null;
+}
+
+export interface ChildDetailsResponse {
+  data: {
+    user: ChildUserData;
+    enrolledCourses: ChildEnrolledCourse[];
+  };
 }

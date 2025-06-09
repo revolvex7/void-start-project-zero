@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { industries } from "@/constants/industries";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 const userRangeOptions = [
   "1-10 users",
@@ -47,6 +48,10 @@ const Profile = () => {
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   
   console.log("Current user data in Profile:", user);
+  
+  // Check if user is instructor or learner
+  const isInstructor = user?.role === 'Instructor' || user?.role === 'instructor';
+  const isLearner = user?.role === 'Learner' || user?.role === 'learner';
   
   // Profile form setup with zod validation
   const profileForm = useForm({
@@ -177,27 +182,62 @@ const Profile = () => {
   };
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className={cn(
+      "container max-w-4xl py-8",
+      isLearner && "space-y-6"
+    )}>
+      {isLearner && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold tracking-tight text-purple-800 dark:text-purple-300">
+            Your Profile 🌟
+          </h2>
+        </div>
+      )}
+      
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div className="w-full md:w-1/3">
-          <Card>
+          <Card className={cn(isLearner && "kid-card")}>
             <CardContent className="pt-6 flex flex-col items-center text-center">
-              <Avatar className="h-24 w-24 mb-4 border-4 border-primary/10">
+              <Avatar className={cn(
+                "h-24 w-24 mb-4 border-4",
+                isLearner ? "border-purple-200 dark:border-purple-700" : "border-primary/10"
+              )}>
                 <AvatarImage src={user?.avatar || user?.profileImage} alt={user?.name} />
-                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                <AvatarFallback className={cn(
+                  "text-2xl",
+                  isLearner 
+                    ? "bg-gradient-to-r from-purple-400 to-indigo-500 text-white" 
+                    : "bg-primary text-primary-foreground"
+                )}>
                   {user?.name?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               
-              <h2 className="text-xl font-bold">{user?.name}</h2>
-              <p className="text-muted-foreground">{user?.email}</p>
+              <h2 className={cn(
+                "text-xl font-bold",
+                isLearner && "text-purple-800 dark:text-purple-300"
+              )}>{user?.name}</h2>
+              <p className={cn(
+                "text-muted-foreground",
+                isLearner && "text-indigo-600 dark:text-indigo-400"
+              )}>{user?.email}</p>
               
-              <div className="mt-3 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                {roleDisplayName[role]}
+              <div className={cn(
+                "mt-3 px-3 py-1 rounded-full text-sm",
+                isLearner 
+                  ? "bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 dark:from-purple-800 dark:to-indigo-800 dark:text-purple-300" 
+                  : "bg-primary/10 text-primary"
+              )}>
+                {user?.role}
               </div>
               
               <div className="mt-6 w-full border-t pt-4">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className={cn(
+                  "flex items-center gap-2",
+                  isLearner 
+                    ? "text-indigo-600 dark:text-indigo-400" 
+                    : "text-muted-foreground"
+                )}>
                   <UserRound className="h-4 w-4" />
                   <span className="text-sm">Member since {new Date(user?.createdAt || Date.now()).getFullYear()}</span>
                 </div>
@@ -208,18 +248,47 @@ const Profile = () => {
         
         <div className="w-full md:w-2/3">
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="profile">Profile Information</TabsTrigger>
-              <TabsTrigger value="preferences">Preferences</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsList className={cn(
+              "grid w-full",
+              isInstructor || isLearner ? 'grid-cols-2' : 'grid-cols-3',
+              isLearner && "bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-800 dark:to-indigo-800"
+            )}>
+              <TabsTrigger 
+                value="profile"
+                className={cn(
+                  isLearner && "data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md"
+                )}
+              >
+                Profile Information
+              </TabsTrigger>
+              {!isInstructor && !isLearner && <TabsTrigger value="preferences">Preferences</TabsTrigger>}
+              <TabsTrigger 
+                value="security"
+                className={cn(
+                  isLearner && "data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md"
+                )}
+              >
+                Security
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="profile" className="mt-4">
-              <Card>
+              <Card className={cn(isLearner && "kid-card")}>
                 <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your personal information
+                  <CardTitle className={cn(
+                    isLearner && "text-purple-800 dark:text-purple-300"
+                  )}>
+                    {isInstructor ? 'Instructor Profile' : isLearner ? 'My Profile' : 'Profile Information'}
+                  </CardTitle>
+                  <CardDescription className={cn(
+                    isLearner && "text-indigo-600 dark:text-indigo-400"
+                  )}>
+                    {isInstructor 
+                      ? 'Update your instructor profile and teaching information'
+                      : isLearner
+                      ? 'Update your learning profile information'
+                      : 'Update your personal information'
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -230,11 +299,20 @@ const Profile = () => {
                         name="name"
                         render={({ field }) => (
                           <FormItem className="space-y-2">
-                            <FormLabel className="flex items-center gap-2">
-                              <User className="h-4 w-4" /> Full Name
+                            <FormLabel className={cn(
+                              "flex items-center gap-2",
+                              isLearner && "text-purple-700 dark:text-purple-300"
+                            )}>
+                              <User className="h-4 w-4" /> {isInstructor ? 'Instructor Name' : isLearner ? 'Your Name' : 'Full Name'}
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Your name" />
+                              <Input 
+                                {...field} 
+                                placeholder={isInstructor ? "Your instructor name" : isLearner ? "Enter your name" : "Your name"} 
+                                className={cn(
+                                  isLearner && "border-purple-200 focus:border-purple-400 dark:border-purple-700"
+                                )}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -246,11 +324,20 @@ const Profile = () => {
                         name="username"
                         render={({ field }) => (
                           <FormItem className="space-y-2">
-                            <FormLabel className="flex items-center gap-2">
+                            <FormLabel className={cn(
+                              "flex items-center gap-2",
+                              isLearner && "text-purple-700 dark:text-purple-300"
+                            )}>
                               <User className="h-4 w-4" /> Username
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Your username" />
+                              <Input 
+                                {...field} 
+                                placeholder="Your username" 
+                                className={cn(
+                                  isLearner && "border-purple-200 focus:border-purple-400 dark:border-purple-700"
+                                )}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -258,7 +345,10 @@ const Profile = () => {
                       />
                       
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="flex items-center gap-2">
+                        <Label htmlFor="email" className={cn(
+                          "flex items-center gap-2",
+                          isLearner && "text-purple-700 dark:text-purple-300"
+                        )}>
                           <Mail className="h-4 w-4" /> Email
                         </Label>
                         <Input
@@ -267,9 +357,15 @@ const Profile = () => {
                           value={user?.email || ""}
                           readOnly
                           disabled
-                          className="bg-muted"
+                          className={cn(
+                            "bg-muted",
+                            isLearner && "bg-purple-50 dark:bg-purple-900/20"
+                          )}
                         />
-                        <p className="text-xs text-muted-foreground">
+                        <p className={cn(
+                          "text-xs text-muted-foreground",
+                          isLearner && "text-indigo-500 dark:text-indigo-400"
+                        )}>
                           Email cannot be changed
                         </p>
                       </div>
@@ -279,25 +375,72 @@ const Profile = () => {
                         name="bio"
                         render={({ field }) => (
                           <FormItem className="space-y-2">
-                            <FormLabel className="flex items-center gap-2">
-                              <Briefcase className="h-4 w-4" /> Bio
+                            <FormLabel className={cn(
+                              "flex items-center gap-2",
+                              isLearner && "text-purple-700 dark:text-purple-300"
+                            )}>
+                              <Briefcase className="h-4 w-4" /> {isInstructor ? 'Teaching Bio' : isLearner ? 'About Me' : 'Bio'}
                             </FormLabel>
                             <FormControl>
                               <Textarea 
                                 {...field} 
-                                placeholder="Tell us about yourself" 
+                                placeholder={isInstructor 
+                                  ? "Tell students about your teaching background, expertise, and approach..." 
+                                  : isLearner
+                                  ? "Tell us about your interests, hobbies, and learning goals..."
+                                  : "Tell us about yourself"
+                                } 
                                 rows={4}
+                                className={cn(
+                                  isLearner && "border-purple-200 focus:border-purple-400 dark:border-purple-700"
+                                )}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+
+                      {isInstructor && (
+                        <FormField
+                          control={profileForm.control}
+                          name="industry"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="flex items-center gap-2">
+                                <Building className="h-4 w-4" /> Subject Area/Industry
+                              </FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select your subject area" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {industries.map((industry) => (
+                                    <SelectItem key={industry} value={industry}>
+                                      {industry}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
                       
                       <Button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="mt-4"
+                        className={cn(
+                          "mt-4",
+                          isLearner && "kid-button bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                        )}
                       >
                         {isSubmitting ? "Saving..." : "Save Changes"}
                       </Button>
@@ -308,126 +451,243 @@ const Profile = () => {
             </TabsContent>
             
             <TabsContent value="preferences" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Preferences</CardTitle>
-                  <CardDescription>
-                    Update your organization and usage preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...profileForm}>
-                    <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-6">
-                      <FormField
-                        control={profileForm.control}
-                        name="industry"
-                        render={({ field }) => (
-                          <FormItem className="space-y-2">
-                            <FormLabel className="flex items-center gap-2">
-                              <Building className="h-4 w-4" /> Industry
-                            </FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                              value={field.value || undefined}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select your industry" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {industries.map((industry) => (
-                                  <SelectItem key={industry} value={industry}>
-                                    {industry}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              {isInstructor ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Instructor Preferences</CardTitle>
+                    <CardDescription>
+                      Update your instructor-specific preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...profileForm}>
+                      <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-6">
+                        <FormField
+                          control={profileForm.control}
+                          name="industry"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="flex items-center gap-2">
+                                <Building className="h-4 w-4" /> Industry
+                              </FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select your industry" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {industries.map((industry) => (
+                                    <SelectItem key={industry} value={industry}>
+                                      {industry}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                      <FormField
-                        control={profileForm.control}
-                        name="portalUsers"
-                        render={({ field }) => (
-                          <FormItem className="space-y-2">
-                            <FormLabel className="flex items-center gap-2">
-                              <Users className="h-4 w-4" /> Portal Users
-                            </FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                              value={field.value || undefined}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select number of users" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {userRangeOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                        <FormField
+                          control={profileForm.control}
+                          name="portalUsers"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="flex items-center gap-2">
+                                <Users className="h-4 w-4" /> Portal Users
+                              </FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select number of users" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {userRangeOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                      <div className="space-y-2">
-                        <FormLabel className="flex items-center gap-2">
-                          <Target className="h-4 w-4" /> Main Goals
-                        </FormLabel>
-                        <div className="bg-muted/40 p-4 rounded-md border border-border">
-                          <div className="grid grid-cols-1 gap-3">
-                            {goalOptions.map((goal) => (
-                              <div key={goal} className="flex items-center space-x-2">
-                                <Checkbox 
-                                  id={`goal-${goal}`} 
-                                  checked={selectedGoals.includes(goal)}
-                                  onCheckedChange={() => handleGoalToggle(goal)}
-                                />
-                                <label
-                                  htmlFor={`goal-${goal}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                  {goal}
-                                </label>
-                              </div>
-                            ))}
+                        <div className="space-y-2">
+                          <FormLabel className="flex items-center gap-2">
+                            <Target className="h-4 w-4" /> Main Goals
+                          </FormLabel>
+                          <div className="bg-muted/40 p-4 rounded-md border border-border">
+                            <div className="grid grid-cols-1 gap-3">
+                              {goalOptions.map((goal) => (
+                                <div key={goal} className="flex items-center space-x-2">
+                                  <Checkbox 
+                                    id={`goal-${goal}`} 
+                                    checked={selectedGoals.includes(goal)}
+                                    onCheckedChange={() => handleGoalToggle(goal)}
+                                  />
+                                  <label
+                                    htmlFor={`goal-${goal}`}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                  >
+                                    {goal}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <Button 
-                        type="submit" 
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? "Saving..." : "Save Preferences"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                        
+                        <Button 
+                          type="submit" 
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Saving..." : "Save Preferences"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Preferences</CardTitle>
+                    <CardDescription>
+                      Update your organization and usage preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...profileForm}>
+                      <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-6">
+                        <FormField
+                          control={profileForm.control}
+                          name="industry"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="flex items-center gap-2">
+                                <Building className="h-4 w-4" /> Industry
+                              </FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select your industry" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {industries.map((industry) => (
+                                    <SelectItem key={industry} value={industry}>
+                                      {industry}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={profileForm.control}
+                          name="portalUsers"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="flex items-center gap-2">
+                                <Users className="h-4 w-4" /> Portal Users
+                              </FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select number of users" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {userRangeOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="space-y-2">
+                          <FormLabel className="flex items-center gap-2">
+                            <Target className="h-4 w-4" /> Main Goals
+                          </FormLabel>
+                          <div className="bg-muted/40 p-4 rounded-md border border-border">
+                            <div className="grid grid-cols-1 gap-3">
+                              {goalOptions.map((goal) => (
+                                <div key={goal} className="flex items-center space-x-2">
+                                  <Checkbox 
+                                    id={`goal-${goal}`} 
+                                    checked={selectedGoals.includes(goal)}
+                                    onCheckedChange={() => handleGoalToggle(goal)}
+                                  />
+                                  <label
+                                    htmlFor={`goal-${goal}`}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                  >
+                                    {goal}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          type="submit" 
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Saving..." : "Save Preferences"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
             
             <TabsContent value="security" className="mt-4">
-              <Card>
+              <Card className={cn(isLearner && "kid-card")}>
                 <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
-                  <CardDescription>
+                  <CardTitle className={cn(
+                    isLearner && "text-purple-800 dark:text-purple-300"
+                  )}>Security Settings</CardTitle>
+                  <CardDescription className={cn(
+                    isLearner && "text-indigo-600 dark:text-indigo-400"
+                  )}>
                     Update your password and security options
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword" className="flex items-center gap-2">
+                    <Label htmlFor="currentPassword" className={cn(
+                      "flex items-center gap-2",
+                      isLearner && "text-purple-700 dark:text-purple-300"
+                    )}>
                       <Key className="h-4 w-4" /> Current Password
                     </Label>
                     <Input
@@ -437,11 +697,17 @@ const Profile = () => {
                       value={passwordForm.currentPassword}
                       onChange={handlePasswordChange}
                       placeholder="Your current password"
+                      className={cn(
+                        isLearner && "border-purple-200 focus:border-purple-400 dark:border-purple-700"
+                      )}
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword" className="flex items-center gap-2">
+                    <Label htmlFor="newPassword" className={cn(
+                      "flex items-center gap-2",
+                      isLearner && "text-purple-700 dark:text-purple-300"
+                    )}>
                       <Key className="h-4 w-4" /> New Password
                     </Label>
                     <Input
@@ -451,11 +717,17 @@ const Profile = () => {
                       value={passwordForm.newPassword}
                       onChange={handlePasswordChange}
                       placeholder="Your new password"
+                      className={cn(
+                        isLearner && "border-purple-200 focus:border-purple-400 dark:border-purple-700"
+                      )}
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="flex items-center gap-2">
+                    <Label htmlFor="confirmPassword" className={cn(
+                      "flex items-center gap-2",
+                      isLearner && "text-purple-700 dark:text-purple-300"
+                    )}>
                       <Key className="h-4 w-4" /> Confirm New Password
                     </Label>
                     <Input
@@ -465,13 +737,19 @@ const Profile = () => {
                       value={passwordForm.confirmPassword}
                       onChange={handlePasswordChange}
                       placeholder="Confirm your new password"
+                      className={cn(
+                        isLearner && "border-purple-200 focus:border-purple-400 dark:border-purple-700"
+                      )}
                     />
                   </div>
                   
                   <Button 
                     onClick={handlePasswordUpdate}
                     disabled={isSubmitting || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
-                    className="mt-4"
+                    className={cn(
+                      "mt-4",
+                      isLearner && "kid-button bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                    )}
                   >
                     {isSubmitting ? "Updating..." : "Update Password"}
                   </Button>

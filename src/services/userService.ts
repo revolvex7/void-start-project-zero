@@ -5,6 +5,7 @@ import { z } from 'zod';
 export const UpdateUserSchema = z.object({ 
   name: z.string().optional(), 
   password: z.string().optional(), 
+  phone: z.string().optional(),
   username: z.string().optional(), 
   mainGoal: z.array(z.string()).optional(), 
   portalUsers: z.string().optional(), 
@@ -202,6 +203,16 @@ export const userService = {
     try {
       const response = await api.get('/administrator/parents');
       return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get child details for parent view
+  getChildDetails: async (childId: string): Promise<any> => {
+    try {
+      const response = await api.get(`/user/parent/child/${childId}`);
+      return response.data;
     } catch (error) {
       throw error;
     }

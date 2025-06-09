@@ -52,10 +52,24 @@ const Users = () => {
       toast.success("User added successfully");
       setIsAddUserOpen(false);
       refetch();
-    } catch (error) {
-      toast.error("Failed to add user", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
+    } catch (error: any) {
+      console.error("Add user error:", error);
+      console.log("🔍 Error response structure:", error.response);
+      console.log("🔍 Error response data:", error.response?.data);
+      
+      // Extract error message from API response
+      let errorMessage = "Failed to add user";
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      console.log("🔍 Extracted error message:", errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsAddingUser(false);
     }
@@ -75,11 +89,21 @@ const Users = () => {
       setSelectedLearnerId(undefined);
       await refetch();
       return Promise.resolve();
-    } catch (error) {
+    } catch (error: any) {
       setIsAddingParent(false);
-      toast.error("Failed to add parent", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
+      
+      // Extract error message from API response
+      let errorMessage = "Failed to add parent";
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       return Promise.reject(error);
     }
   };
@@ -89,10 +113,19 @@ const Users = () => {
       await userService.deleteUser(id);
       toast.success("User deleted successfully");
       refetch();
-    } catch (error) {
-      toast.error("Failed to delete user", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
+    } catch (error: any) {
+      // Extract error message from API response
+      let errorMessage = "Failed to delete user";
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -110,10 +143,19 @@ const Users = () => {
       
       // Navigate to the user details page after update
       navigate(`/users/${updatedUser.id}`);
-    } catch (error) {
-      toast.error("Failed to update user", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
+    } catch (error: any) {
+      // Extract error message from API response
+      let errorMessage = "Failed to update user";
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -123,10 +165,19 @@ const Users = () => {
       toast.success("Parent added successfully");
       await refetch();
       return Promise.resolve();
-    } catch (error) {
-      toast.error("Failed to add parent", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-      });
+    } catch (error: any) {
+      // Extract error message from API response
+      let errorMessage = "Failed to add parent";
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       return Promise.reject(error);
     }
   };

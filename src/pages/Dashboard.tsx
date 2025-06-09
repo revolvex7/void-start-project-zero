@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { BarChart, Users, LayoutGrid, BookText, ChevronRight, TrendingUp, Activity } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PieChart, Pie, ResponsiveContainer, Cell, Tooltip as RechartsTooltip } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import { useQuery } from "@tanstack/react-query";
@@ -18,8 +18,16 @@ import { toast } from "sonner";
 const Dashboard = () => {
   const { user } = useAuth();
   const { role } = useRole();
+  const navigate = useNavigate();
   
   const firstName = user?.name?.split(' ')[0] || '';
+
+  // Redirect Parent users to parent dashboard
+  React.useEffect(() => {
+    if (user?.role === 'Parent' || user?.role === 'parent') {
+      navigate('/parent-dashboard');
+    }
+  }, [user?.role, navigate]);
 
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['dashboardData', 'administrator'],
