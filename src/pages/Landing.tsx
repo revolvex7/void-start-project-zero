@@ -6,12 +6,14 @@ import {
   Users, 
   Star, 
   Shield, 
-  Smartphone, 
   CreditCard,
   TrendingUp,
   MessageCircle,
   Play,
-  ChevronRight
+  ChevronRight,
+  Zap,
+  Globe,
+  Lock
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import CreatorCard from "@/components/CreatorCard"
@@ -25,34 +27,34 @@ const Landing = () => {
   const featuredCreators = [
     {
       id: "1",
-      name: "Amara Okafor",
+      name: "Sarah Johnson",
       avatar: creator1,
       category: "Fashion & Style",
       subscribers: 2500,
-      monthlyPrice: 2500,
+      monthlyPrice: 15,
       rating: 4.9,
       isVerified: true,
-      bio: "Nigerian fashion designer sharing exclusive styling tips and behind-the-scenes content."
+      bio: "Fashion designer sharing exclusive styling tips and behind-the-scenes content."
     },
     {
       id: "2", 
-      name: "Kemi Adeleke",
+      name: "Alex Rivera",
       avatar: creator2,
       category: "Music & Audio",
       subscribers: 1800,
-      monthlyPrice: 3000,
+      monthlyPrice: 20,
       rating: 4.8,
-      bio: "Afrobeats artist offering exclusive tracks, live sessions, and music creation insights."
+      bio: "Independent artist offering exclusive tracks, live sessions, and music creation insights."
     },
     {
       id: "3",
-      name: "David Okonkwo", 
+      name: "Maya Chen", 
       avatar: creator3,
       category: "Art & Design",
       subscribers: 950,
-      monthlyPrice: 2000,
+      monthlyPrice: 12,
       rating: 4.7,
-      bio: "Digital artist creating stunning Nigerian-inspired artwork and tutorials."
+      bio: "Digital artist creating stunning artwork and comprehensive tutorials."
     }
   ]
 
@@ -65,20 +67,20 @@ const Landing = () => {
     },
     {
       icon: CreditCard,
-      title: "Dash Me Feature",
-      description: "Send tips instantly to creators you love. Quick, secure, and directly to their wallets.",
+      title: "Instant Payments",
+      description: "Send tips and support instantly to creators you love. Quick, secure, and hassle-free.",
       color: "text-brand-gold"
     },
     {
       icon: Shield,
       title: "Secure & Trusted",
-      description: "Advanced security with Nigerian payment integration. Your transactions are always protected.",
+      description: "Advanced security with global payment integration. Your transactions are always protected.",
       color: "text-brand-primary"
     },
     {
-      icon: Smartphone,
-      title: "Mobile-First Design",
-      description: "Optimized for Nigerian internet speeds with smart data compression and offline features.",
+      icon: Globe,
+      title: "Global Community",
+      description: "Connect with creators and fans from around the world in our thriving community.",
       color: "text-brand-purple"
     }
   ]
@@ -86,72 +88,101 @@ const Landing = () => {
   const stats = [
     { value: "50K+", label: "Active Fans" },
     { value: "2K+", label: "Creators" },
-    { value: "₦50M+", label: "Paid to Creators" },
+    { value: "$2M+", label: "Paid to Creators" },
     { value: "99.9%", label: "Uptime" }
   ]
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-brand">
-        <div className="absolute inset-0 bg-black/20" />
+      <section className="relative overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
         
-        <div className="relative container mx-auto px-4 py-24 lg:py-32 max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 text-white">
-              <div className="space-y-4">
-                <Badge className="bg-brand-gold/20 text-brand-gold border-brand-gold/30 font-medium">
-                  🇳🇬 Made for Nigeria
-                </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                  Support Nigerian 
-                  <span className="block text-brand-coral">Creators</span>
-                  <span className="block">You Love</span>
-                </h1>
-                <p className="text-xl lg:text-2xl text-white/90 max-w-lg">
-                  The first creator platform built for Nigeria. Subscribe to exclusive content, 
-                  tip your favorites, and join a community of true fans.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="hero" size="xl" asChild>
-                  <Link to="/explore">
-                    <Users className="mr-2 h-5 w-5" />
-                    Explore Creators
-                  </Link>
-                </Button>
-                <Button variant="gold" size="xl" asChild className="bg-brand-gold/20 text-white hover:bg-brand-gold/30 border border-brand-gold/40">
-                  <Link to="/creator-signup">
-                    <Star className="mr-2 h-5 w-5" />
-                    Become a Creator
-                  </Link>
-                </Button>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
-                {stats.map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <p className="text-2xl lg:text-3xl font-bold text-white">{stat.value}</p>
-                    <p className="text-sm text-white/80">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
+        <div className="relative container mx-auto px-6 py-32 lg:py-40 max-w-7xl">
+          <div className="max-w-4xl mx-auto text-center space-y-8 text-white">
+            <div className="space-y-6">
+              <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
+                [TrueFans]
+              </h1>
+              <p className="text-2xl lg:text-3xl text-white/90 font-light max-w-3xl mx-auto leading-relaxed">
+                Behind-the-scenes, <span className="text-brand-light">early releases</span>, unfiltered thoughts
+              </p>
             </div>
 
-            <div className="hidden lg:block">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+              <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-8">
+                <Link to="/explore">
+                  <Users className="mr-2 h-5 w-5" />
+                  Find Creators
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild className="border-white/30 text-white hover:bg-white/10 rounded-full px-8">
+                <Link to="/creator-signup">
+                  <Star className="mr-2 h-5 w-5" />
+                  Start Creating
+                </Link>
+              </Button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-12 max-w-2xl mx-auto">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl lg:text-4xl font-bold text-white">{stat.value}</p>
+                  <p className="text-sm text-white/70 mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Value Proposition Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+                TrueFans is the best place to build a family with your fans, share exclusive work, and earn money from showcasing your talent to the world
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Join thousands of creators who are building sustainable careers by connecting directly with their most passionate supporters.
+              </p>
+              <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full">
+                <Link to="/signup">
+                  Get Started Today
+                </Link>
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <img 
+                  src={creator1} 
+                  alt="Creator content" 
+                  className="rounded-2xl aspect-[3/4] object-cover shadow-card"
+                />
+                <img 
+                  src={creator3} 
+                  alt="Creator content" 
+                  className="rounded-2xl aspect-square object-cover shadow-card"
+                />
+              </div>
+              <div className="space-y-4 pt-8">
+                <img 
+                  src={creator2} 
+                  alt="Creator content" 
+                  className="rounded-2xl aspect-square object-cover shadow-card"
+                />
                 <img 
                   src={heroImage} 
-                  alt="Nigerian creators and fans connecting" 
-                  className="rounded-2xl shadow-elevated"
+                  alt="Creator content" 
+                  className="rounded-2xl aspect-[3/4] object-cover shadow-card"
                 />
-                <div className="absolute inset-0 rounded-2xl bg-gradient-coral/20" />
               </div>
             </div>
           </div>
@@ -159,14 +190,14 @@ const Landing = () => {
       </section>
 
       {/* Featured Creators */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center space-y-4 mb-12">
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
               Meet Amazing Creators
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover talented Nigerian creators sharing exclusive content with their biggest fans
+              Discover talented creators sharing exclusive content with their biggest fans
             </p>
           </div>
 
@@ -177,7 +208,7 @@ const Landing = () => {
           </div>
 
           <div className="text-center">
-            <Button variant="hero" size="lg" asChild>
+            <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full">
               <Link to="/explore">
                 View All Creators
                 <ChevronRight className="ml-2 h-4 w-4" />
@@ -188,14 +219,14 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4 max-w-7xl">
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-6 max-w-7xl">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
-              Why Choose True Fans?
+              Why Choose TrueFans?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Built specifically for the Nigerian market with features that matter most
+              The platform built for creators who want to build meaningful connections with their audience
             </p>
           </div>
 
@@ -218,25 +249,25 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-brand text-white">
-        <div className="container mx-auto px-4 max-w-4xl text-center">
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-6 max-w-4xl text-center">
           <div className="space-y-8">
-            <h2 className="text-3xl lg:text-4xl font-bold">
-              Ready to Support Amazing Creators?
+            <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
+              Ready to Start Your Journey?
             </h2>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Join thousands of fans already supporting their favorite Nigerian creators. 
-              Start your journey today!
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Join thousands of creators and fans building meaningful connections. 
+              Your community is waiting for you.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="gold" size="xl" className="bg-brand-gold text-white hover:bg-brand-gold/90" asChild>
+              <Button size="xl" className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-8" asChild>
                 <Link to="/signup">
                   <Heart className="mr-2 h-5 w-5" />
                   Join as a Fan
                 </Link>
               </Button>
-              <Button variant="soft" size="xl" className="bg-brand-coral/20 text-white hover:bg-brand-coral/30 border border-brand-coral/40" asChild>
+              <Button variant="outline" size="xl" className="rounded-full px-8" asChild>
                 <Link to="/creator-signup">
                   <Star className="mr-2 h-5 w-5" />
                   Start Creating
