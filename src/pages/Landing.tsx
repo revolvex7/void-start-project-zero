@@ -17,7 +17,10 @@ import {
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import CreatorCard from "@/components/CreatorCard"
-import heroImage from "@/assets/hero-image.jpg"
+import heroCreators from "@/assets/hero-creators.jpg"
+import creatorStudio from "@/assets/creator-studio.jpg"
+import creatorPodcast from "@/assets/creator-podcast.jpg"
+import creatorArtist from "@/assets/creator-artist.jpg"
 import creator1 from "@/assets/creator-avatar-1.jpg"
 import creator2 from "@/assets/creator-avatar-2.jpg"
 import creator3 from "@/assets/creator-avatar-3.jpg"
@@ -98,13 +101,13 @@ const Landing = () => {
       <section className="relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          style={{ backgroundImage: `url(${heroCreators})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
         
         <div className="relative container mx-auto px-6 py-32 lg:py-40 max-w-7xl">
           <div className="max-w-4xl mx-auto text-center space-y-8 text-white">
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
                 [TrueFans]
               </h1>
@@ -142,46 +145,46 @@ const Landing = () => {
       </section>
 
       {/* Value Proposition Section */}
-      <section className="py-20 bg-background">
+      <section className="py-24 bg-gradient-modern">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <h2 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">
                 TrueFans is the best place to build a family with your fans, share exclusive work, and earn money from showcasing your talent to the world
               </h2>
               <p className="text-lg text-muted-foreground">
                 Join thousands of creators who are building sustainable careers by connecting directly with their most passionate supporters.
               </p>
-              <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full">
+              <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full hover-scale">
                 <Link to="/signup">
                   Get Started Today
                 </Link>
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 animate-scale-in">
               <div className="space-y-4">
                 <img 
-                  src={creator1} 
-                  alt="Creator content" 
-                  className="rounded-2xl aspect-[3/4] object-cover shadow-card"
+                  src={creatorPodcast} 
+                  alt="Content creator recording podcast" 
+                  className="rounded-2xl aspect-[3/4] object-cover shadow-card hover-scale transition-smooth"
                 />
                 <img 
-                  src={creator3} 
-                  alt="Creator content" 
-                  className="rounded-2xl aspect-square object-cover shadow-card"
+                  src={creatorArtist} 
+                  alt="Digital artist creating content" 
+                  className="rounded-2xl aspect-square object-cover shadow-card hover-scale transition-smooth"
                 />
               </div>
               <div className="space-y-4 pt-8">
                 <img 
-                  src={creator2} 
-                  alt="Creator content" 
-                  className="rounded-2xl aspect-square object-cover shadow-card"
+                  src={creatorStudio} 
+                  alt="Professional creator studio setup" 
+                  className="rounded-2xl aspect-square object-cover shadow-card hover-scale transition-smooth"
                 />
                 <img 
-                  src={heroImage} 
-                  alt="Creator content" 
-                  className="rounded-2xl aspect-[3/4] object-cover shadow-card"
+                  src={heroCreators} 
+                  alt="Community of creators collaborating" 
+                  className="rounded-2xl aspect-[3/4] object-cover shadow-card hover-scale transition-smooth"
                 />
               </div>
             </div>
@@ -231,15 +234,15 @@ const Landing = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature) => (
-              <Card key={feature.title} className="text-center shadow-card hover:shadow-elevated transition-smooth">
+            {features.map((feature, index) => (
+              <Card key={feature.title} className="text-center shadow-card hover:shadow-glow transition-smooth hover-scale animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-lg bg-muted ${feature.color}`}>
+                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-secondary ${feature.color}`}>
                       <feature.icon className="h-6 w-6" />
                     </div>
                     <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -249,25 +252,25 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-24 bg-gradient-hero">
         <div className="container mx-auto px-6 max-w-4xl text-center">
-          <div className="space-y-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
+          <div className="space-y-8 text-white animate-fade-in">
+            <h2 className="text-3xl lg:text-4xl font-bold">
               Ready to Start Your Journey?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
               Join thousands of creators and fans building meaningful connections. 
               Your community is waiting for you.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="xl" className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-8" asChild>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button size="xl" className="bg-white text-brand-primary hover:bg-white/90 rounded-full px-8 hover-scale" asChild>
                 <Link to="/signup">
                   <Heart className="mr-2 h-5 w-5" />
                   Join as a Fan
                 </Link>
               </Button>
-              <Button variant="outline" size="xl" className="rounded-full px-8" asChild>
+              <Button variant="outline" size="xl" className="border-white/30 text-white hover:bg-white/10 rounded-full px-8 hover-scale" asChild>
                 <Link to="/creator-signup">
                   <Star className="mr-2 h-5 w-5" />
                   Start Creating

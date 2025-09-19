@@ -72,11 +72,14 @@ All colors MUST be HSL. Based on modern, professional palette inspired by Patreo
     /* Beautiful Gradients - Inspired by Brand Colors */
     --gradient-primary: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-primary-light)));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-secondary)), hsl(var(--brand-accent)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-secondary)), hsl(var(--brand-coral)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-primary)) 0%, hsl(var(--brand-secondary)) 50%, hsl(var(--brand-accent)) 100%);
     --gradient-brand: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-purple)));
     --gradient-coral: linear-gradient(135deg, hsl(var(--brand-coral)), hsl(var(--brand-pink)));
     --gradient-gold: linear-gradient(135deg, hsl(var(--brand-gold)), hsl(var(--brand-coral)));
     --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(var(--card)) 80%, hsl(var(--brand-light) / 0.1));
+    --gradient-auth: linear-gradient(135deg, hsl(var(--brand-light) / 0.8) 0%, hsl(var(--brand-accent) / 0.6) 50%, hsl(var(--brand-secondary) / 0.4) 100%);
+    --gradient-purple: linear-gradient(135deg, hsl(var(--brand-purple)), hsl(var(--brand-pink)));
+    --gradient-modern: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--brand-light) / 0.3) 100%);
     
     /* Shadows */
     --shadow-card: 0 4px 6px -1px hsl(var(--brand-primary) / 0.1), 0 2px 4px -1px hsl(var(--brand-primary) / 0.06);
@@ -152,6 +155,14 @@ All colors MUST be HSL. Based on modern, professional palette inspired by Patreo
   
   .gradient-hero {
     background: var(--gradient-hero);
+  }
+  
+  .gradient-auth {
+    background: var(--gradient-auth);
+  }
+  
+  .gradient-modern {
+    background: var(--gradient-modern);
   }
   
   .shadow-card {

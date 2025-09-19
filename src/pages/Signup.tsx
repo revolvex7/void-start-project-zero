@@ -28,10 +28,10 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-secondary flex items-center justify-center p-4">
-      <div className="w-full max-w-lg space-y-6">
+    <div className="min-h-screen bg-gradient-auth flex items-center justify-center p-4">
+      <div className="w-full max-w-lg space-y-6 animate-fade-in">
         {/* Back to Home */}
-        <Button variant="soft" size="sm" asChild className="mb-4">
+        <Button variant="outline" size="sm" asChild className="mb-4 bg-white/80 hover:bg-white border-white/30">
           <Link to="/">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
@@ -40,17 +40,17 @@ const Signup = () => {
 
         {/* Logo */}
         <div className="text-center">
-          <Link to="/" className="inline-flex items-center space-x-2">
+          <Link to="/" className="inline-flex items-center space-x-2 hover-scale transition-smooth">
             <Heart className="h-8 w-8 text-brand-primary" fill="currentColor" />
-            <span className="text-2xl font-bold text-brand-primary">True Fans</span>
+            <span className="text-2xl font-bold text-foreground">[TrueFans]</span>
           </Link>
         </div>
 
-        <Card className="shadow-elevated">
+        <Card className="shadow-glow bg-white/95 backdrop-blur-sm border border-white/20">
           <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-2xl font-bold">Join True Fans</CardTitle>
+            <CardTitle className="text-2xl font-bold">Join TrueFans</CardTitle>
             <CardDescription>
-              Create your account and start your journey with Nigerian creators
+              Create your account and start your creative journey with amazing creators worldwide
             </CardDescription>
           </CardHeader>
 
@@ -203,9 +203,8 @@ const Signup = () => {
 
               <Button 
                 type="submit" 
-                variant={accountType === "creator" ? "creator" : "hero"} 
                 size="lg" 
-                className="w-full"
+                className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white hover-scale transition-smooth"
                 disabled={!formData.agreeToTerms}
               >
                 {accountType === "creator" ? "Start Creating" : "Join as Fan"}
@@ -229,12 +228,12 @@ const Signup = () => {
         </Card>
 
         {/* Trust Indicators */}
-        <div className="text-center space-y-2">
-          <p className="text-xs text-muted-foreground">
+        <div className="text-center space-y-2 animate-fade-in">
+          <p className="text-xs text-foreground/60">
             🔒 Your data is protected with industry-standard security
           </p>
-          <p className="text-xs text-muted-foreground">
-            🇳🇬 Join 50,000+ Nigerians already on True Fans
+          <p className="text-xs text-foreground/60">
+            🌍 Join 50,000+ creators and fans worldwide on TrueFans
           </p>
         </div>
       </div>

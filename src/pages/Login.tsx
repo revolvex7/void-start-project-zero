@@ -21,10 +21,10 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-secondary flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-gradient-auth flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6 animate-fade-in">
         {/* Back to Home */}
-        <Button variant="soft" size="sm" asChild className="mb-4">
+        <Button variant="outline" size="sm" asChild className="mb-4 bg-white/80 hover:bg-white border-white/30">
           <Link to="/">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
@@ -33,17 +33,17 @@ const Login = () => {
 
         {/* Logo */}
         <div className="text-center">
-          <Link to="/" className="inline-flex items-center space-x-2">
+          <Link to="/" className="inline-flex items-center space-x-2 hover-scale transition-smooth">
             <Heart className="h-8 w-8 text-brand-primary" fill="currentColor" />
-            <span className="text-2xl font-bold text-brand-primary">True Fans</span>
+            <span className="text-2xl font-bold text-foreground">[TrueFans]</span>
           </Link>
         </div>
 
-        <Card className="shadow-elevated">
+        <Card className="shadow-glow bg-white/95 backdrop-blur-sm border border-white/20">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
             <CardDescription>
-              Sign in to your True Fans account and continue supporting amazing creators
+              Sign in to your TrueFans account and continue supporting amazing creators
             </CardDescription>
           </CardHeader>
 
@@ -103,7 +103,7 @@ const Login = () => {
                 </Link>
               </div>
 
-              <Button type="submit" variant="hero" size="lg" className="w-full">
+              <Button type="submit" size="lg" className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white hover-scale transition-smooth">
                 Sign In
               </Button>
             </form>
@@ -135,12 +135,12 @@ const Login = () => {
         </Card>
 
         {/* Trust Indicators */}
-        <div className="text-center space-y-2">
-          <p className="text-xs text-muted-foreground">
+        <div className="text-center space-y-2 animate-fade-in">
+          <p className="text-xs text-foreground/60">
             🔒 Secured with 256-bit SSL encryption
           </p>
-          <p className="text-xs text-muted-foreground">
-            🇳🇬 Built for Nigeria • Trusted by 50,000+ users
+          <p className="text-xs text-foreground/60">
+            🌍 Trusted by 50,000+ creators and fans worldwide
           </p>
         </div>
       </div>
