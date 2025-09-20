@@ -6,6 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Landing from "./pages/Landing";
 import Explore from "./pages/Explore";
+import Features from "./pages/Features";
+import Pricing from "./pages/Pricing";
+import Creators from "./pages/Creators";
+import CreatorProfile from "./pages/CreatorProfile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -23,6 +27,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/creators" element={<Creators />} />
+            <Route path="/creator/:id" element={<CreatorProfile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/creator-signup" element={<Signup />} />

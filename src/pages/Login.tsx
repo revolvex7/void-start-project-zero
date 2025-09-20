@@ -4,20 +4,37 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Eye, EyeOff, Heart, ArrowLeft } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Eye, EyeOff, Heart, ArrowLeft, Upload, Camera } from "lucide-react"
 import { Link } from "react-router-dom"
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   })
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // Console log form values as requested
+    console.log("Login form data:", {
+      ...formData,
+      profileImage: profileImage ? "Profile image uploaded" : "No profile image"
+    })
     // Handle login logic here
-    console.log("Login attempt:", formData)
   }
 
   return (
@@ -51,6 +68,31 @@ const Login = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* Profile Image Upload */}
+            <div className="text-center">
+              <div className="relative inline-block">
+                <Avatar className="w-24 h-24 mx-auto">
+                  <AvatarImage src={profileImage || undefined} />
+                  <AvatarFallback className="text-lg bg-gradient-secondary text-white">
+                    <Camera className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <label htmlFor="profile-image" className="absolute -bottom-2 -right-2 bg-brand-primary hover:bg-brand-primary-light text-white rounded-full p-2 cursor-pointer transition-smooth">
+                  <Upload className="h-4 w-4" />
+                  <input
+                    id="profile-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Upload your profile picture (optional)
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
