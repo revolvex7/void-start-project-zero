@@ -123,7 +123,7 @@ const Landing = () => {
                   Find Creators
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild className="border-white/30 text-white hover:bg-white/10 rounded-full px-8">
+              <Button size="lg" asChild className="bg-white text-brand-primary hover:bg-white/90 rounded-full px-8">
                 <Link to="/creator-signup">
                   <Star className="mr-2 h-5 w-5" />
                   Start Creating
@@ -270,7 +270,7 @@ const Landing = () => {
                   Join as a Fan
                 </Link>
               </Button>
-              <Button variant="outline" size="xl" className="border-white/30 text-white hover:bg-white/10 rounded-full px-8 hover-scale" asChild>
+              <Button size="xl" className="bg-brand-primary text-white hover:bg-brand-primary/90 rounded-full px-8 hover-scale" asChild>
                 <Link to="/creator-signup">
                   <Star className="mr-2 h-5 w-5" />
                   Start Creating

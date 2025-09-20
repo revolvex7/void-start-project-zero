@@ -22,9 +22,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-auth flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 animate-fade-in">
+      {/* Animated background pattern */}
+      <div className="auth-bg-pattern"></div>
+      
+      <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
         {/* Back to Home */}
-        <Button variant="outline" size="sm" asChild className="mb-4 bg-white/80 hover:bg-white border-white/30">
+        <Button variant="outline" size="sm" asChild className="mb-4 bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm">
           <Link to="/">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
@@ -34,12 +37,12 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center">
           <Link to="/" className="inline-flex items-center space-x-2 hover-scale transition-smooth">
-            <Heart className="h-8 w-8 text-brand-primary" fill="currentColor" />
-            <span className="text-2xl font-bold text-foreground">[TrueFans]</span>
+            <Heart className="h-8 w-8 text-white" fill="currentColor" />
+            <span className="text-2xl font-bold text-white">[TrueFans]</span>
           </Link>
         </div>
 
-        <Card className="shadow-glow bg-white/95 backdrop-blur-sm border border-white/20">
+        <Card className="auth-card">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
             <CardDescription>
@@ -136,10 +139,10 @@ const Login = () => {
 
         {/* Trust Indicators */}
         <div className="text-center space-y-2 animate-fade-in">
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-white/80">
             🔒 Secured with 256-bit SSL encryption
           </p>
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-white/80">
             🌍 Trusted by 50,000+ creators and fans worldwide
           </p>
         </div>

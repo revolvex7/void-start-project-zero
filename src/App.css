@@ -1,42 +1,164 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Base styles */
+:root {
+  --brand-primary: #FF4B91;
+  --brand-primary-light: #FF85B3;
+  --brand-coral: #FF8080;
+  --brand-gold: #FFD93D;
+  --brand-purple: #B799FF;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Beautiful Gradients */
+.bg-gradient-auth {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
 }
 
-@keyframes logo-spin {
+.bg-gradient-auth::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+.bg-gradient-modern {
+  background: linear-gradient(135deg, #f6f7f9 0%, #ffffff 100%);
+}
+
+.bg-gradient-hero {
+  background: linear-gradient(135deg, #FF4B91 0%, #FF85B3 100%);
+}
+
+.bg-gradient-secondary {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+/* Animated background elements */
+.auth-bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  background-image: 
+    radial-gradient(circle at 25% 25%, white 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, white 2px, transparent 2px);
+  background-size: 100px 100px, 80px 80px;
+  animation: patternMove 20s linear infinite;
+}
+
+@keyframes patternMove {
+  0% {
+    background-position: 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%, -100% -100%;
+  }
+}
+
+/* Animations */
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.transition-smooth {
+  transition: all 0.2s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-.card {
-  padding: 2em;
+/* Shadows */
+.shadow-card {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.read-the-docs {
-  color: #888;
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(255, 75, 145, 0.1);
+}
+
+/* Enhanced card styling for auth pages */
+.auth-card {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+/* Utility classes */
+.text-brand-primary {
+  color: var(--brand-primary);
+}
+
+.text-brand-primary-light {
+  color: var(--brand-primary-light);
+}
+
+.text-brand-coral {
+  color: var(--brand-coral);
+}
+
+.text-brand-gold {
+  color: var(--brand-gold);
+}
+
+.text-brand-purple {
+  color: var(--brand-purple);
+}
+
+.bg-brand-primary {
+  background-color: var(--brand-primary);
+}
+
+.hover\:bg-brand-primary\/90:hover {
+  background-color: rgba(255, 75, 145, 0.9);
 }
