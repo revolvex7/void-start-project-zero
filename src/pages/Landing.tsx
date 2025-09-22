@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Play, Users, TrendingUp, Award, Shield, Zap, Heart } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
-import Header from "@/components/Header"
 
 // Import hero images
 import heroCreators from "@/assets/hero-creators.jpg"
@@ -66,7 +65,6 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
       
       {/* Hero Section - Patreon Style */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
