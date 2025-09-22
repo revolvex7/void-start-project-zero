@@ -1,249 +1,181 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { 
-  Heart, 
-  Users, 
-  Star, 
-  Shield, 
-  CreditCard,
-  TrendingUp,
-  MessageCircle,
-  Play,
-  ChevronRight,
-  Zap,
-  Globe,
-  Lock
-} from "lucide-react"
+import { ArrowRight, Play, Users, TrendingUp, Award, Shield, Zap, Heart } from "lucide-react"
 import { Link } from "react-router-dom"
-import CreatorCard from "@/components/CreatorCard"
+import { useState, useEffect } from "react"
+import Header from "@/components/Header"
+
+// Import hero images
 import heroCreators from "@/assets/hero-creators.jpg"
 import creatorStudio from "@/assets/creator-studio.jpg"
 import creatorPodcast from "@/assets/creator-podcast.jpg"
 import creatorArtist from "@/assets/creator-artist.jpg"
-import creator1 from "@/assets/creator-avatar-1.jpg"
-import creator2 from "@/assets/creator-avatar-2.jpg"
-import creator3 from "@/assets/creator-avatar-3.jpg"
 
 const Landing = () => {
-  // Sample creator data
-  const featuredCreators = [
+  const [currentText, setCurrentText] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+
+  const heroTexts = [
     {
-      id: "1",
-      name: "Sarah Johnson",
-      avatar: creator1,
-      category: "Fashion & Style",
-      subscribers: 2500,
-      monthlyPrice: 15,
-      rating: 4.9,
-      isVerified: true,
-      bio: "Fashion designer sharing exclusive styling tips and behind-the-scenes content."
+      main: "Your wildest",
+      sub: "creative reality", 
+      description: "Turn your passion into a sustainable income with True Fans, the premium creator platform."
     },
     {
-      id: "2", 
-      name: "Alex Rivera",
-      avatar: creator2,
-      category: "Music & Audio",
-      subscribers: 1800,
-      monthlyPrice: 20,
-      rating: 4.8,
-      bio: "Independent artist offering exclusive tracks, live sessions, and music creation insights."
+      main: "Build your",
+      sub: "creator empire",
+      description: "Connect with true fans who value your work and are ready to support your creative journey."
     },
     {
-      id: "3",
-      name: "Maya Chen", 
-      avatar: creator3,
-      category: "Art & Design",
-      subscribers: 950,
-      monthlyPrice: 12,
-      rating: 4.7,
-      bio: "Digital artist creating stunning artwork and comprehensive tutorials."
+      main: "Creator is now",
+      sub: "a career",
+      description: "Join thousands of creators who have transformed their passion into a thriving business."
     }
   ]
+
+  useEffect(() => {
+    setIsVisible(true)
+    const interval = setInterval(() => {
+      setCurrentText((prev) => (prev + 1) % heroTexts.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
 
   const features = [
     {
-      icon: Heart,
-      title: "Support Your Favorites",
-      description: "Subscribe to creators and get exclusive content, early access, and direct engagement.",
-      color: "text-brand-coral"
+      icon: <Users className="h-6 w-6" />,
+      title: "Loyal Community",
+      description: "Build meaningful relationships with supporters who truly value your content"
     },
     {
-      icon: CreditCard,
-      title: "Instant Payments",
-      description: "Send tips and support instantly to creators you love. Quick, secure, and hassle-free.",
-      color: "text-brand-gold"
+      icon: <TrendingUp className="h-6 w-6" />,
+      title: "Sustainable Income",
+      description: "Create predictable monthly income through subscriptions and one-time support"
     },
     {
-      icon: Shield,
-      title: "Secure & Trusted",
-      description: "Advanced security with global payment integration. Your transactions are always protected.",
-      color: "text-brand-primary"
+      icon: <Shield className="h-6 w-6" />,
+      title: "Creator Protection",
+      description: "Your content, your rules. Full control over pricing and access"
     },
     {
-      icon: Globe,
-      title: "Global Community",
-      description: "Connect with creators and fans from around the world in our thriving community.",
-      color: "text-brand-purple"
+      icon: <Zap className="h-6 w-6" />,
+      title: "Powerful Tools",
+      description: "Everything you need to create, share, and monetize your content effectively"
     }
   ]
 
-  const stats = [
-    { value: "50K+", label: "Active Fans" },
-    { value: "2K+", label: "Creators" },
-    { value: "$2M+", label: "Paid to Creators" },
-    { value: "99.9%", label: "Uptime" }
-  ]
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroCreators})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      
+      {/* Hero Section - Patreon Style */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background with gradient overlay */}
+        <div className="absolute inset-0 gradient-patreon"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/20"></div>
         
-        <div className="relative container mx-auto px-6 py-32 lg:py-40 max-w-7xl">
-          <div className="max-w-4xl mx-auto text-center space-y-8 text-white">
-            <div className="space-y-6 animate-fade-in">
-              <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                [TrueFans]
+        {/* Floating background elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-brand-primary/10 rounded-full blur-3xl animate-patreon-float"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-brand-accent/10 rounded-full blur-3xl animate-patreon-float" style={{animationDelay: '1s'}}></div>
+        
+        <div className="container mx-auto px-4 relative z-10 text-center">
+          <div className="max-w-6xl mx-auto">
+            {/* Animated Hero Text */}
+            <div className="space-y-6 mb-12">
+              <h1 className="text-7xl md:text-9xl font-bold leading-tight">
+                <span 
+                  key={`main-${currentText}`}
+                  className="block text-reveal animate-text-reveal text-white"
+                >
+                  {heroTexts[currentText].main}
+                </span>
+                <span 
+                  key={`sub-${currentText}`}
+                  className="block text-reveal animate-text-reveal text-white"
+                  style={{animationDelay: '0.3s'}}
+                >
+                  {heroTexts[currentText].sub}
+                </span>
               </h1>
-              <p className="text-2xl lg:text-3xl text-white/90 font-light max-w-3xl mx-auto leading-relaxed">
-                Behind-the-scenes, <span className="text-brand-light">early releases</span>, unfiltered thoughts
+              
+              <p 
+                key={`desc-${currentText}`}
+                className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto animate-slide-up-text"
+                style={{animationDelay: '0.6s'}}
+              >
+                {heroTexts[currentText].description}
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-              <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-8">
-                <Link to="/explore">
-                  <Users className="mr-2 h-5 w-5" />
-                  Find Creators
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Button 
+                size="lg" 
+                className="bg-white text-brand-primary hover:bg-white/90 px-8 py-4 text-lg font-semibold hover-lift"
+                asChild
+              >
+                <Link to="/signup">
+                  Start Creating
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" asChild className="bg-white text-brand-primary hover:bg-white/90 rounded-full px-8">
-                <Link to="/creator-signup">
-                  <Star className="mr-2 h-5 w-5" />
-                  Start Creating
+              
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg hover-lift"
+                asChild
+              >
+                <Link to="/creators">
+                  <Play className="mr-2 h-5 w-5" />
+                  Explore Creators
                 </Link>
               </Button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-12 max-w-2xl mx-auto">
-              {stats.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-3xl lg:text-4xl font-bold text-white">{stat.value}</p>
-                  <p className="text-sm text-white/70 mt-1">{stat.label}</p>
-                </div>
+            {/* Creator Showcase Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20">
+              {[
+                { image: creatorStudio, name: "Alex Studio", type: "Music Producer", earnings: "$12K/month" },
+                { image: creatorPodcast, name: "Sarah Talks", type: "Podcast Host", earnings: "$8K/month" },
+                { image: creatorArtist, name: "Art by Maya", type: "Digital Artist", earnings: "$15K/month" }
+              ].map((creator, index) => (
+                <Card key={index} className="bg-white/10 backdrop-blur-lg border-white/20 hover-lift">
+                  <CardContent className="p-6">
+                    <div className="w-16 h-16 bg-brand-primary rounded-full mb-4 mx-auto"></div>
+                    <h3 className="font-semibold text-white mb-1">{creator.name}</h3>
+                    <p className="text-white/70 text-sm mb-2">{creator.type}</p>
+                    <div className="text-brand-accent font-bold">{creator.earnings}</div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Value Proposition Section */}
-      <section className="py-24 bg-gradient-modern">
-        <div className="container mx-auto px-6 max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">
-                TrueFans is the best place to build a family with your fans, share exclusive work, and earn money from showcasing your talent to the world
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Join thousands of creators who are building sustainable careers by connecting directly with their most passionate supporters.
-              </p>
-              <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full hover-scale">
-                <Link to="/signup">
-                  Get Started Today
-                </Link>
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 animate-scale-in">
-              <div className="space-y-4">
-                <img 
-                  src={creatorPodcast} 
-                  alt="Content creator recording podcast" 
-                  className="rounded-2xl aspect-[3/4] object-cover shadow-card hover-scale transition-smooth"
-                />
-                <img 
-                  src={creatorArtist} 
-                  alt="Digital artist creating content" 
-                  className="rounded-2xl aspect-square object-cover shadow-card hover-scale transition-smooth"
-                />
-              </div>
-              <div className="space-y-4 pt-8">
-                <img 
-                  src={creatorStudio} 
-                  alt="Professional creator studio setup" 
-                  className="rounded-2xl aspect-square object-cover shadow-card hover-scale transition-smooth"
-                />
-                <img 
-                  src={heroCreators} 
-                  alt="Community of creators collaborating" 
-                  className="rounded-2xl aspect-[3/4] object-cover shadow-card hover-scale transition-smooth"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Creators */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-6 max-w-7xl">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
-              Meet Amazing Creators
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover talented creators sharing exclusive content with their biggest fans
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {featuredCreators.map((creator) => (
-              <CreatorCard key={creator.id} creator={creator} />
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full">
-              <Link to="/creators">
-                View All Creators
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-6 max-w-7xl">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
-              Why Choose TrueFans?
+      <section className="py-24 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Everything you need to
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-accent"> succeed</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              The platform built for creators who want to build meaningful connections with their audience
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Powerful tools and features designed to help creators build sustainable businesses
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={feature.title} className="text-center shadow-card hover:shadow-glow transition-smooth hover-scale animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-secondary ${feature.color}`}>
-                      <feature.icon className="h-6 w-6" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+              <Card key={index} className="group hover-lift bg-gradient-card border-white/10">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
                   </div>
+                  <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -251,30 +183,46 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Stats Section */}
+      <section className="py-24 px-4 gradient-modern">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            {[
+              { number: "100K+", label: "Active Creators", icon: <Users className="h-8 w-8 mx-auto mb-4 text-brand-primary" /> },
+              { number: "$50M+", label: "Paid to Creators", icon: <TrendingUp className="h-8 w-8 mx-auto mb-4 text-brand-accent" /> },
+              { number: "5M+", label: "Happy Supporters", icon: <Heart className="h-8 w-8 mx-auto mb-4 text-brand-coral" /> }
+            ].map((stat, index) => (
+              <div key={index} className="group">
+                {stat.icon}
+                <div className="text-4xl md:text-5xl font-bold mb-2 group-hover:animate-morph-text">{stat.number}</div>
+                <div className="text-muted-foreground text-lg">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-hero">
-        <div className="container mx-auto px-6 max-w-4xl text-center">
-          <div className="space-y-8 text-white animate-fade-in">
-            <h2 className="text-3xl lg:text-4xl font-bold">
-              Ready to Start Your Journey?
+      <section className="py-24 px-4">
+        <div className="container mx-auto max-w-4xl text-center">
+          <div className="space-y-8">
+            <Award className="h-16 w-16 mx-auto text-brand-primary" />
+            <h2 className="text-4xl md:text-5xl font-bold">
+              Ready to turn your passion into
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-accent"> profit?</span>
             </h2>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of creators and fans building meaningful connections. 
-              Your community is waiting for you.
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Join thousands of creators who have already built thriving businesses with True Fans
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button size="xl" className="bg-white text-brand-primary hover:bg-white/90 rounded-full px-8 hover-scale" asChild>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+              <Button size="lg" className="px-8 py-4 text-lg font-semibold hover-lift patreon-glow" asChild>
                 <Link to="/signup">
-                  <Heart className="mr-2 h-5 w-5" />
-                  Join as a Fan
+                  Get Started for Free
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="xl" className="bg-brand-primary text-white hover:bg-brand-primary/90 rounded-full px-8 hover-scale" asChild>
-                <Link to="/creator-signup">
-                  <Star className="mr-2 h-5 w-5" />
-                  Start Creating
-                </Link>
+              <Button variant="outline" size="lg" className="px-8 py-4 text-lg hover-lift" asChild>
+                <Link to="/pricing">View Pricing</Link>
               </Button>
             </div>
           </div>

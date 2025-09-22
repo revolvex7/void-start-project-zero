@@ -2,54 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-/* True Fans Design System - Universal Creator Platform
-All colors MUST be HSL. Based on modern, professional palette inspired by Patreon.
+/* True Fans Design System - Premium Patreon-Inspired Theme
+All colors MUST be HSL. Deep blues and purples for premium feel.
 */
 
 @layer base {
   :root {
-    /* Core Brand Colors - True Fans Palette (From Brand Guidelines) */
-    --brand-primary: 152 100% 20%;        /* #006838 - Primary Deep Green */
-    --brand-primary-light: 152 59% 25%;   /* #127246 - Medium Green */
-    --brand-secondary: 152 44% 40%;       /* #398C4C - Balanced Green */
-    --brand-accent: 152 35% 48%;          /* #52A652 - Bright Green */
-    --brand-light: 152 36% 78%;           /* #B9DB9D - Light Green */
+    /* Core Brand Colors - Patreon-Inspired Premium Palette */
+    --brand-primary: 245 58% 51%;         /* #4C6EF5 - Premium Blue */
+    --brand-primary-light: 245 100% 60%;  /* #5B7CFF - Light Blue */
+    --brand-secondary: 259 94% 51%;       /* #6366F1 - Purple */
+    --brand-accent: 270 95% 60%;          /* #A855F7 - Bright Purple */
+    --brand-light: 245 100% 95%;          /* Light Blue Tint */
     
-    /* Complementary Colors from Brand Doc */
-    --brand-purple: 262 25% 64%;          /* #9486BF - Purple accent */
-    --brand-coral: 355 67% 79%;           /* #F5959C - Coral accent */
-    --brand-pink: 345 62% 74%;            /* #F294BA - Pink accent */
-    --brand-red: 348 84% 74%;             /* #EF4888 - Red accent */
-    --brand-gold: 41 80% 76%;             /* #F5CC90 - Gold accent */
+    /* Complementary Colors */
+    --brand-purple: 259 94% 51%;          /* #6366F1 - Main Purple */
+    --brand-coral: 14 100% 57%;           /* #FF5722 - Coral accent */
+    --brand-pink: 330 81% 60%;            /* #EC4899 - Pink accent */
+    --brand-red: 0 84% 60%;               /* #EF4444 - Red accent */
+    --brand-gold: 45 93% 58%;             /* #F59E0B - Gold accent */
     
-    /* Semantic Colors */
-    --background: 0 0% 100%;
-    --foreground: 152 100% 8%;            /* Very dark green for text */
+    /* Semantic Colors - Dark Premium Theme */
+    --background: 224 71% 4%;             /* Very dark blue background */
+    --foreground: 0 0% 98%;               /* White text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 152 100% 12%;
+    --card: 224 71% 6%;                   /* Dark blue cards */
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 152 100% 12%;
+    --popover: 224 71% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 152 100% 20%;              /* Main brand green */
+    --primary: 245 58% 51%;               /* Premium Blue */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 152 25% 95%;             /* Very light green */
-    --secondary-foreground: 152 100% 15%;
+    --secondary: 215 28% 17%;             /* Dark secondary */
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 152 15% 94%;
-    --muted-foreground: 152 20% 45%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 152 42% 73%;                /* Light brand green */
-    --accent-foreground: 152 100% 15%;
+    --accent: 270 95% 60%;                /* Bright Purple */
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 152 20% 89%;
-    --input: 152 20% 89%;
-    --ring: 152 100% 20%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 245 58% 51%;
 
     --radius: 0.5rem;
 
@@ -69,17 +69,18 @@ All colors MUST be HSL. Based on modern, professional palette inspired by Patreo
 
     --sidebar-ring: 217.2 91.2% 59.8%;
     
-    /* Beautiful Gradients - Inspired by Brand Colors */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-primary-light)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-secondary)), hsl(var(--brand-accent)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-primary)) 0%, hsl(var(--brand-secondary)) 50%, hsl(var(--brand-accent)) 100%);
-    --gradient-brand: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-purple)));
-    --gradient-coral: linear-gradient(135deg, hsl(var(--brand-coral)), hsl(var(--brand-pink)));
-    --gradient-gold: linear-gradient(135deg, hsl(var(--brand-gold)), hsl(var(--brand-coral)));
-    --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(var(--card)) 80%, hsl(var(--brand-light) / 0.1));
-    --gradient-auth: linear-gradient(135deg, hsl(var(--brand-light) / 0.8) 0%, hsl(var(--brand-accent) / 0.6) 50%, hsl(var(--brand-secondary) / 0.4) 100%);
-    --gradient-purple: linear-gradient(135deg, hsl(var(--brand-purple)), hsl(var(--brand-pink)));
-    --gradient-modern: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--brand-light) / 0.3) 100%);
+    /* Premium Patreon-Style Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(245 58% 51%), hsl(245 100% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(259 94% 51%), hsl(270 95% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(245 58% 51%) 50%, hsl(270 95% 60%) 100%);
+    --gradient-patreon: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(245 58% 51%) 100%);
+    --gradient-purple: linear-gradient(135deg, hsl(259 94% 51%), hsl(330 81% 60%));
+    --gradient-coral: linear-gradient(135deg, hsl(14 100% 57%), hsl(330 81% 60%));
+    --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%), hsl(14 100% 57%));
+    --gradient-card: linear-gradient(180deg, hsl(224 71% 6%), hsl(224 71% 8%));
+    --gradient-auth: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(245 58% 51%) 100%);
+    --gradient-modern: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(215 28% 17%) 100%);
+    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(224 71% 4% / 0.8) 100%);
     
     /* Shadows */
     --shadow-card: 0 4px 6px -1px hsl(var(--brand-primary) / 0.1), 0 2px 4px -1px hsl(var(--brand-primary) / 0.06);
@@ -94,43 +95,35 @@ All colors MUST be HSL. Based on modern, professional palette inspired by Patreo
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
-  .dark {
-    /* Dark theme with Nigerian green accents */
-    --background: 152 25% 8%;              /* Dark green background */
-    --foreground: 152 15% 95%;
+  .light {
+    /* Premium Light Theme Alternative */
+    --background: 0 0% 100%;
+    --foreground: 224 71% 4%;
 
-    --card: 152 25% 10%;
-    --card-foreground: 152 15% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
 
-    --popover: 152 25% 10%;
-    --popover-foreground: 152 15% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
 
-    --primary: 152 42% 73%;                /* Light green for dark mode */
-    --primary-foreground: 152 100% 8%;
+    --primary: 245 58% 51%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 152 25% 15%;
-    --secondary-foreground: 152 15% 90%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 224 71% 4%;
 
-    --muted: 152 25% 15%;
-    --muted-foreground: 152 15% 65%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 152 35% 48%;
-    --accent-foreground: 152 15% 95%;
+    --accent: 270 95% 60%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 152 25% 18%;
-    --input: 152 25% 18%;
-    --ring: 152 42% 73%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 245 58% 51%;
   }
 }
 
@@ -144,13 +137,9 @@ All colors MUST be HSL. Based on modern, professional palette inspired by Patreo
     font-family: var(--font-inter);
   }
 
-  /* Custom utility classes */
-  .gradient-primary {
-    background: var(--gradient-primary);
-  }
-  
-  .gradient-secondary {
-    background: var(--gradient-secondary);
+  /* Premium Patreon-Style Utility Classes */
+  .gradient-patreon {
+    background: var(--gradient-patreon);
   }
   
   .gradient-hero {
@@ -163,6 +152,32 @@ All colors MUST be HSL. Based on modern, professional palette inspired by Patreo
   
   .gradient-modern {
     background: var(--gradient-modern);
+  }
+  
+  .gradient-overlay {
+    background: var(--gradient-overlay);
+  }
+  
+  /* Patreon-style text animations */
+  .text-reveal {
+    animation: textReveal 2s ease-out forwards;
+  }
+  
+  .text-slide-up {
+    animation: slideUpText 1s ease-out forwards;
+  }
+  
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(66, 110, 245, 0.4);
+  }
+  
+  .patreon-glow {
+    box-shadow: 0 0 50px rgba(66, 110, 245, 0.3);
   }
   
   .shadow-card {

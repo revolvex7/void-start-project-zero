@@ -115,8 +115,25 @@ export default {
           "100%": { transform: "translateY(0)", opacity: "1" }
         },
         "glow": {
-          "0%, 100%": { boxShadow: "0 0 5px hsl(var(--brand-primary) / 0.3)" },
-          "50%": { boxShadow: "0 0 20px hsl(var(--brand-primary) / 0.6)" }
+          "0%, 100%": { boxShadow: "0 0 5px hsl(245 58% 51% / 0.3)" },
+          "50%": { boxShadow: "0 0 20px hsl(245 58% 51% / 0.6)" }
+        },
+        "textReveal": {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" }
+        },
+        "slideUpText": {
+          "0%": { opacity: "0", transform: "translateY(50px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" }
+        },
+        "patreonFloat": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" }
+        },
+        "morphText": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.05)" },
+          "100%": { transform: "scale(1)" }
         }
       },
       animation: {
@@ -126,6 +143,10 @@ export default {
         "scale-in": "scale-in 0.3s ease-out",
         "slide-up": "slide-up 0.5s ease-out",
         "glow": "glow 2s ease-in-out infinite",
+        "text-reveal": "textReveal 2s ease-out forwards",
+        "slide-up-text": "slideUpText 1s ease-out forwards",
+        "patreon-float": "patreonFloat 3s ease-in-out infinite",
+        "morph-text": "morphText 0.3s ease-in-out",
       },
     },
   },
