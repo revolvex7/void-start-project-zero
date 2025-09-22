@@ -1,224 +1,310 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, Filter, TrendingUp, Star } from "lucide-react"
+import { Search, Filter, TrendingUp } from "lucide-react"
 import CreatorCard from "@/components/CreatorCard"
+import PostCard from "@/components/PostCard"
 import creator1 from "@/assets/creator-avatar-1.jpg"
 import creator2 from "@/assets/creator-avatar-2.jpg"
 import creator3 from "@/assets/creator-avatar-3.jpg"
+import creatorStudio from "@/assets/creator-studio.jpg"
+import creatorPodcast from "@/assets/creator-podcast.jpg"
+import creatorArtist from "@/assets/creator-artist.jpg"
 
 const Explore = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [sortBy, setSortBy] = useState("popular")
 
-  const categories = [
-    "All", "Music & Audio", "Fashion & Style", "Art & Design", "Fitness & Health", 
-    "Food & Cooking", "Technology", "Education", "Comedy", "Lifestyle"
-  ]
-
-  // Extended creator data
-  const creators = [
+  const posts = [
     {
       id: "1",
-      name: "Amara Okafor",
-      avatar: creator1,
-      category: "Fashion & Style",
-      subscribers: 2500,
-      monthlyPrice: 2500,
-      rating: 4.9,
-      isVerified: true,
-      bio: "Nigerian fashion designer sharing exclusive styling tips and behind-the-scenes content.",
+      creator: {
+        id: "1",
+        name: "Sarah Johnson",
+        avatar: creator1,
+        isVerified: true,
+        category: "Fashion & Style"
+      },
+      content: {
+        text: "Behind the scenes of my latest photoshoot! This outfit combines traditional Nigerian patterns with modern street style. What do you think? 💫",
+        image: creatorArtist
+      },
+      engagement: {
+        likes: 324,
+        comments: 42,
+        views: 1200
+      },
+      timestamp: "2h ago",
+      isLiked: false,
       isTrending: true
     },
     {
-      id: "2", 
-      name: "Kemi Adeleke",
-      avatar: creator2,
-      category: "Music & Audio",
-      subscribers: 1800,
-      monthlyPrice: 3000,
-      rating: 4.8,
-      bio: "Afrobeats artist offering exclusive tracks, live sessions, and music creation insights.",
+      id: "2",
+      creator: {
+        id: "2",
+        name: "Alex Rivera",
+        avatar: creator2,
+        isVerified: true,
+        category: "Music & Audio"
+      },
+      content: {
+        text: "New Afrobeats track dropping tomorrow! 🎵 Here's a sneak peek of the studio session. My supporters get early access!",
+        image: creatorPodcast,
+        video: "/video-placeholder.mp4"
+      },
+      engagement: {
+        likes: 892,
+        comments: 156,
+        views: 3400
+      },
+      timestamp: "4h ago",
+      isLiked: true,
+      isPremium: true,
       isTrending: true
     },
     {
       id: "3",
-      name: "David Okonkwo", 
-      avatar: creator3,
-      category: "Art & Design",
-      subscribers: 950,
-      monthlyPrice: 2000,
-      rating: 4.7,
-      bio: "Digital artist creating stunning Nigerian-inspired artwork and tutorials."
+      creator: {
+        id: "3",
+        name: "Maya Chen",
+        avatar: creator3,
+        category: "Art & Design"
+      },
+      content: {
+        text: "Digital art piece inspired by Lagos city vibes. Each layer tells a story of our beautiful culture. Process video coming soon for my subscribers! 🎨",
+        image: creatorStudio
+      },
+      engagement: {
+        likes: 567,
+        comments: 89,
+        views: 2100
+      },
+      timestamp: "6h ago",
+      isLiked: false
     },
     {
       id: "4",
-      name: "Fatima Hassan",
-      avatar: creator1,
-      category: "Food & Cooking",
-      subscribers: 3200,
-      monthlyPrice: 1500,
-      rating: 4.9,
-      isVerified: true,
-      bio: "Chef specializing in modern Nigerian cuisine with traditional twists."
+      creator: {
+        id: "1",
+        name: "Sarah Johnson",
+        avatar: creator1,
+        isVerified: true,
+        category: "Fashion & Style"
+      },
+      content: {
+        text: "Quick styling tip: Mix textures to create depth in your outfit! Silk + Cotton + Leather = Magic ✨ More tips in my exclusive tutorials.",
+        image: creator1
+      },
+      engagement: {
+        likes: 445,
+        comments: 67,
+        views: 1800
+      },
+      timestamp: "8h ago",
+      isLiked: false,
+      isPremium: true
     },
     {
       id: "5",
-      name: "Chidi Nwosu",
-      avatar: creator2,
-      category: "Fitness & Health",
-      subscribers: 1200,
-      monthlyPrice: 3500,
-      rating: 4.6,
-      bio: "Personal trainer helping Nigerians achieve fitness goals with home workouts."
-    },
-    {
-      id: "6",
-      name: "Blessing Adebayo",
-      avatar: creator3,
-      category: "Education",
-      subscribers: 4100,
-      monthlyPrice: 2200,
-      rating: 4.8,
-      isVerified: true,
-      bio: "Tech educator making programming accessible to young Nigerians.",
-      isTrending: true
+      creator: {
+        id: "2",
+        name: "Alex Rivera",
+        avatar: creator2,
+        isVerified: true,
+        category: "Music & Audio"
+      },
+      content: {
+        text: "Throwback to my performance at the Lagos Music Festival! The energy was incredible. Thank you to everyone who came out! 🔥",
+        image: creator2
+      },
+      engagement: {
+        likes: 1234,
+        comments: 203,
+        views: 5600
+      },
+      timestamp: "1d ago",
+      isLiked: true
     }
   ]
 
-  const filteredCreators = creators.filter(creator => {
-    const matchesSearch = creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         creator.bio.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "All" || creator.category === selectedCategory
+  const categories = [
+    "All Categories",
+    "Fashion & Style", 
+    "Music & Audio",
+    "Art & Design",
+    "Photography",
+    "Cooking & Food",
+    "Technology",
+    "Fitness & Health",
+    "Business & Finance"
+  ]
+
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = post.creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         post.content.text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         post.creator.category.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === "all" || selectedCategory === "All Categories" ||
+                           post.creator.category === selectedCategory
     return matchesSearch && matchesCategory
   })
 
-  const trendingCreators = creators.filter(creator => creator.isTrending)
+  const sortedPosts = [...filteredPosts].sort((a, b) => {
+    switch (sortBy) {
+      case "popular":
+        return b.engagement.likes - a.engagement.likes
+      case "newest":
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime() // Placeholder, ideally use actual date objects
+      case "trending":
+        return (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0)
+      default:
+        return 0
+    }
+  })
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <section className="bg-gradient-secondary py-16">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center space-y-4 mb-8">
-            <h1 className="text-4xl lg:text-5xl font-bold text-foreground">
-              Explore Creators
+    <div className="min-h-screen bg-gradient-modern">
+      {/* Header Section */}
+      <section className="pt-24 pb-12">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4 text-foreground">
+              Explore Amazing <span className="bg-gradient-hero bg-clip-text text-transparent">Content</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover amazing Nigerian creators sharing exclusive content with their fans
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover exclusive posts, videos, and art from talented creators worldwide.
             </p>
           </div>
 
-          {/* Search */}
-          <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Search creators, categories, or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12 text-lg"
-              />
+          {/* Search and Filters */}
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-4 gap-4 mb-8">
+              {/* Search */}
+              <div className="md:col-span-2 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search posts, creators, or tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category === "All Categories" ? "all" : category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Sort */}
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Most Popular" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popular">Most Popular</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="trending">Trending</SelectItem>
+                  <SelectItem value="random">Random</SelectItem> 
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filter Tags */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              <Badge variant="secondary" className="cursor-pointer hover:bg-brand-primary hover:text-white transition-smooth">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Trending Posts
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-smooth">
+                New Content
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-smooth">
+                Premium Only
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-smooth">
+                Videos
+              </Badge>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 max-w-7xl py-8">
-        {/* Trending Section */}
-        {trendingCreators.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center space-x-2 mb-6">
-              <TrendingUp className="h-5 w-5 text-brand-coral" />
-              <h2 className="text-2xl font-bold text-foreground">Trending Now</h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trendingCreators.slice(0, 3).map((creator) => (
-                <div key={creator.id} className="relative">
-                  <CreatorCard creator={creator} />
-                  <Badge className="absolute top-2 left-2 bg-brand-coral text-white border-0">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    Trending
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Filters */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-foreground">All Creators</h2>
-            <Button variant="soft" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
+      {/* Posts Grid */}
+      <section className="pb-8">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-foreground flex items-center">
+              <TrendingUp className="h-6 w-6 mr-2 text-brand-primary" />
+              Latest Posts
+            </h2>
+            <Badge variant="secondary" className="bg-brand-light/20 text-brand-primary border-brand-primary/20">
+              {sortedPosts.length} posts found
+            </Badge>
           </div>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "soft"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className="text-sm"
-              >
-                {category}
-              </Button>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {sortedPosts.map((post, index) => (
+              <PostCard key={post.id} post={post} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }} />
             ))}
           </div>
-        </section>
 
-        {/* Results */}
-        <section>
-          {filteredCreators.length === 0 ? (
-            <Card className="text-center py-12">
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="mx-auto h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                    <Search className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground">No creators found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search terms or filters to find more creators
-                  </p>
-                  <Button variant="hero" onClick={() => { setSearchTerm(""); setSelectedCategory("All") }}>
-                    Clear Filters
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-muted-foreground">
-                  Showing {filteredCreators.length} creator{filteredCreators.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCreators.map((creator) => (
-                  <CreatorCard key={creator.id} creator={creator} />
-                ))}
-              </div>
-            </>
+          {/* Load More */}
+          {sortedPosts.length > 0 && (
+            <div className="text-center mt-12">
+              <Button variant="outline" size="lg" className="hover:bg-brand-primary hover:text-white transition-smooth">
+                Load More Posts
+              </Button>
+            </div>
           )}
-        </section>
 
-        {/* Load More */}
-        {filteredCreators.length > 0 && (
-          <div className="text-center mt-12">
-            <Button variant="hero" size="lg">
-              Load More Creators
+          {/* No Results */}
+          {sortedPosts.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 rounded-full bg-gradient-secondary flex items-center justify-center mx-auto mb-6">
+                <Search className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">No posts found</h3>
+              <p className="text-muted-foreground mb-6">
+                Try adjusting your search terms or filters to find more posts.
+              </p>
+              <Button onClick={() => {setSearchQuery(""); setSelectedCategory("all"); setSortBy("popular")}} variant="outline">
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-secondary/10">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold mb-4 text-foreground">Ready to Share Your Creativity?</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join TrueFans and start sharing your unique content, building a community, 
+            and earning from your passion.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary-light text-white">
+              <a href="/signup">Become a Creator</a>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <a href="/features">Learn More</a>
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
     </div>
   )
 }

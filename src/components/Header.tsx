@@ -1,50 +1,64 @@
 import { Button } from "@/components/ui/button"
-import { Heart, Search } from "lucide-react"
 import { Link } from "react-router-dom"
+import Logo from "@/components/ui/logo"
+import { GlobalSearch } from "./GlobalSearch"
+import { Search } from "lucide-react"
 
 const Header = () => {
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/40">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-brand-light/20 bg-gradient-glass backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <Heart className="h-7 w-7 text-brand-primary" fill="currentColor" />
-          <span className="text-xl font-bold text-foreground">[TrueFans]</span>
+        <Link to="/" className="flex items-center space-x-2 hover-glow transition-smooth">
+          <Logo size="md" showText={true} />
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <Link 
+            to="/explore" 
+            className="relative text-foreground/80 hover:text-brand-primary transition-smooth font-medium group"
+          >
+            Explore
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
+          </Link>
+          <Link 
             to="/creators" 
-            className="text-foreground/70 hover:text-foreground transition-smooth font-medium text-sm"
+            className="relative text-foreground/80 hover:text-brand-primary transition-smooth font-medium group"
           >
             Creators
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
           </Link>
           <Link 
             to="/features" 
-            className="text-foreground/70 hover:text-foreground transition-smooth font-medium text-sm"
+            className="relative text-foreground/80 hover:text-brand-primary transition-smooth font-medium group"
           >
             Features
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
           </Link>
           <Link 
-            to="/pricing" 
-            className="text-foreground/70 hover:text-foreground transition-smooth font-medium text-sm"
+            to="/how-it-works" 
+            className="relative text-foreground/80 hover:text-brand-primary transition-smooth font-medium group"
           >
-            Pricing
+            How It Works
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
           </Link>
         </nav>
 
-        {/* Auth Buttons */}
+        {/* Auth Buttons and Search */}
         <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex rounded-full">
-            <Search className="mr-2 h-4 w-4" />
-            Find a Creator
-          </Button>
-          <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+          <GlobalSearch />
+          <Button variant="soft" size="sm" asChild className="hidden sm:inline-flex hover-lift">
             <Link to="/login">Log In</Link>
           </Button>
-          <Button size="sm" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full">
+          <Button variant="hero" size="sm" asChild className="hover-glow">
             <Link to="/signup">Get Started</Link>
+          </Button>
+          
+          {/* Mobile Menu Button */}
+          <Button variant="ghost" size="icon" className="md:hidden hover-lift">
+            {/* <Menu className="h-5 w-5" /> */}
+            <Search className="h-5 w-5" />
           </Button>
         </div>
       </div>

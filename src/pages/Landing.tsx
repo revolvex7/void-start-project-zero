@@ -212,7 +212,7 @@ const Landing = () => {
 
           <div className="text-center">
             <Button size="lg" asChild className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full">
-              <Link to="/explore">
+              <Link to="/creators">
                 View All Creators
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Link>

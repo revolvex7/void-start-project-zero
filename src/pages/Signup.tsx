@@ -5,13 +5,15 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, EyeOff, Heart, ArrowLeft, Users, Star } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Eye, EyeOff, Heart, ArrowLeft, Users, Star, Upload, Camera, Mail, Lock, User } from "lucide-react"
 import { Link } from "react-router-dom"
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [accountType, setAccountType] = useState<"fan" | "creator">("fan")
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -20,6 +22,17 @@ const Signup = () => {
     confirmPassword: "",
     agreeToTerms: false
   })
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,10 +99,38 @@ const Signup = () => {
               </TabsContent>
             </Tabs>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Profile Image Upload */}
+            <div className="text-center">
+              <div className="relative inline-block">
+                <Avatar className="w-20 h-20 mx-auto">
+                  <AvatarImage src={profileImage || undefined} />
+                  <AvatarFallback className="text-lg bg-gradient-secondary text-white">
+                    <Camera className="h-6 w-6" />
+                  </AvatarFallback>
+                </Avatar>
+                <label htmlFor="profile-image" className="absolute -bottom-1 -right-1 bg-brand-primary hover:bg-brand-primary-light text-white rounded-full p-1.5 cursor-pointer transition-smooth hover-scale">
+                  <Upload className="h-3 w-3" />
+                  <input
+                    id="profile-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Add your profile picture
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-brand-primary" />
+                    <span>First Name</span>
+                  </Label>
                   <Input
                     id="firstName"
                     type="text"
@@ -97,11 +138,14 @@ const Signup = () => {
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                     required
-                    className="h-11"
+                    className="h-12 bg-background/50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-brand-primary" />
+                    <span>Last Name</span>
+                  </Label>
                   <Input
                     id="lastName"
                     type="text"
@@ -109,13 +153,16 @@ const Signup = () => {
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                     required
-                    className="h-11"
+                    className="h-12 bg-background/50"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="flex items-center space-x-2">
+                  <Mail className="h-4 w-4 text-brand-primary" />
+                  <span>Email Address</span>
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -123,12 +170,15 @@ const Signup = () => {
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   required
-                  className="h-11"
+                  className="h-12 bg-background/50"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="flex items-center space-x-2">
+                  <Lock className="h-4 w-4 text-brand-primary" />
+                  <span>Password</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -137,13 +187,13 @@ const Signup = () => {
                     value={formData.password}
                     onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     required
-                    className="h-11 pr-10"
+                    className="h-12 pr-12 bg-background/50"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -156,7 +206,10 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="flex items-center space-x-2">
+                  <Lock className="h-4 w-4 text-brand-primary" />
+                  <span>Confirm Password</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -165,13 +218,13 @@ const Signup = () => {
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     required
-                    className="h-11 pr-10"
+                    className="h-12 pr-12 bg-background/50"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
@@ -207,7 +260,8 @@ const Signup = () => {
               <Button 
                 type="submit" 
                 size="lg" 
-                className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white hover-scale transition-smooth"
+                variant="default"
+                className="w-full h-12 bg-brand-primary hover:bg-brand-primary/90 text-white hover-scale transition-smooth"
                 disabled={!formData.agreeToTerms}
               >
                 {accountType === "creator" ? "Start Creating" : "Join as Fan"}

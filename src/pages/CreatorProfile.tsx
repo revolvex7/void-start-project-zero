@@ -184,79 +184,83 @@ const CreatorProfile = () => {
           ) : (
             <div className="w-full h-full bg-gradient-hero" />
           )}
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
 
         {/* Profile Info */}
-        <div className="container mx-auto px-6">
-          <div className="relative -mt-20 pb-6">
-            <div className="flex flex-col md:flex-row items-start md:items-end space-y-4 md:space-y-0 md:space-x-6">
-              {/* Avatar */}
-              <div className="relative">
-                <Avatar className="w-32 h-32 border-4 border-background">
-                  <AvatarImage src={creator.avatar} alt={creator.name} />
-                  <AvatarFallback className="text-2xl">{creator.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                {creator.isVerified && (
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-primary rounded-full flex items-center justify-center border-2 border-background">
-                    <Star className="w-4 h-4 text-white" fill="currentColor" />
-                  </div>
-                )}
-              </div>
-
-              {/* Creator Info */}
-              <div className="flex-1 space-y-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-bold text-foreground">{creator.name}</h1>
-                  <Badge variant="secondary" className="bg-brand-light/20 text-brand-primary border-brand-primary/20">
-                    {creator.category}
-                  </Badge>
+        <div className="relative container mx-auto px-6">
+          <div className="absolute -top-20 md:-top-24 left-6 md:left-10 z-10">
+            {/* Avatar */}
+            <div className="relative">
+              <Avatar className="w-28 h-28 md:w-36 md:h-36 border-4 md:border-6 border-background shadow-lg">
+                <AvatarImage src={creator.avatar} alt={creator.name} />
+                <AvatarFallback className="text-3xl md:text-4xl">
+                  {creator.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              {creator.isVerified && (
+                <div className="absolute -bottom-1 right-0 w-8 h-8 md:w-10 md:h-10 bg-brand-primary rounded-full flex items-center justify-center border-2 border-background shadow">
+                  <Star className="w-4 h-4 text-white" fill="currentColor" />
                 </div>
-                <p className="text-muted-foreground">{creator.username}</p>
-                <p className="text-foreground max-w-2xl">{creator.bio}</p>
-                
-                {/* Stats */}
-                <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Users className="w-4 h-4" />
-                    <span>{formatSubscribers(creator.subscribers)} fans</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>{creator.posts} posts</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-brand-gold" fill="currentColor" />
-                    <span>{creator.rating}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>{creator.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>Joined {creator.joinedDate}</span>
-                  </div>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-12 md:pt-16 pb-6 md:pb-8 flex flex-col md:flex-row items-start md:items-end justify-between space-y-6 md:space-y-0">
+            {/* Creator Info (Text) */}
+            <div className="flex-1 space-y-2 mt-10 md:mt-4 ml-0 md:ml-40 lg:ml-48">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
+                  {creator.name}
+                </h1>
+                <Badge variant="secondary" className="bg-brand-light/20 text-brand-primary border-brand-primary/20">
+                  {creator.category}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-lg">{creator.username}</p>
+              <p className="text-foreground max-w-2xl leading-relaxed">{creator.bio}</p>
+              
+              {/* Stats */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground pt-2">
+                <div className="flex items-center space-x-1">
+                  <Users className="w-4 h-4 text-brand-primary" />
+                  <span>{formatSubscribers(creator.subscribers)} fans</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <MessageCircle className="w-4 h-4 text-brand-primary" />
+                  <span>{creator.posts} posts</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Star className="w-4 h-4 text-brand-gold" fill="currentColor" />
+                  <span>{creator.rating}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-4 h-4 text-brand-primary" />
+                  <span>{creator.location}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-4 h-4 text-brand-primary" />
+                  <span>Joined {creator.joinedDate}</span>
                 </div>
               </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  variant={isFollowing ? "secondary" : "outline"}
-                  onClick={handleFollow}
-                  className="min-w-[120px]"
-                >
-                  <Heart className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current text-brand-primary' : ''}`} />
-                  {isFollowing ? 'Following' : 'Follow'}
-                </Button>
-                <Button onClick={() => handleSubscribe()} className="bg-brand-primary hover:bg-brand-primary-light text-white min-w-[120px]">
-                  Subscribe
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-0">
+              <Button
+                variant={isFollowing ? "secondary" : "outline"}
+                onClick={handleFollow}
+                className="min-w-[120px] rounded-full hover-lift"
+              >
+                <Heart className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current text-red-500' : ''}`} />
+                {isFollowing ? 'Following' : 'Follow'}
+              </Button>
+              <Button onClick={() => handleSubscribe()} className="bg-brand-primary hover:bg-brand-primary-light text-white min-w-[120px] rounded-full hover-glow">
+                Subscribe
+              </Button>
+              <Button variant="ghost" size="icon" className="hover:bg-muted/50 rounded-full hover-lift">
+                <Share2 className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
