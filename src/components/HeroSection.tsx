@@ -42,8 +42,8 @@ const HeroSection = () => {
         />
       ))}
       
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 patreon-hero-overlay" />
+      {/* Subtle Overlay for Text Readability */}
+      <div className="absolute inset-0 bg-black/20" />
       
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
