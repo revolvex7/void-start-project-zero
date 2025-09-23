@@ -2,128 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-/* True Fans Design System - Premium Patreon-Inspired Theme
-All colors MUST be HSL. Deep blues and purples for premium feel.
-*/
+/* Patreon Design System - Exact colors and design tokens */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    /* Core Brand Colors - Patreon-Inspired Premium Palette */
-    --brand-primary: 245 58% 51%;         /* #4C6EF5 - Premium Blue */
-    --brand-primary-light: 245 100% 60%;  /* #5B7CFF - Light Blue */
-    --brand-secondary: 259 94% 51%;       /* #6366F1 - Purple */
-    --brand-accent: 270 95% 60%;          /* #A855F7 - Bright Purple */
-    --brand-light: 245 100% 95%;          /* Light Blue Tint */
+    /* Patreon Brand Colors */
+    --patreon-primary: 230 76% 59%; /* Patreon blue */
+    --patreon-secondary: 283 89% 74%; /* Patreon purple */
+    --patreon-orange: 15 91% 67%; /* Patreon coral/orange */
     
-    /* Complementary Colors */
-    --brand-purple: 259 94% 51%;          /* #6366F1 - Main Purple */
-    --brand-coral: 14 100% 57%;           /* #FF5722 - Coral accent */
-    --brand-pink: 330 81% 60%;            /* #EC4899 - Pink accent */
-    --brand-red: 0 84% 60%;               /* #EF4444 - Red accent */
-    --brand-gold: 45 93% 58%;             /* #F59E0B - Gold accent */
+    /* Background System */
+    --background: 231 25% 7%; /* Deep blue-black */
+    --background-hero: 231 25% 7%;
+    --background-gradient: linear-gradient(135deg, hsl(231 25% 7%) 0%, hsl(283 25% 15%) 100%);
+    --background-overlay: linear-gradient(135deg, hsl(231 76% 59% / 0.8) 0%, hsl(283 89% 74% / 0.6) 100%);
     
-    /* Semantic Colors - Dark Premium Theme */
-    --background: 224 71% 4%;             /* Very dark blue background */
-    --foreground: 0 0% 98%;               /* White text */
-
-    --card: 224 71% 6%;                   /* Dark blue cards */
-    --card-foreground: 0 0% 98%;
-
-    --popover: 224 71% 6%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 245 58% 51%;               /* Premium Blue */
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 215 28% 17%;             /* Dark secondary */
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 215 28% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 270 95% 60%;                /* Bright Purple */
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 245 58% 51%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Text Colors */
+    --foreground: 0 0% 100%; /* Pure white */
+    --foreground-muted: 0 0% 80%; /* Light gray */
+    --foreground-subtle: 0 0% 60%; /* Medium gray */
     
-    /* Premium Patreon-Style Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(245 58% 51%), hsl(245 100% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(259 94% 51%), hsl(270 95% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(245 58% 51%) 50%, hsl(270 95% 60%) 100%);
-    --gradient-patreon: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(245 58% 51%) 100%);
-    --gradient-purple: linear-gradient(135deg, hsl(259 94% 51%), hsl(330 81% 60%));
-    --gradient-coral: linear-gradient(135deg, hsl(14 100% 57%), hsl(330 81% 60%));
-    --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%), hsl(14 100% 57%));
-    --gradient-card: linear-gradient(180deg, hsl(224 71% 6%), hsl(224 71% 8%));
-    --gradient-auth: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(245 58% 51%) 100%);
-    --gradient-modern: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(215 28% 17%) 100%);
-    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(224 71% 4% / 0.8) 100%);
+    /* Interactive Elements */
+    --primary: 230 76% 59%; /* Patreon blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 230 76% 69%;
+    
+    --secondary: 0 0% 100% / 0.1; /* Semi-transparent white */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 0 0% 100% / 0.2;
+    
+    /* Card & Surface Colors */
+    --card: 0 0% 100% / 0.05;
+    --card-foreground: 0 0% 100%;
+    --card-border: 0 0% 100% / 0.1;
+    
+    /* Accent Colors */
+    --accent: 283 89% 74%; /* Patreon purple */
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 283 89% 84%;
+    
+    /* Interactive States */
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 100% / 0.1;
+    --ring: 230 76% 59%;
+    
+    /* Border Radius */
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-full: 9999px;
     
     /* Shadows */
-    --shadow-card: 0 4px 6px -1px hsl(var(--brand-primary) / 0.1), 0 2px 4px -1px hsl(var(--brand-primary) / 0.06);
-    --shadow-elevated: 0 10px 15px -3px hsl(var(--brand-primary) / 0.1), 0 4px 6px -2px hsl(var(--brand-primary) / 0.05);
-    --shadow-glow: 0 0 0 1px hsl(var(--brand-primary) / 0.2), 0 0 20px hsl(var(--brand-primary) / 0.15);
+    --shadow-glow: 0 0 40px hsl(230 76% 59% / 0.3);
+    --shadow-card: 0 10px 30px -5px hsl(0 0% 0% / 0.3);
     
-    /* Typography */
-    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    
-    /* Animations */
+    /* Animation Variables */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .light {
-    /* Premium Light Theme Alternative */
-    --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+}
 
-    --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
-
-    --primary: 245 58% 51%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 224 71% 4%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 270 95% 60%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 245 58% 51%;
+/* Custom component styles */
+@layer components {
+  .patreon-gradient-bg {
+    background: var(--background-gradient);
+    background-attachment: fixed;
+  }
+  
+  .patreon-hero-overlay {
+    background: var(--background-overlay);
+  }
+  
+  .patreon-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .patreon-text-shadow {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .patreon-hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+    transition: var(--transition-smooth);
   }
 }
 
@@ -133,74 +97,12 @@ All colors MUST be HSL. Deep blues and purples for premium feel.
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-inter);
-  }
-
-  /* Premium Patreon-Style Utility Classes */
-  .gradient-patreon {
-    background: var(--gradient-patreon);
+    @apply bg-background text-foreground antialiased;
+    background: var(--background-gradient);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
   
-  .gradient-hero {
-    background: var(--gradient-hero);
-  }
-  
-  .gradient-auth {
-    background: var(--gradient-auth);
-  }
-  
-  .gradient-modern {
-    background: var(--gradient-modern);
-  }
-  
-  .gradient-overlay {
-    background: var(--gradient-overlay);
-  }
-  
-  /* Patreon-style text animations */
-  .text-reveal {
-    animation: textReveal 2s ease-out forwards;
-  }
-  
-  .text-slide-up {
-    animation: slideUpText 1s ease-out forwards;
-  }
-  
-  .hover-lift {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(66, 110, 245, 0.4);
-  }
-  
-  .patreon-glow {
-    box-shadow: 0 0 50px rgba(66, 110, 245, 0.3);
-  }
-  
-  .shadow-card {
-    box-shadow: var(--shadow-card);
-  }
-  
-  .shadow-elevated {
-    box-shadow: var(--shadow-elevated);
-  }
-  
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
-  }
-  
-  .transition-smooth {
-    transition: var(--transition-smooth);
-  }
-  
-  .transition-bounce {
-    transition: var(--transition-bounce);
-  }
-
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
