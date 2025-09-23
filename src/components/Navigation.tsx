@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, Menu, X, ChevronRight } from 'lucide-react';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,75 +18,428 @@ const Navigation = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleMouseEnter = (dropdownId: string) => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setActiveDropdown(dropdownId);
+  };
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 150); // Small delay before closing
+    setHoverTimeout(timeout);
+  };
+
+  // Exact Patreon menu structure
+  const menuItems = {
+    creators: {
+      title: 'Creators',
+      sections: [
+        {
+          title: 'Podcasters',
+          items: [
+            'Get to know your listeners',
+            'Cut through the noise',
+            'More ways to get paid',
+            'Other podcasters on Patreon'
+          ]
+        },
+        {
+          title: 'Video creators',
+          items: [
+            'Turn your viewers into your people',
+            'Reach every fan, every time',
+            'More ways to get paid',
+            'Other video creators on Patreon'
+          ]
+        },
+        {
+          title: 'Musicians',
+          items: [
+            'From your mind to their ears',
+            'Share more than music',
+            'More ways to get paid',
+            'Other musicians on Patreon'
+          ]
+        },
+        {
+          title: 'Artists',
+          items: [
+            'Earning made easy',
+            'Create what inspires you',
+            'Build community around your art',
+            'Other artists on Patreon'
+          ]
+        },
+        {
+          title: 'Game devs',
+          items: [
+            'A safe way to get paid',
+            'Selling made simple',
+            'Where real community thrives',
+            'Other game devs on Patreon'
+          ]
+        }
+      ]
+    },
+    features: {
+      title: 'Features',
+      sections: [
+        {
+          title: 'Create on your terms',
+          items: [
+            'Getting started on Patreon',
+            'Make it your own',
+            'Reach every fan, every time',
+            'Showcase your work'
+          ]
+        },
+        {
+          title: 'Build real community',
+          items: [
+            'Every post, every time',
+            'More ways to stay close',
+            'Get to know your fans'
+          ]
+        },
+        {
+          title: 'Expand your reach',
+          items: [
+            'Bring in new fans',
+            'Unlock growth',
+            'App integrations'
+          ]
+        },
+        {
+          title: 'Get business support',
+          items: [
+            'Help when you need it',
+            'Policies to protect you',
+            'Payments powered by Patreon'
+          ]
+        },
+        {
+          title: 'Earning made easy',
+          items: [
+            'Run a membership',
+            'Sell digital products'
+          ]
+        }
+      ]
+    },
+    pricing: {
+      title: 'Pricing',
+      sections: [
+        {
+          title: 'Starting a Patreon is free',
+          items: [
+            'Powerful core features',
+            'Earning made easy',
+            'Paid membership',
+            'Commerce',
+            'Payments powered by Patreon'
+          ]
+        }
+      ]
+    },
+    resources: {
+      title: 'Resources',
+      sections: [
+        {
+          title: 'Creator Hub',
+          items: [
+            'Resources to get started',
+            'Grow your membership',
+            'Connect with creators'
+          ]
+        },
+        {
+          title: 'Newsroom',
+          items: [
+            'Patreon HQ',
+            'Read latest policy updates',
+            'Explore product updates'
+          ]
+        },
+        {
+          title: 'Help Centre',
+          items: [
+            'Getting started',
+            'Patreon payments',
+            'Member management',
+            'Content & engagement'
+          ]
+        },
+        {
+          title: 'Partners & integrations',
+          items: [
+            'Featured integrations',
+            'Full app directory'
+          ]
+        },
+        {
+          title: 'Mobile',
+          items: [
+            'Download the app'
+          ]
+        }
+      ]
+    },
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200/30' 
-        : 'bg-transparent'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Left Navigation */}
-          <div className="flex items-center space-x-8">
-            <div className="hidden lg:flex items-center space-x-8">
-              <NavLink href="#creators" isScrolled={isScrolled}>Creators</NavLink>
-              <NavLink href="#features" isScrolled={isScrolled}>Features</NavLink>
-              <NavLink href="#pricing" isScrolled={isScrolled}>Pricing</NavLink>
-              <NavLink href="#resources" isScrolled={isScrolled}>Resources</NavLink>
-              <NavLink href="#updates" variant="outlined" isScrolled={isScrolled}>Updates</NavLink>
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled || activeDropdown
+          ? 'bg-white/95 backdrop-blur-md border-b border-gray-200/20 shadow-sm' 
+          : 'bg-transparent'
+      }`}>
+        <div className="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleMobileMenu}
+                className={`p-2 transition-colors ${
+                  isScrolled || activeDropdown
+                    ? 'text-gray-700 hover:bg-gray-100/80' 
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </Button>
+            </div>
+
+            {/* Left Navigation - Desktop */}
+            <div className="hidden lg:flex items-center space-x-6">
+              {Object.entries(menuItems).map(([key, item]) => (
+                <NavLinkWithDropdown
+                  key={key}
+                  id={key}
+                  title={item.title}
+                  sections={item.sections}
+                  isScrolled={isScrolled}
+                  isActive={activeDropdown === key}
+                  hasActiveDropdown={!!activeDropdown}
+                  onMouseEnter={() => handleMouseEnter(key)}
+                  onMouseLeave={handleMouseLeave}
+                />
+              ))}
+              <a 
+                href="#updates" 
+                className={`nav-menu-item-hover text-sm font-medium transition-all duration-200 relative px-3 py-2 ${
+                  activeDropdown === 'updates' ? 'nav-menu-item-hover-active' : ''
+                } ${
+                  isScrolled || activeDropdown === 'updates' ? 'text-gray-800' : 'text-white'
+                }`}
+                onMouseEnter={() => handleMouseEnter('updates')}
+                onMouseLeave={handleMouseLeave}
+              >
+                <span className="nav-menu-item-text">Updates</span>
+              </a>
+            </div>
+
+            {/* Center Logo */}
+            <div className="flex-1 flex justify-center lg:flex-initial">
+              <Link 
+                to="/" 
+                className={`text-xl sm:text-2xl font-bold tracking-wider transition-colors ${
+                  isScrolled || activeDropdown ? 'text-gray-900' : 'text-white'
+                }`}
+              >
+                TRUE FANS
+              </Link>
+            </div>
+
+            {/* Right Navigation - Desktop */}
+            <div className="hidden lg:flex items-center space-x-3">
+              <a 
+                href="#find-creator"
+                className={`nav-menu-item-hover flex items-center space-x-2 rounded-full px-6 py-2 ${
+                  isScrolled || activeDropdown
+                    ? 'text-gray-800' 
+                    : 'text-white'
+                }`}
+                onMouseEnter={() => setActiveDropdown(null)} // Close dropdown on hover
+                onMouseLeave={handleMouseLeave}
+              >
+                <Search className="w-4 h-4" />
+                <span className="nav-menu-item-text">Find a Creator</span>
+              </a>
+              
+              <Link 
+                to="/login"
+                className={`nav-menu-item-hover rounded-full px-6 py-2 ${
+                  isScrolled || activeDropdown
+                    ? 'text-gray-800' 
+                    : 'text-white'
+                }`}
+                onMouseEnter={() => setActiveDropdown(null)} // Close dropdown on hover
+                onMouseLeave={handleMouseLeave}
+              >
+                <span className="nav-menu-item-text">Log in</span>
+              </Link>
+              
+              <Link to="/signup">
+                <Button 
+                  className={`rounded-full px-6 py-2 font-medium transition-all duration-300 ${
+                    isScrolled || activeDropdown
+                      ? 'bg-black text-white hover:bg-gray-800' 
+                      : 'bg-white text-black hover:bg-white/90'
+                  }`}
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+
+            {/* Mobile Get Started Button */}
+            <div className="lg:hidden">
+              <Link to="/signup">
+                <Button 
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                    isScrolled || activeDropdown
+                      ? 'bg-black text-white hover:bg-gray-800' 
+                      : 'bg-white text-black hover:bg-white/90'
+                  }`}
+                >
+                  Get Started
+                </Button>
+              </Link>
             </div>
           </div>
+        </div>
 
-          {/* Center Logo */}
-          <div className="flex-1 flex justify-center lg:flex-initial">
-            <a 
-              href="/" 
-              className={`text-2xl font-bold tracking-wider transition-colors ${
-                isScrolled ? 'text-gray-900' : 'text-foreground'
-              } hover:text-primary`}
-            >
-              PATREON
-            </a>
+        {/* Mega Menu Dropdown */}
+        {activeDropdown && (
+          <div 
+            className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl mega-menu"
+            onMouseEnter={() => {
+              if (hoverTimeout) {
+                clearTimeout(hoverTimeout);
+                setHoverTimeout(null);
+              }
+            }}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+            }}
+          >
+                        <div className="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6 py-8">
+              <div className="grid grid-cols-5 gap-6">
+                {menuItems[activeDropdown as keyof typeof menuItems]?.sections.map((section, sectionIndex) => (
+                  <div key={sectionIndex} className="space-y-3 mega-menu-item">
+                    <h3 className="text-[15px] font-semibold text-gray-900 tracking-wide flex items-center">
+                      {section.title}
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </h3>
+                    <div className="space-y-0.5">
+                      {section.items.map((item, itemIndex) => (
+                        <a
+                          key={itemIndex}
+                          href="#"
+                          className="block text-sm text-gray-600 transition-colors py-1"
+                        >
+                          {item}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+        )}
+      </nav>
 
-          {/* Right Navigation */}
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              className={`hidden lg:flex items-center space-x-2 rounded-full px-6 transition-colors ${
-                isScrolled 
-                  ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' 
-                  : 'text-foreground hover:bg-secondary hover:text-secondary-foreground'
-              }`}
-            >
-              <Search className="w-4 h-4" />
-              <span>Find a Creator</span>
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              className={`hidden lg:block rounded-full px-6 transition-colors ${
-                isScrolled 
-                  ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' 
-                  : 'text-foreground hover:bg-secondary hover:text-secondary-foreground'
-              }`}
-            >
-              Log in
-            </Button>
-            
-            <Button 
-              className={`rounded-full px-6 font-medium transition-all duration-300 ${
-                isScrolled 
-                  ? 'bg-black text-white hover:bg-gray-800' 
-                  : 'bg-foreground text-background hover:bg-foreground/90 patreon-hover-glow'
-              }`}
-            >
-              Get Started
-            </Button>
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={toggleMobileMenu}
+          />
+          <div className="fixed top-16 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-gray-200/20 shadow-lg">
+            <div className="px-4 py-6 space-y-4">
+              <MobileNavLink href="#creators" onClick={toggleMobileMenu}>Creators</MobileNavLink>
+              <MobileNavLink href="#features" onClick={toggleMobileMenu}>Features</MobileNavLink>
+              <MobileNavLink href="#pricing" onClick={toggleMobileMenu}>Pricing</MobileNavLink>
+              <MobileNavLink href="#resources" onClick={toggleMobileMenu}>Resources</MobileNavLink>
+              <MobileNavLink href="#updates" onClick={toggleMobileMenu}>Updates</MobileNavLink>
+              
+              <div className="pt-4 border-t border-gray-200/20">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start items-center space-x-2 rounded-full px-4 py-3 text-gray-700 hover:bg-gray-100"
+                >
+                  <Search className="w-4 h-4" />
+                  <span>Find a Creator</span>
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start rounded-full px-4 py-3 text-gray-700 hover:bg-gray-100 mt-2"
+                >
+                  Log in
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      )}
+    </>
+  );
+};
+
+interface NavLinkWithDropdownProps {
+  id: string;
+  title: string;
+  sections: Array<{
+    title: string;
+    items: string[];
+  }>;
+  isScrolled: boolean;
+  isActive: boolean;
+  hasActiveDropdown: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
+const NavLinkWithDropdown = ({ 
+  title, 
+  isScrolled, 
+  isActive,
+  hasActiveDropdown,
+  onMouseEnter, 
+  onMouseLeave 
+}: NavLinkWithDropdownProps) => {
+  return (
+    <div
+      className="relative"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <button 
+        className={`nav-menu-item-hover text-sm font-medium transition-all duration-200 relative px-3 py-2 ${
+          isActive ? 'nav-menu-item-hover-active' : ''
+        } ${
+          isScrolled || hasActiveDropdown
+            ? 'text-gray-800' 
+            : 'text-white'
+        }`}
+      >
+        <span className="nav-menu-item-text">{title}</span>
+      </button>
+    </div>
   );
 };
 
@@ -91,25 +448,44 @@ interface NavLinkProps {
   children: React.ReactNode;
   variant?: 'default' | 'outlined';
   isScrolled?: boolean;
+  hasActiveDropdown?: boolean;
 }
 
-const NavLink = ({ href, children, variant = 'default', isScrolled = false }: NavLinkProps) => {
+const NavLink = ({ href, children, variant = 'default', isScrolled = false, hasActiveDropdown = false }: NavLinkProps) => {
   return (
     <a 
       href={href} 
       className={`text-sm font-medium transition-all duration-200 ${
         variant === 'outlined'
           ? `border rounded-full px-4 py-2 transition-colors ${
-              isScrolled 
+              isScrolled || hasActiveDropdown
                 ? 'border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400' 
-                : 'border-white/20 hover:bg-secondary hover:border-white/40'
+                : 'border-white/20 text-white hover:bg-white/10 hover:border-white/40'
             }`
-          : `relative after:content-[""] after:absolute after:w-0 after:h-0.5 after:left-0 after:-bottom-1 after:transition-all after:duration-300 hover:after:w-full ${
-              isScrolled 
-                ? 'text-gray-700 hover:text-gray-900 after:bg-gray-900' 
-                : 'hover:text-primary-hover after:bg-primary'
+          : `relative ${
+              isScrolled || hasActiveDropdown
+                ? 'text-gray-700 hover:text-gray-900' 
+                : 'text-white hover:text-white/80'
             }`
       }`}
+    >
+      {children}
+    </a>
+  );
+};
+
+interface MobileNavLinkProps {
+  href: string;
+  children: React.ReactNode;
+  onClick: () => void;
+}
+
+const MobileNavLink = ({ href, children, onClick }: MobileNavLinkProps) => {
+  return (
+    <a 
+      href={href} 
+      onClick={onClick}
+      className="block text-lg font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-lg px-3 py-2 transition-colors"
     >
       {children}
     </a>

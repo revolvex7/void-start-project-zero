@@ -49,6 +49,10 @@ export default {
           orange: "hsl(var(--patreon-orange))",
         },
       },
+      width: {
+        "7/10": "70%",
+        "3/10": "30%",
+      },
       borderRadius: {
         lg: "var(--radius-lg)",
         md: "var(--radius)",

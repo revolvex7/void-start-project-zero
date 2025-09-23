@@ -30,13 +30,13 @@ const AnimatedHeroText = () => {
         setCurrentIndex((prev) => (prev + 1) % heroTexts.length);
         setIsVisible(true);
       }, 300);
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1 sm:space-y-2">
       <div 
         className={`transform transition-all duration-500 ease-out ${
           isVisible 
@@ -44,7 +44,7 @@ const AnimatedHeroText = () => {
             : 'opacity-0 translate-y-8'
         }`}
       >
-        <h1 className="text-5xl sm:text-6xl lg:text-8xl font-bold text-foreground patreon-text-shadow leading-none">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-light text-white leading-none tracking-tight">
           {heroTexts[currentIndex]}
         </h1>
       </div>
@@ -56,7 +56,7 @@ const AnimatedHeroText = () => {
             : 'opacity-0 translate-y-8'
         }`}
       >
-        <h1 className="text-5xl sm:text-6xl lg:text-8xl font-bold text-foreground patreon-text-shadow leading-none">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-light text-white leading-none tracking-tight">
           {secondLines[currentIndex]}
         </h1>
       </div>

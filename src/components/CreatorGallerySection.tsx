@@ -97,11 +97,11 @@ const CreatorGallerySection = () => {
             
             <div className="space-y-4 sm:space-y-6">
               <p className="text-lg sm:text-xl text-gray-700 max-w-lg leading-relaxed">
-                Patreon is the best place to build community with your biggest fans, share exclusive work and turn your passion into a lasting creative business.
+                True Fans is the best place to build community with your biggest fans, share exclusive work and turn your passion into a lasting creative business.
               </p>
               
               <div className="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                <span>https://www.patreon.com/kevinwoo</span>
+                <span>https://www.truefans.com/kevinwoo</span>
               </div>
             </div>
 

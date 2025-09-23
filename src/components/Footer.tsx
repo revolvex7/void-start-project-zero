@@ -53,12 +53,12 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="mb-6">
               <h3 className="text-2xl font-bold text-foreground tracking-wider">
-                PATREON
+                TRUE FANS
               </h3>
             </div>
             
             <p className="text-foreground/70 mb-6">
-              Patreon powers creative independence. We're building a future where creators are valued and fans directly support the work they love.
+              True Fans powers creative independence. We're building a future where creators are valued and fans directly support the work they love.
             </p>
             
             <div className="flex space-x-4">

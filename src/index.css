@@ -2,15 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Patreon Design System - Exact colors and design tokens */
+/* True Fans Design System - Exact colors and design tokens */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Patreon-style Mega Menu Animations */
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dropdown-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes text-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Amoeba morphing animation for hero navigation */
+@keyframes amoeba-morph {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  25% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+  50% {
+    border-radius: 54% 46% 38% 62% / 49% 70% 30% 51%;
+  }
+  75% {
+    border-radius: 31% 69% 70% 30% / 67% 48% 52% 33%;
+  }
+}
+
+/* Patreon-style Mega Menu */
+.mega-menu {
+  animation: dropdown-enter 0.15s ease-out;
+  border-top: 1px solid #e5e7eb;
+}
+
+.mega-menu-item {
+  animation: fade-in-up 0.2s ease-out;
+}
+
+.mega-menu-item:nth-child(1) { animation-delay: 0.02s; }
+.mega-menu-item:nth-child(2) { animation-delay: 0.04s; }
+.mega-menu-item:nth-child(3) { animation-delay: 0.06s; }
+.mega-menu-item:nth-child(4) { animation-delay: 0.08s; }
+.mega-menu-item:nth-child(5) { animation-delay: 0.1s; }
+
+/* Enhanced menu item hover effects */
+.patreon-menu-link {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.patreon-menu-link:hover {
+  background-color: #000000;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.patreon-menu-link .text-content {
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.patreon-menu-link:hover .text-content {
+  animation: text-slide-up 0.3s ease-out;
+}
+
+/* Hover effects for navigation items */
+.nav-link-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s;
+}
+
+.nav-link-hover:hover::before {
+  left: 100%;
+}
+
+/* Pill animation for main navbar items */
+.nav-menu-item-hover {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 8px 14px;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+.nav-menu-item-hover:hover {
+  background-color: #000;
+  color: #fff;
+  transform: translateY(-1px);
+}
+.nav-menu-item-hover-active {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Text animation for main navbar items */
+.nav-menu-item-text {
+  display: block;
+  transition: all 0.25s ease;
+}
+.nav-menu-item-hover:hover .nav-menu-item-text {
+  animation: text-slide-up 0.3s ease-out forwards;
+}
+
+/* Outline buttons that fill on hover */
+.outline-button {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.outline-button:hover {
+  background-color: #000;
+  color: #fff !important;
+  border-color: #000 !important;
+}
 
 @layer base {
   :root {
-    /* Patreon Brand Colors */
-    --patreon-primary: 230 76% 59%; /* Patreon blue */
-    --patreon-secondary: 283 89% 74%; /* Patreon purple */
-    --patreon-orange: 15 91% 67%; /* Patreon coral/orange */
+    /* True Fans Brand Colors */
+    --patreon-primary: 230 76% 59%; /* True Fans blue */
+    --patreon-secondary: 283 89% 74%; /* True Fans purple */
+    --patreon-orange: 15 91% 67%; /* True Fans coral/orange */
     
     /* Background System */
     --background: 231 25% 7%; /* Deep blue-black */
@@ -24,7 +184,7 @@
     --foreground-subtle: 0 0% 60%; /* Medium gray */
     
     /* Interactive Elements */
-    --primary: 230 76% 59%; /* Patreon blue */
+    --primary: 230 76% 59%; /* True Fans blue */
     --primary-foreground: 0 0% 100%;
     --primary-hover: 230 76% 69%;
     
@@ -38,7 +198,7 @@
     --card-border: 0 0% 100% / 0.1;
     
     /* Accent Colors */
-    --accent: 283 89% 74%; /* Patreon purple */
+    --accent: 283 89% 74%; /* True Fans purple */
     --accent-foreground: 0 0% 100%;
     --accent-hover: 283 89% 84%;
     
@@ -101,10 +261,31 @@
     background: var(--background-gradient);
     background-attachment: fixed;
     min-height: 100vh;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
   }
   
   html {
     scroll-behavior: smooth;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    body {
+      /* Reduce padding on mobile */
+      padding: 0;
+      margin: 0;
+    }
+    
+    /* Ensure full width on mobile */
+    .container, .max-w-7xl {
+      width: 100%;
+      max-width: 100%;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
   }
 }
 
@@ -116,5 +297,16 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Mobile-specific utilities */
+  .mobile-full-width {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+  }
+
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
