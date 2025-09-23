@@ -1,15 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Eye, EyeOff, Check } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [email, setEmail] = useState('');
+  const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Form data
+  const [formData, setFormData] = useState({
+    email: '',
+    name: '',
+    password: '',
+    creatorName: '',
+    pageUrl: '',
+    isAdultContent: false
+  });
 
   const featureSlides = [
     {
@@ -41,35 +53,50 @@ const Signup = () => {
     },
   ];
 
-  useEffect(() => {
-    if (emblaApi) {
-      const onSelect = () => {
-        setCurrentSlide(emblaApi.selectedScrollSnap());
-      };
-      emblaApi.on('select', onSelect);
-      onSelect();
-      return () => {
-        emblaApi.off('select', onSelect);
-      };
+  const handleNext = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      // Final step - log data and redirect
+      console.log('Signup completed with data:', formData);
+      navigate(`/c/${formData.pageUrl}`);
     }
-  }, [emblaApi]);
+  };
 
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header with perfectly centered logo */}
-      <div className="w-full flex justify-center items-center p-6">
-        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-          <div className="w-6 h-6 bg-black rounded-full relative">
-            <div className="absolute inset-0 bg-white rounded-full" style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%)'
-            }}></div>
-          </div>
-        </div>
-      </div>
+  const handleJoinAsFan = () => {
+    console.log('Joining as fan with email:', formData.email || 'No email provided');
+    navigate('/dashboard');
+  };
 
-      <div className="flex flex-1">
-        {/* Left Side - Form (70%) */}
-        <div className="w-7/10 flex items-center justify-center px-8 py-12">
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.email.length > 0;
+      case 2:
+        return formData.name.length > 0 && formData.password.length >= 8;
+      case 3:
+        return formData.creatorName.length > 0;
+      case 4:
+        return formData.pageUrl.length > 0;
+      default:
+        return false;
+    }
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
           <div className="w-full max-w-md">
             <div className="mb-8">
               <h1 className="text-4xl font-bold mb-4">Start creating on Patreon</h1>
@@ -78,9 +105,8 @@ const Signup = () => {
               </p>
             </div>
 
-            {/* Signup Form */}
             <div className="space-y-4">
-              {/* Google Signup */}
+              {/* Social Login Buttons */}
               <Button 
                 variant="outline" 
                 className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-3 h-auto flex items-center justify-start px-4 rounded-lg shadow-sm"
@@ -99,7 +125,6 @@ const Signup = () => {
                 </div>
               </Button>
 
-              {/* Apple Signup */}
               <Button 
                 variant="outline" 
                 className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-3 h-auto flex items-center justify-center px-4 rounded-lg shadow-sm"
@@ -110,7 +135,6 @@ const Signup = () => {
                 <span className="font-medium">Continue with Apple</span>
               </Button>
 
-              {/* Facebook Signup */}
               <Button 
                 variant="outline" 
                 className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-3 h-auto flex items-center justify-center px-4 rounded-lg shadow-sm"
@@ -121,27 +145,24 @@ const Signup = () => {
                 <span className="font-medium">Continue with Facebook</span>
               </Button>
 
-              {/* Or Divider */}
               <div className="text-center text-gray-400 my-6 text-sm">or</div>
 
-              {/* Email Input */}
               <Input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="you@example.com"
                 className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
               />
 
-              {/* Continue Button */}
               <Button 
-                onClick={() => navigate('/signup/complete', { state: { email } })}
-                className="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
               >
                 Continue
               </Button>
 
-              {/* Help Link */}
               <div className="text-center mt-6">
                 <a href="#" className="text-gray-400 hover:text-white underline text-sm">
                   Need help signing in?
@@ -149,7 +170,6 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Terms and Privacy */}
             <div className="text-center mt-8 text-xs text-gray-500">
               By signing up, you are creating a Patreon account and agree to{' '}
               <a href="#" className="underline hover:text-gray-400">Patreon's Terms</a>{' '}
@@ -157,45 +177,228 @@ const Signup = () => {
               <a href="#" className="underline hover:text-gray-400">Privacy Policy</a>
             </div>
 
-            {/* Not a creator link */}
             <div className="text-center mt-8">
               <Button 
                 variant="outline" 
+                onClick={handleJoinAsFan}
                 className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-6 py-2 rounded-full"
               >
                 Not a creator? Join as a fan
               </Button>
             </div>
           </div>
+        );
+
+      case 2:
+        return (
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-4">Complete your account</h1>
+              <p className="text-gray-300 text-lg">
+                Signing up as {formData.email}
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-white text-sm mb-2">What should we call you?</label>
+                <Input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Name"
+                  className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white text-sm mb-2">Create a password</label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    placeholder="Password"
+                    className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <p className="text-gray-400 text-sm mt-2">Passwords need to have at least 8 characters.</p>
+              </div>
+
+              <Button 
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-4">Let's name your page</h1>
+              <p className="text-gray-300 text-lg">
+                You can get creative or start with your name. Don't worry, you can always change this later.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="adult-content"
+                  checked={formData.isAdultContent}
+                  onCheckedChange={(checked) => handleInputChange('isAdultContent', checked)}
+                  className="border-gray-400"
+                />
+                <label htmlFor="adult-content" className="text-white text-sm">
+                  My page isn't suitable for people under 18
+                </label>
+              </div>
+
+              <Input
+                type="text"
+                value={formData.creatorName}
+                onChange={(e) => handleInputChange('creatorName', e.target.value)}
+                placeholder="Your creator name"
+                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+              />
+
+              <Button 
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
+              >
+                Continue
+              </Button>
+            </div>
+
+            <div className="text-center mt-8">
+              <Button 
+                variant="outline" 
+                onClick={handleJoinAsFan}
+                className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-6 py-2 rounded-full"
+              >
+                Not a creator? Join as a fan
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-4">Choose your URL</h1>
+              <p className="text-gray-300 text-lg">
+                You can always change this later.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="relative">
+                <div className="flex items-center bg-gray-700 border border-gray-600 rounded-lg">
+                  <span className="text-gray-400 px-4 py-3">patreon.com/</span>
+                  <Input
+                    type="text"
+                    value={formData.pageUrl}
+                    onChange={(e) => handleInputChange('pageUrl', e.target.value)}
+                    placeholder="YourPageName"
+                    className="flex-1 bg-transparent border-0 text-white placeholder-gray-400 py-3 focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+                  />
+                  {formData.pageUrl && (
+                    <div className="px-3">
+                      <Check className="w-5 h-5 text-green-500" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className="w-full bg-white text-black hover:bg-gray-100 py-3 h-auto rounded-lg font-medium shadow-sm"
+              >
+                Continue
+              </Button>
+            </div>
+
+            <div className="text-center mt-6">
+              <button 
+                onClick={handleBack}
+                className="text-gray-400 hover:text-white underline text-sm"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Header with logo */}
+      <div className="w-full flex justify-center items-center p-6">
+        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+          <div className="w-6 h-6 bg-black rounded-full relative">
+            <div className="absolute inset-0 bg-white rounded-full" style={{
+              clipPath: 'polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%)'
+            }}></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1">
+        {/* Left Side - Form */}
+        <div className="w-7/10 flex items-center justify-center px-8 py-12 relative">
+          {/* Back Button */}
+          {currentStep > 1 && (
+            <button
+              onClick={handleBack}
+              className="absolute top-8 left-8 p-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={24} />
+            </button>
+          )}
+          
+          {renderStep()}
         </div>
 
-        {/* Right Side - Features Carousel (30%) */}
+        {/* Right Side - Features Carousel */}
         <div className="hidden md:flex w-3/10 bg-gradient-to-br from-purple-900 via-blue-900 to-purple-800 items-center justify-center relative overflow-hidden">
           <div className="embla w-full h-full" ref={emblaRef}>
             <div className="embla__container h-full flex">
               {featureSlides.map((slide, index) => (
                 <div className="embla__slide flex-shrink-0 w-full h-full flex flex-col items-center justify-center text-center p-8" key={index}>
-                  {/* Stacked Cards Design */}
                   <div className="relative mb-6">
-                    {/* Background Card */}
                     <div className="absolute top-2 left-2 w-64 h-72 bg-white/10 rounded-2xl transform rotate-3"></div>
-                    {/* Main Card */}
                     <div className="relative w-64 h-72 bg-white rounded-2xl p-4 shadow-2xl flex flex-col">
-                      {/* Header Image Area */}
                       <div className="w-full h-24 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 rounded-xl mb-3 flex items-center justify-center flex-shrink-0">
                         <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                           <div className="w-6 h-6 bg-white rounded-full"></div>
                         </div>
                       </div>
                       
-                      {/* Card Content */}
                       <div className="text-left flex-1 flex flex-col">
                         <div className="flex items-baseline mb-3">
                           <span className="text-2xl font-bold text-black">{slide.cardContent.price}</span>
                           <span className="text-gray-600 ml-1 text-sm">{slide.cardContent.period}</span>
                         </div>
                         
-                        {/* Features List */}
                         <div className="space-y-1.5 mb-4 flex-1">
                           {slide.cardContent.features.slice(0, 4).map((feature, featureIndex) => (
                             <div key={featureIndex} className="flex items-center text-gray-600">
@@ -205,7 +408,6 @@ const Signup = () => {
                           ))}
                         </div>
                         
-                        {/* Join Button */}
                         <Button className="w-full bg-black text-white rounded-lg py-2 text-sm font-medium mt-auto">
                           Join now
                         </Button>
@@ -213,25 +415,11 @@ const Signup = () => {
                     </div>
                   </div>
                   
-                  {/* Text Content */}
                   <h3 className="text-xl font-bold mb-2 text-white">{slide.title}</h3>
                   <p className="text-gray-300 text-sm max-w-xs leading-relaxed">{slide.description}</p>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Dots indicator */}
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center space-x-2">
-            {featureSlides.map((_, index) => (
-              <button
-                key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentSlide ? 'bg-white' : 'bg-white/40'
-                }`}
-                onClick={() => emblaApi && emblaApi.scrollTo(index)}
-              />
-            ))}
           </div>
         </div>
       </div>
@@ -239,4 +427,4 @@ const Signup = () => {
   );
 };
 
-export default Signup; 
+export default Signup;
