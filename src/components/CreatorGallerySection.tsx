@@ -51,6 +51,7 @@ const getSizeClasses = (size: string, index: number) => {
 const CreatorGallerySection = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrollable, setIsScrollable] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const checkScrollable = () => {
@@ -64,45 +65,60 @@ const CreatorGallerySection = () => {
     return () => window.removeEventListener('resize', checkScrollable);
   }, []);
 
+  // Auto-slide functionality
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % creators.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const scrollAmount = currentIndex * 320; // Approximate width of each card
+      scrollRef.current.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+    }
+  }, [currentIndex]);
+
   return (
-    <section className="relative py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
+    <section className="relative py-16 sm:py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
           {/* Left Side - Text Content */}
-          <div className="space-y-8 lg:sticky lg:top-32">
+          <div className="lg:w-1/2 space-y-6 sm:space-y-8 lg:sticky lg:top-32 px-4 max-w-7xl mx-auto lg:mx-0">
             <div>
-              <h2 className="text-7xl lg:text-8xl font-bold text-gray-900 leading-none mb-4">
+              <h2 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-gray-900 leading-none mb-2 sm:mb-4">
                 Creativity
               </h2>
-              <h2 className="text-7xl lg:text-8xl font-bold text-gray-900 leading-none">
+              <h2 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-gray-900 leading-none">
                 powered
               </h2>
             </div>
             
-            <div className="space-y-6">
-              <p className="text-xl text-gray-700 max-w-lg leading-relaxed">
+            <div className="space-y-4 sm:space-y-6">
+              <p className="text-lg sm:text-xl text-gray-700 max-w-lg leading-relaxed">
                 Patreon is the best place to build community with your biggest fans, share exclusive work and turn your passion into a lasting creative business.
               </p>
               
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <div className="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
                 <span>https://www.patreon.com/kevinwoo</span>
               </div>
             </div>
 
             {/* Large decorative text */}
-            <div className="absolute -bottom-16 -right-16 text-9xl font-bold text-gray-900/5 pointer-events-none">
+            <div className="hidden lg:block absolute -bottom-16 -right-16 text-9xl font-bold text-gray-900/5 pointer-events-none">
               by
             </div>
-            <div className="absolute -top-16 -left-16 text-8xl font-bold text-purple-500/10 pointer-events-none">
+            <div className="hidden lg:block absolute -top-16 -left-16 text-8xl font-bold text-purple-500/10 pointer-events-none">
               fandom
             </div>
           </div>
 
-          {/* Right Side - Horizontal Scrolling Gallery */}
-          <div className="relative">
+          {/* Right Side - Full Width Horizontal Scrolling Gallery */}
+          <div className="lg:w-1/2 w-full relative">
             <div 
               ref={scrollRef}
-              className="flex gap-8 overflow-x-auto scrollbar-hide pb-4"
+              className="flex gap-4 sm:gap-8 overflow-x-auto scrollbar-hide pb-4 px-4 lg:px-0"
               style={{ scrollSnapType: 'x mandatory' }}
             >
               {creators.map((creator, index) => (
