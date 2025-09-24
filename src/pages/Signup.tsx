@@ -350,17 +350,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header with logo */}
-      <div className="w-full flex justify-center items-center p-6">
-        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-          <div className="w-6 h-6 bg-black rounded-full relative">
-            <div className="absolute inset-0 bg-white rounded-full" style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%)'
-            }}></div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-black text-white flex">
 
       <div className="flex flex-1">
         {/* Left Side - Form */}
