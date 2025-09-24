@@ -35,7 +35,7 @@ const SignupName = () => {
 
             <Button
               disabled={!isValid}
-              onClick={() => navigate('/signup/profile', { state: { email, fullName, creatorName } })}
+              onClick={() => navigate('/')}
               className={`w-full h-12 rounded-lg ${isValid ? 'bg-gray-200 text-black hover:bg-white' : 'bg-gray-700 text-gray-400'}`}
             >
               Continue
