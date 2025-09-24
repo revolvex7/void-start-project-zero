@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import CreatePost from "./pages/CreatePost";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/c/:creatorUrl" element={<Dashboard />} />
+          <Route path="/c/:creatorUrl/create-post" element={<CreatePost />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

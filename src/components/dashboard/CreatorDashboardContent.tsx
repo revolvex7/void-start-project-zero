@@ -1,36 +1,78 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Settings, Users, BarChart3, DollarSign, Edit, Eye } from 'lucide-react';
+import { ChevronRight, Settings, Users, BarChart3, DollarSign, Edit, Eye, Megaphone } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { StartBasicsModal } from './StartBasicsModal';
 
 const setupTasks = [
   {
+    id: 'basics',
     icon: Settings,
     title: 'Start with the basics',
     description: 'Add your name, photo and what you create.',
-    completed: false
+    completed: false,
+    enabled: true
   },
   {
+    id: 'first-post',
     icon: Edit,
     title: 'Make your first post',
     description: 'Create a public welcome post or share your first exclusive post just for members.',
     completed: false,
-    link: 'Tips for your first post'
+    link: 'Tips for your first post',
+    enabled: true
   },
   {
+    id: 'layout',
     icon: Eye,
     title: 'Choose your layout',
     description: 'Customise your post layout, header and page colours.',
-    completed: false
+    completed: false,
+    enabled: false
   },
   {
+    id: 'publish',
     icon: Users,
     title: 'Publish your page',
     description: 'You can come back to edit your page at any time.',
-    completed: false
+    completed: false,
+    enabled: false
+  },
+  {
+    id: 'promote',
+    icon: Megaphone,
+    title: 'Promote your Patreon',
+    description: 'Share previews on social media with a link to your page.',
+    completed: false,
+    enabled: false
   }
 ];
 
 export function CreatorDashboardContent({ creatorName }: { creatorName: string }) {
+  const navigate = useNavigate();
+  const { creatorUrl } = useParams();
+  const [showBasicsModal, setShowBasicsModal] = useState(false);
+  const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+
+  const handleTaskClick = (task: any) => {
+    if (!task.enabled) return;
+    
+    if (task.id === 'basics') {
+      setShowBasicsModal(true);
+    } else if (task.id === 'first-post') {
+      navigate(`/c/${creatorUrl}/create-post`);
+    }
+  };
+
+  const handleBasicsSave = (data: any) => {
+    console.log('Basics saved:', data);
+    setCompletedTasks(prev => [...prev, 'basics']);
+    setShowBasicsModal(false);
+  };
+
+  const getCompletedCount = () => {
+    return completedTasks.length;
+  };
   return (
     <div className="flex-1 bg-black text-white">
       {/* Top banner */}
@@ -89,7 +131,7 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
                   Let's set up your page and start growing your community. <a href="#" className="text-blue-400 underline">Learn more</a>
                 </p>
                 <div className="text-green-400 text-sm font-medium">
-                  0 of 5 complete
+                  {getCompletedCount()} of 5 complete
                 </div>
               </div>
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white ml-4">
@@ -100,22 +142,39 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
             {/* Setup Tasks */}
             <div className="mt-6 space-y-4">
               {setupTasks.map((task, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg hover:bg-gray-750 cursor-pointer transition-colors">
+                <div 
+                  key={index} 
+                  onClick={() => handleTaskClick(task)}
+                  className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
+                    task.enabled 
+                      ? 'bg-gray-800 hover:bg-gray-750 cursor-pointer' 
+                      : 'bg-gray-900 cursor-not-allowed opacity-50'
+                  } ${completedTasks.includes(task.id) ? 'ring-2 ring-green-500' : ''}`}
+                >
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                      <task.icon className="w-5 h-5 text-gray-400" />
+                      <task.icon className={`w-5 h-5 ${task.enabled ? 'text-gray-400' : 'text-gray-600'}`} />
                     </div>
                     <div>
-                      <h4 className="font-medium text-white">{task.title}</h4>
-                      <p className="text-sm text-gray-400">{task.description}</p>
-                      {task.link && (
+                      <h4 className={`font-medium ${task.enabled ? 'text-white' : 'text-gray-500'}`}>
+                        {task.title}
+                      </h4>
+                      <p className={`text-sm ${task.enabled ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {task.description}
+                      </p>
+                      {task.link && task.enabled && (
                         <a href="#" className="text-xs text-blue-400 underline mt-1 block">
                           {task.link}
                         </a>
                       )}
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  {completedTasks.includes(task.id) && (
+                    <div className="w-5 h-5 text-green-500">✓</div>
+                  )}
+                  {!completedTasks.includes(task.id) && task.enabled && (
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  )}
                 </div>
               ))}
             </div>
@@ -173,6 +232,13 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
           </div>
         </div>
       </div>
+
+      {/* Start Basics Modal */}
+      <StartBasicsModal 
+        open={showBasicsModal}
+        onOpenChange={setShowBasicsModal}
+        onSave={handleBasicsSave}
+      />
     </div>
   );
 }
