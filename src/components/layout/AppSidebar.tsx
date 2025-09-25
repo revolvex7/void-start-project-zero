@@ -1,6 +1,7 @@
 import React from "react";
 import { Home, Search, Users, Bell, Settings, User } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -22,9 +23,16 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path || (path === "/dashboard" && currentPath === "/dashboard");
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <Sidebar className="border-r border-gray-800 bg-gray-900 w-64 lg:w-64">
@@ -69,48 +77,95 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Bottom section with role switcher */}
+        {/* User Profile Section */}
         <div className="mt-auto p-4 border-t border-gray-800">
-          {/* Active Member Account */}
-          <div className="flex items-center space-x-3 mb-3 p-2 bg-gray-800 rounded-lg">
-            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">N</span>
-            </div>
-            <div className="flex-1">
-              <div className="text-white text-sm font-medium">Nissim Booth</div>
-              <div className="text-gray-400 text-xs">Member</div>
-            </div>
-            <div className="w-4 h-4 text-green-500">✓</div>
-          </div>
-          
-          {/* Switch to Creator */}
-          <NavLink 
-            to="/c/NissimBooth" 
-            className="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors mb-3"
-          >
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">N</span>
-            </div>
-            <div className="flex-1">
-              <div className="text-white text-sm font-medium">Nissim Booth</div>
-              <div className="text-gray-400 text-xs">Creator</div>
-            </div>
-          </NavLink>
-          
-          {/* Become Creator CTA */}
-          <div className="p-3 bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-white text-sm font-medium">Become a creator</div>
-                <div className="text-gray-400 text-xs">You're almost there! Complete your page and take it live.</div>
+          <div className="space-y-4">
+            {/* User Profile */}
+            <div className="flex items-center space-x-3 p-2 bg-gray-800 rounded-lg">
+              <div className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">S</span>
               </div>
-              <button className="text-gray-400 hover:text-white">×</button>
+              <div className="flex-1">
+                <div className="text-white text-sm font-medium">SHAZ</div>
+                <div className="text-gray-400 text-xs">Creator</div>
+              </div>
+              <div className="w-4 h-4 text-blue-500">✓</div>
             </div>
-            <NavLink to="/signup">
-              <button className="w-full mt-2 bg-white text-black py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-100">
-                Finish my page
-              </button>
-            </NavLink>
+            
+            {/* Secondary Profile */}
+            <div className="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">S</span>
+              </div>
+              <div className="flex-1">
+                <div className="text-white text-sm font-medium">Shazil</div>
+                <div className="text-gray-400 text-xs">Member</div>
+              </div>
+            </div>
+
+            {/* Menu Options */}
+            <div className="space-y-1">
+              <div className="text-gray-400 text-xs px-2 py-1">Appearance</div>
+              
+              <div className="flex items-center justify-between p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <div className="flex items-center space-x-3">
+                  <div className="w-5 h-5 bg-gray-600 rounded"></div>
+                  <span className="text-white text-sm">Light</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-2 bg-gray-800 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-5 h-5 bg-white rounded"></div>
+                  <span className="text-white text-sm">Dark</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <div className="flex items-center space-x-3">
+                  <div className="w-5 h-5 bg-gradient-to-br from-gray-600 to-white rounded"></div>
+                  <span className="text-white text-sm">System</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="space-y-1">
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">News</span>
+              </div>
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">Patreon for Creators</span>
+              </div>
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">Help Centre & FAQ</span>
+              </div>
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">Feature Requests</span>
+              </div>
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">Terms of Use</span>
+              </div>
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">Privacy Policy</span>
+              </div>
+              <div className="p-2 hover:bg-gray-800 rounded-lg cursor-pointer">
+                <span className="text-white text-sm">Community Policies</span>
+              </div>
+            </div>
+
+            {/* Logout Button */}
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors text-left"
+            >
+              <div className="w-5 h-5">
+                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-gray-400">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+              </div>
+              <span className="text-white text-sm">Log out</span>
+            </button>
           </div>
         </div>
       </SidebarContent>

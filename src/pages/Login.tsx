@@ -1,8 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Eye, EyeOff } from 'lucide-react';
+import { authAPI } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleEmailContinue = () => {
+    if (email) {
+      setShowPasswordField(true);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!email || !password) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await authAPI.login(email, password);
+      login(response.user);
+      toast({
+        title: "Welcome back!",
+        description: "You've been successfully logged in.",
+      });
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.response?.data?.message || "Invalid email or password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 sm:px-6 py-8">
       <div className="w-full max-w-md mx-auto">
@@ -67,15 +110,39 @@ const Login = () => {
           {/* Email Input */}
           <Input
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="shazilnisar7@gmail.com"
             className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
           />
 
+          {/* Password Input - Shows after email is entered */}
+          {showPasswordField && (
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          )}
+
           {/* Continue Button */}
           <Button 
-            className="w-full bg-gray-600 hover:bg-gray-500 text-white py-2 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
+            onClick={showPasswordField ? handleLogin : handleEmailContinue}
+            disabled={showPasswordField ? (!email || !password || isLoading) : (!email || isLoading)}
+            className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-2 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
           >
-            Continue
+            {isLoading ? 'Loading...' : showPasswordField ? 'Log in' : 'Continue'}
           </Button>
 
           {/* Help Link */}

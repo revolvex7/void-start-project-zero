@@ -8,10 +8,12 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, Check } from 'lucide-react';
 import { authAPI, userAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -65,11 +67,12 @@ const Signup = () => {
     try {
       if (currentStep === 2) {
         // Register user after step 2
-        await authAPI.register({
+        const response = await authAPI.register({
           name: formData.name,
           email: formData.email,
           password: formData.password
         });
+        login(response.user); // Log in the user immediately after registration
         toast({
           title: "Account created successfully!",
           description: "Please complete your profile.",
@@ -108,6 +111,14 @@ const Signup = () => {
 
   const handleJoinAsFan = () => {
     console.log('Joining as fan with email:', formData.email || 'No email provided');
+    // Create a basic user profile for fan
+    const fanUser = {
+      id: 'fan_' + Date.now(),
+      name: formData.name || 'Fan User',
+      email: formData.email,
+      isCreator: false
+    };
+    login(fanUser);
     navigate('/dashboard');
   };
 
@@ -317,6 +328,15 @@ const Signup = () => {
               </Button>
             </div>
 
+            {/* Join as fan button - only show in step 3 */}
+            <div className="text-center mt-6">
+              <button 
+                onClick={handleJoinAsFan}
+                className="text-gray-400 hover:text-white underline text-sm"
+              >
+                Join as a fan instead
+              </button>
+            </div>
           </div>
         );
 
