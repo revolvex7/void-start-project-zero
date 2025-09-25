@@ -50,14 +50,7 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
           <DialogTitle className="text-xl font-semibold text-center flex-1">
             Start with the basics
           </DialogTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => onOpenChange(false)}
-            className="text-gray-400 hover:text-white"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+        
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
@@ -75,12 +68,12 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
                   'S'
                 )}
               </div>
-              <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-black rounded-full flex items-center justify-center cursor-pointer border-2 border-gray-700">
+              <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-black rounded-full flex items-center justify-center cursor-pointer border-2 border-gray-700 hover:bg-gray-800 transition-colors">
                 <Camera className="w-4 h-4 text-gray-400" />
                 <input 
                   type="file" 
                   accept="image/*" 
-                  className="hidden" 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
                   onChange={handleImageUpload}
                 />
               </label>

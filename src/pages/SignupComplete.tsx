@@ -13,32 +13,32 @@ const SignupComplete = () => {
   const isValid = fullName.trim().length > 0 && password.length >= 8;
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
       {/* Left 70% */}
-      <div className="w-7/10 flex items-center justify-center px-6">
+      <div className="w-full lg:w-7/10 flex items-center justify-center px-4 sm:px-6 py-6 lg:py-0">
         <div className="w-full max-w-xl">
-          <h1 className="text-3xl font-semibold mb-2">Complete your account</h1>
-          <p className="text-gray-400 mb-8">Signing up as {email}</p>
+          <h1 className="text-2xl sm:text-3xl font-semibold mb-2">Complete your account</h1>
+          <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">Signing up as {email}</p>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">What should we call you?</label>
+              <label className="block text-xs sm:text-sm text-gray-300 mb-2">What should we call you?</label>
               <Input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Your full name"
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-10 sm:h-12 text-sm sm:text-base"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Create a password</label>
+              <label className="block text-xs sm:text-sm text-gray-300 mb-2">Create a password</label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-10 sm:h-12 text-sm sm:text-base"
               />
               <p className="text-xs text-gray-400 mt-2">Passwords need to have at least 8 characters.</p>
             </div>
@@ -46,7 +46,7 @@ const SignupComplete = () => {
             <Button
               disabled={!isValid}
               onClick={() => navigate('/signup/name', { state: { email, fullName } })}
-              className={`w-full h-12 rounded-lg ${isValid ? 'bg-gray-200 text-black hover:bg-white' : 'bg-gray-700 text-gray-400'}`}
+              className={`w-full h-10 sm:h-12 rounded-lg text-sm sm:text-base ${isValid ? 'bg-gray-200 text-black hover:bg-white' : 'bg-gray-700 text-gray-400'}`}
             >
               Continue
             </Button>
@@ -55,7 +55,7 @@ const SignupComplete = () => {
       </div>
 
       {/* Right 30% */}
-      <div className="hidden md:flex w-3/10 bg-gradient-to-br from-purple-900 via-blue-900 to-purple-800 items-center justify-center">
+      <div className="hidden lg:flex w-full lg:w-3/10 bg-gradient-to-br from-purple-900 via-blue-900 to-purple-800 items-center justify-center">
         <div className="max-w-sm text-center">
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-8">
             <div className="h-36 rounded-xl bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 mb-4"></div>

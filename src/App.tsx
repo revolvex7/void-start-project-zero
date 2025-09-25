@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import CreatePost from "./pages/CreatePost";
+import CreatorProfile from "./pages/CreatorProfile";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/c/:creatorUrl" element={<Dashboard />} />
           <Route path="/c/:creatorUrl/create-post" element={<CreatePost />} />
+          <Route path="/creator/:creatorName" element={<CreatorProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -27,8 +27,8 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || (path === "/dashboard" && currentPath === "/dashboard");
 
   return (
-    <Sidebar className="border-r border-gray-800 bg-gray-900">
-      <SidebarContent>
+    <Sidebar className="border-r border-gray-800 bg-gray-900 w-64 lg:w-64">
+      <SidebarContent className="bg-gray-900">
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center space-x-2">

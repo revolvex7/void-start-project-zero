@@ -12,9 +12,9 @@ const Dashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-black text-white">
+      <div className="min-h-screen flex flex-col lg:flex-row w-full bg-black text-white">
         {isCreatorDashboard ? <CreatorSidebar /> : <AppSidebar />}
-        <main className="flex-1">
+        <main className="flex-1 lg:ml-0">
           {isCreatorDashboard ? (
             <CreatorDashboardContent creatorName={creatorUrl?.replace(/([A-Z])/g, ' $1').trim() || 'Creator'} />
           ) : (
