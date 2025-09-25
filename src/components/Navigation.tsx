@@ -290,30 +290,30 @@ const Navigation = () => {
               </Link>
               
               <Link to="/signup">
-                <Button 
+              <Button 
                   className={`rounded-full px-6 py-2 font-medium transition-all duration-300 ${
                     isScrolled || activeDropdown
-                      ? 'bg-black text-white hover:bg-gray-800' 
-                      : 'bg-white text-black hover:bg-white/90'
-                  }`}
-                >
-                  Get Started
-                </Button>
+                    ? 'bg-black text-white hover:bg-gray-800' 
+                    : 'bg-white text-black hover:bg-white/90'
+                }`}
+              >
+                Get Started
+              </Button>
               </Link>
             </div>
 
             {/* Mobile Get Started Button */}
             <div className="lg:hidden">
               <Link to="/signup">
-                <Button 
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ${
+              <Button 
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ${
                     isScrolled || activeDropdown
-                      ? 'bg-black text-white hover:bg-gray-800' 
-                      : 'bg-white text-black hover:bg-white/90'
-                  }`}
-                >
-                  Get Started
-                </Button>
+                    ? 'bg-black text-white hover:bg-gray-800' 
+                    : 'bg-white text-black hover:bg-white/90'
+                }`}
+              >
+                Get Started
+              </Button>
               </Link>
             </div>
           </div>

@@ -213,10 +213,10 @@ const HeroSection = () => {
           </div>
         </div>
       )}
-
+      
       {/* Enhanced Overlay for Better Mobile Readability */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/30 via-black/40 to-black/50" />
-
+      
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
@@ -232,20 +232,20 @@ const HeroSection = () => {
                 </h1>
               </div>
             </div>
-
+            
             <div className="animate-fade-up delay-300">
               <p className="text-lg sm:text-xl lg:text-2xl text-white/90 font-normal max-w-lg mx-auto lg:mx-0 leading-relaxed">
                 {currentSlide.description}
               </p>
             </div>
-
+            
             <div className="animate-fade-up delay-500">
               <button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg transition-all duration-300 patreon-hover-glow shadow-lg w-full sm:w-auto">
                 Start my page
               </button>
             </div>
           </div>
-
+          
           {/* Right Column - Creator Spotlight */}
           <div className="flex flex-col justify-center space-y-6 animate-fade-up delay-700 relative">
             <CreatorSpotlight
@@ -256,7 +256,7 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-
+      
       {/* Scroll Indicator */}
       <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
         <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-white/60" />

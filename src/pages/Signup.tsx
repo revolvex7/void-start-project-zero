@@ -6,16 +6,19 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, Check } from 'lucide-react';
-import { authAPI, userAPI } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { userAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { register, fetchUserProfile } = useAuth();
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   
   // Form data
   const [formData, setFormData] = useState({
@@ -29,33 +32,57 @@ const Signup = () => {
 
   const featureSlides = [
     {
-      title: 'Income you can count on',
-      description: 'Earn a recurring monthly or annual income with memberships.',
+      title: "Fund your creative work",
+      description: "Get paid monthly by fans and build sustainable income as a creator",
       cardContent: {
-        price: '$5.00',
-        period: '/ month',
-        features: ['Access to exclusive content', 'Monthly livestreams', 'Community Discord', 'Early access to videos']
+        price: "₦2,500",
+        period: "per month",
+        features: [
+          "Access to exclusive content",
+          "Early access to new posts",
+          "Behind-the-scenes content",
+          "Direct creator interaction",
+          "Monthly live streams"
+        ]
       }
     },
     {
-      title: 'Sell to anyone',
-      description: 'Easily list digital products like videos and downloads for sale.',
+      title: "Connect with your community", 
+      description: "Build lasting relationships with your most passionate supporters",
       cardContent: {
-        price: '$15.00',
-        period: '/ product',
-        features: ['Digital downloads', 'Video tutorials', 'Premium content', 'Instant access']
+        price: "₦5,000",
+        period: "per month", 
+        features: [
+          "All previous tier benefits",
+          "Priority support response",
+          "Exclusive community access",
+          "Monthly Q&A sessions",
+          "Custom content requests"
+        ]
       }
     },
     {
-      title: 'Reach your closest fans',
-      description: 'Communicate directly with your most engaged fans, all gathered in one place.',
+      title: "Earn predictable income",
+      description: "Turn your passion into a sustainable business with monthly memberships", 
       cardContent: {
-        price: '$10.00',
-        period: '/ month',
-        features: ['Direct messaging', 'Fan community', 'Exclusive updates', 'Behind the scenes']
+        price: "₦10,000",
+        period: "per month",
+        features: [
+          "All previous tier benefits", 
+          "One-on-one video calls",
+          "Personal project reviews",
+          "Exclusive merchandise",
+          "VIP event access"
+        ]
       }
-    },
+    }
   ];
+
+  const handleJoinAsFan = () => {
+    console.log('Joining as fan with email:', formData.email || 'No email provided');
+    // Redirect to fan dashboard
+    navigate('/dashboard');
+  };
 
   const handleNext = async () => {
     if (isLoading) return;
@@ -64,34 +91,37 @@ const Signup = () => {
     
     try {
       if (currentStep === 2) {
-        // Register user after step 2
-        await authAPI.register({
+        // Register user after step 2 - only store tokens, don't fetch profile yet
+        await register({
           name: formData.name,
           email: formData.email,
           password: formData.password
         });
         toast({
           title: "Account created successfully!",
-          description: "Please complete your profile.",
+          description: "You can now continue as a creator or join as a fan.",
         });
         setCurrentStep(3);
       } else if (currentStep === 3) {
-        // Update user with creator name and adult content preference
+        // Fetch complete user profile from /user API first
+        await fetchUserProfile();
+        
+        // Then update user with creator name and adult content preference
         await userAPI.update({
           creatorName: formData.creatorName,
-          is18Plus: formData.isAdultContent
+          is18Plus: formData.isAdultContent,
         });
         setCurrentStep(4);
       } else if (currentStep === 4) {
         // Update user with page name
         await userAPI.update({
-          pageName: formData.pageUrl
+          pageName: formData.pageUrl,
         });
         toast({
           title: "Profile completed!",
           description: "Welcome to your creator dashboard.",
         });
-        navigate(`/c/${formData.pageUrl}`);
+        navigate('/dashboard');
       } else {
         setCurrentStep(currentStep + 1);
       }
@@ -104,11 +134,6 @@ const Signup = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleJoinAsFan = () => {
-    console.log('Joining as fan with email:', formData.email || 'No email provided');
-    navigate('/dashboard');
   };
 
   const handleBack = () => {
@@ -140,26 +165,26 @@ const Signup = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="w-full max-w-md mx-auto">
-            <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Start creating on Patreon</h1>
-              <p className="text-gray-300 text-base sm:text-lg">
+          <div className="w-full">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Start creating on True Fans</h1>
+              <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
                 Join 250,000+ creators building fandoms, earning from memberships, and selling digital products.
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Social Login Buttons */}
               <Button 
                 variant="outline" 
-                className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-3 h-auto flex items-center justify-start px-4 rounded-lg shadow-sm"
+                className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-2.5 sm:py-3 h-auto flex items-center justify-start px-3 sm:px-4 rounded-lg shadow-sm text-sm sm:text-base"
               >
-                <div className="w-5 h-5 mr-3 bg-green-600 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 bg-green-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">S</span>
                 </div>
                 <span className="flex-1 text-left font-medium">Continue as Star Reach</span>
-                <div className="w-5 h-5">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5">
+                <div className="w-4 h-4 sm:w-5 sm:h-5">
+                  <svg viewBox="0 0 24 24" className="w-full h-full">
                     <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -170,9 +195,9 @@ const Signup = () => {
 
               <Button 
                 variant="outline" 
-                className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-3 h-auto flex items-center justify-center px-4 rounded-lg shadow-sm"
+                className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-2.5 sm:py-3 h-auto flex items-center justify-center px-3 sm:px-4 rounded-lg shadow-sm text-sm sm:text-base"
               >
-                <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                 </svg>
                 <span className="font-medium">Continue with Apple</span>
@@ -180,96 +205,95 @@ const Signup = () => {
 
               <Button 
                 variant="outline" 
-                className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-3 h-auto flex items-center justify-center px-4 rounded-lg shadow-sm"
+                className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50 py-2.5 sm:py-3 h-auto flex items-center justify-center px-3 sm:px-4 rounded-lg shadow-sm text-sm sm:text-base"
               >
-                <svg className="w-5 h-5 mr-3" fill="#1877f2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" fill="#1877f2" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
                 <span className="font-medium">Continue with Facebook</span>
               </Button>
 
-              <div className="text-center text-gray-400 my-6 text-sm">or</div>
+              <div className="text-center text-gray-400 my-4 sm:my-6 text-xs sm:text-sm">or</div>
 
               <Input
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="you@example.com"
-                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
               />
 
               <Button 
                 onClick={handleNext}
                 disabled={!isStepValid() || isLoading}
-                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
+                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
               >
                 {isLoading ? 'Loading...' : 'Continue'}
               </Button>
 
-              <div className="text-center mt-6">
-                <a href="#" className="text-gray-400 hover:text-white underline text-sm">
+              <div className="text-center mt-4 sm:mt-6">
+                <a href="#" className="text-gray-400 hover:text-white underline text-xs sm:text-sm">
                   Need help signing in?
                 </a>
               </div>
             </div>
 
-            <div className="text-center mt-8 text-xs text-gray-500">
-              By signing up, you are creating a Patreon account and agree to{' '}
-              <a href="#" className="underline hover:text-gray-400">Patreon's Terms</a>{' '}
+            <div className="text-center mt-6 sm:mt-8 text-xs text-gray-500 leading-relaxed px-2">
+              By signing up, you are creating a True Fans account and agree to{' '}
+              <a href="#" className="underline hover:text-gray-400">True Fans' Terms</a>{' '}
               and{' '}
               <a href="#" className="underline hover:text-gray-400">Privacy Policy</a>
             </div>
-
           </div>
         );
 
       case 2:
         return (
-          <div className="w-full max-w-md">
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-4">Complete your account</h1>
-              <p className="text-gray-300 text-lg">
+          <div className="w-full">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Complete your account</h1>
+              <p className="text-gray-300 text-sm sm:text-base lg:text-lg">
                 Signing up as {formData.email}
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <label className="block text-white text-sm mb-2">What should we call you?</label>
+                <label className="block text-white text-xs sm:text-sm mb-2">What should we call you?</label>
                 <Input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="Name"
-                  className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+                  className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="block text-white text-sm mb-2">Create a password</label>
+                <label className="block text-white text-xs sm:text-sm mb-2">Create a password</label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     placeholder="Password"
-                    className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none pr-12"
+                    className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none pr-10 sm:pr-12 text-sm sm:text-base"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <p className="text-gray-400 text-sm mt-2">Passwords need to have at least 8 characters.</p>
+                <p className="text-gray-400 text-xs sm:text-sm mt-2">Passwords need to have at least 8 characters.</p>
               </div>
 
               <Button 
                 onClick={handleNext}
                 disabled={!isStepValid() || isLoading}
-                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
+                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
               >
                 {isLoading ? 'Creating account...' : 'Continue'}
               </Button>
@@ -279,23 +303,23 @@ const Signup = () => {
 
       case 3:
         return (
-          <div className="w-full max-w-md">
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-4">Let's name your page</h1>
-              <p className="text-gray-300 text-lg">
+          <div className="w-full">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Let's name your page</h1>
+              <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
                 You can get creative or start with your name. Don't worry, you can always change this later.
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-start space-x-3">
                 <Checkbox
                   id="adult-content"
                   checked={formData.isAdultContent}
                   onCheckedChange={(checked) => handleInputChange('isAdultContent', checked)}
-                  className="border-gray-400"
+                  className="border-gray-400 mt-1"
                 />
-                <label htmlFor="adult-content" className="text-white text-sm">
+                <label htmlFor="adult-content" className="text-white text-xs sm:text-sm leading-relaxed">
                   My page isn't suitable for people under 18
                 </label>
               </div>
@@ -305,45 +329,54 @@ const Signup = () => {
                 value={formData.creatorName}
                 onChange={(e) => handleInputChange('creatorName', e.target.value)}
                 placeholder="Your creator name"
-                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
               />
 
               <Button 
                 onClick={handleNext}
                 disabled={!isStepValid() || isLoading}
-                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-3 h-auto rounded-lg font-medium shadow-sm"
+                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
               >
                 {isLoading ? 'Updating...' : 'Continue'}
               </Button>
             </div>
 
+            <div className="text-center mt-6 sm:mt-8">
+              <Button 
+                variant="outline" 
+                onClick={handleJoinAsFan}
+                className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm"
+              >
+                Not a creator? Join as a fan
+              </Button>
+            </div>
           </div>
         );
 
       case 4:
         return (
-          <div className="w-full max-w-md">
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-4">Choose your URL</h1>
-              <p className="text-gray-300 text-lg">
+          <div className="w-full">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Choose your URL</h1>
+              <p className="text-gray-300 text-sm sm:text-base lg:text-lg">
                 You can always change this later.
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="relative">
                 <div className="flex items-center bg-gray-700 border border-gray-600 rounded-lg">
-                  <span className="text-gray-400 px-4 py-3">patreon.com/</span>
+                  <span className="text-gray-400 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm">truefans.com/</span>
                   <Input
                     type="text"
                     value={formData.pageUrl}
                     onChange={(e) => handleInputChange('pageUrl', e.target.value)}
                     placeholder="YourPageName"
-                    className="flex-1 bg-transparent border-0 text-white placeholder-gray-400 py-3 focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none"
+                    className="flex-1 bg-transparent border-0 text-white placeholder-gray-400 py-2.5 sm:py-3 focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
                   />
                   {formData.pageUrl && (
                     <div className="px-3">
-                      <Check className="w-5 h-5 text-green-500" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                     </div>
                   )}
                 </div>
@@ -352,16 +385,16 @@ const Signup = () => {
               <Button 
                 onClick={handleNext}
                 disabled={!isStepValid() || isLoading}
-                className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-3 h-auto rounded-lg font-medium shadow-sm"
+                className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
               >
                 {isLoading ? 'Finishing...' : 'Continue'}
               </Button>
             </div>
 
-            <div className="text-center mt-6">
+            <div className="text-center mt-4 sm:mt-6">
               <button 
                 onClick={handleBack}
-                className="text-gray-400 hover:text-white underline text-sm"
+                className="text-gray-400 hover:text-white underline text-xs sm:text-sm"
               >
                 Back
               </button>
@@ -377,21 +410,23 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
       {/* Left Side - Form */}
-      <div className="w-full lg:w-7/10 flex items-center justify-center px-4 sm:px-8 py-6 lg:py-12 relative">
+      <div className="w-full lg:w-7/10 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative">
         {/* Back Button */}
         {currentStep > 1 && (
           <button
             onClick={handleBack}
-            className="absolute top-4 left-4 sm:top-8 sm:left-8 p-2 text-gray-400 hover:text-white transition-colors z-10"
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 lg:top-8 lg:left-8 p-2 text-gray-400 hover:text-white transition-colors z-10"
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={20} />
           </button>
         )}
         
-        {renderStep()}
+        <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
+          {renderStep()}
+        </div>
       </div>
 
-      {/* Right Side - Features Carousel */}
+      {/* Right Side - Features Carousel - Hidden on mobile */}
       <div className="hidden lg:flex w-full lg:w-3/10 bg-gradient-to-br from-purple-900 via-blue-900 to-purple-800 items-center justify-center relative overflow-hidden">
         <div className="embla w-full h-full" ref={emblaRef}>
           <div className="embla__container h-full flex">
