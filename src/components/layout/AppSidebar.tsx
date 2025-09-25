@@ -35,7 +35,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-gray-800 bg-gray-900 w-64 lg:w-64">
+    <Sidebar className="border-r border-gray-800 bg-gray-900 w-64 lg:w-64" collapsible="offcanvas">
       <SidebarContent className="bg-gray-900">
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
