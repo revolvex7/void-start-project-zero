@@ -8,12 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, Check } from 'lucide-react';
 import { authAPI, userAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAuth();
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -67,12 +65,11 @@ const Signup = () => {
     try {
       if (currentStep === 2) {
         // Register user after step 2
-        const response = await authAPI.register({
+        await authAPI.register({
           name: formData.name,
           email: formData.email,
           password: formData.password
         });
-        login(response.user); // Log in the user immediately after registration
         toast({
           title: "Account created successfully!",
           description: "Please complete your profile.",
@@ -111,14 +108,6 @@ const Signup = () => {
 
   const handleJoinAsFan = () => {
     console.log('Joining as fan with email:', formData.email || 'No email provided');
-    // Create a basic user profile for fan
-    const fanUser = {
-      id: 'fan_' + Date.now(),
-      name: formData.name || 'Fan User',
-      email: formData.email,
-      isCreator: false
-    };
-    login(fanUser);
     navigate('/dashboard');
   };
 
@@ -151,10 +140,10 @@ const Signup = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="w-full">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold mb-3 sm:mb-4 leading-tight">Start creating on Patreon</h1>
-              <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
+          <div className="w-full max-w-md mx-auto">
+            <div className="mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Start creating on Patreon</h1>
+              <p className="text-gray-300 text-base sm:text-lg">
                 Join 250,000+ creators building fandoms, earning from memberships, and selling digital products.
               </p>
             </div>
@@ -236,10 +225,10 @@ const Signup = () => {
 
       case 2:
         return (
-          <div className="w-full">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight">Complete your account</h1>
-              <p className="text-gray-300 text-sm sm:text-base lg:text-lg">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-4">Complete your account</h1>
+              <p className="text-gray-300 text-lg">
                 Signing up as {formData.email}
               </p>
             </div>
@@ -290,10 +279,10 @@ const Signup = () => {
 
       case 3:
         return (
-          <div className="w-full">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight">Let's name your page</h1>
-              <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-4">Let's name your page</h1>
+              <p className="text-gray-300 text-lg">
                 You can get creative or start with your name. Don't worry, you can always change this later.
               </p>
             </div>
@@ -328,24 +317,15 @@ const Signup = () => {
               </Button>
             </div>
 
-            {/* Join as fan button - only show in step 3 */}
-            <div className="text-center mt-6">
-              <button 
-                onClick={handleJoinAsFan}
-                className="text-gray-400 hover:text-white underline text-sm"
-              >
-                Join as a fan instead
-              </button>
-            </div>
           </div>
         );
 
       case 4:
         return (
-          <div className="w-full">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight">Choose your URL</h1>
-              <p className="text-gray-300 text-sm sm:text-base lg:text-lg">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-4">Choose your URL</h1>
+              <p className="text-gray-300 text-lg">
                 You can always change this later.
               </p>
             </div>
@@ -398,19 +378,17 @@ const Signup = () => {
     <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
       {/* Left Side - Form */}
       <div className="w-full lg:w-7/10 flex items-center justify-center px-4 sm:px-8 py-6 lg:py-12 relative">
-        {/* Back Button - Better positioning for mobile */}
+        {/* Back Button */}
         {currentStep > 1 && (
           <button
             onClick={handleBack}
-            className="absolute top-6 left-4 sm:top-8 sm:left-8 p-2 text-gray-400 hover:text-white transition-colors z-10 lg:top-8"
+            className="absolute top-4 left-4 sm:top-8 sm:left-8 p-2 text-gray-400 hover:text-white transition-colors z-10"
           >
-            <ArrowLeft size={20} className="sm:w-6 sm:h-6" />
+            <ArrowLeft size={24} />
           </button>
         )}
         
-        <div className="w-full max-w-md mx-auto mt-12 sm:mt-0">
-          {renderStep()}
-        </div>
+        {renderStep()}
       </div>
 
       {/* Right Side - Features Carousel */}

@@ -35,7 +35,7 @@ export function CreatorSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-gray-800 bg-gray-900" collapsible="offcanvas">
+    <Sidebar className="border-r border-gray-800 bg-gray-900">
       <SidebarContent>
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
@@ -121,16 +121,6 @@ export function CreatorSidebar() {
             </div>
             <div className="text-gray-400">⚙</div>
           </div>
-
-          {/* Logout Button */}
-          <button className="w-full flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors text-left mt-3">
-            <div className="w-5 h-5">
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-gray-400">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-              </svg>
-            </div>
-            <span className="text-white text-sm">Log out</span>
-          </button>
         </div>
       </SidebarContent>
     </Sidebar>

@@ -66,7 +66,7 @@ const topics = [
 
 export function DashboardContent() {
   return (
-    <div className="flex-1 bg-black text-white overflow-auto h-full">
+    <div className="flex-1 bg-black text-white overflow-x-auto">
       {/* Top banner */}
       <div className="bg-gray-900 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between border-b border-gray-800">
         <span className="text-xs sm:text-sm text-gray-300">Please verify your email address</span>
@@ -90,13 +90,13 @@ export function DashboardContent() {
 
       {/* Categories */}
       <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-800">
-        <div className="flex items-center space-x-2 sm:space-x-3 overflow-x-auto scrollbar-hide pb-2">
+        <div className="flex items-center space-x-2 sm:space-x-3 overflow-x-auto scrollbar-hide">
           {categories.map((category, index) => (
             <Button
               key={category}
               variant={index === 0 ? "default" : "outline"}
               size="sm"
-              className={`whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-shrink-0 ${
+              className={`whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 ${
                 index === 0 
                   ? "bg-white text-black hover:bg-gray-100" 
                   : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
@@ -105,7 +105,7 @@ export function DashboardContent() {
               {category}
             </Button>
           ))}
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white flex-shrink-0">
+          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
             <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
         </div>
