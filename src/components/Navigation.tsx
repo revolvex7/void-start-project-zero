@@ -37,7 +37,7 @@ const Navigation = () => {
     setHoverTimeout(timeout);
   };
 
-  // Exact Patreon menu structure
+  // Exact True Fans menu structure
   const menuItems = {
     creators: {
       title: 'Creators',
@@ -48,7 +48,7 @@ const Navigation = () => {
             'Get to know your listeners',
             'Cut through the noise',
             'More ways to get paid',
-            'Other podcasters on Patreon'
+            'Other podcasters on True Fans'
           ]
         },
         {
@@ -57,7 +57,7 @@ const Navigation = () => {
             'Turn your viewers into your people',
             'Reach every fan, every time',
             'More ways to get paid',
-            'Other video creators on Patreon'
+            'Other video creators on True Fans'
           ]
         },
         {
@@ -66,7 +66,7 @@ const Navigation = () => {
             'From your mind to their ears',
             'Share more than music',
             'More ways to get paid',
-            'Other musicians on Patreon'
+            'Other musicians on True Fans'
           ]
         },
         {
@@ -75,7 +75,7 @@ const Navigation = () => {
             'Earning made easy',
             'Create what inspires you',
             'Build community around your art',
-            'Other artists on Patreon'
+            'Other artists on True Fans'
           ]
         },
         {
@@ -84,7 +84,7 @@ const Navigation = () => {
             'A safe way to get paid',
             'Selling made simple',
             'Where real community thrives',
-            'Other game devs on Patreon'
+            'Other game devs on True Fans'
           ]
         }
       ]
@@ -95,7 +95,7 @@ const Navigation = () => {
         {
           title: 'Create on your terms',
           items: [
-            'Getting started on Patreon',
+            'Getting started on True Fans',
             'Make it your own',
             'Reach every fan, every time',
             'Showcase your work'
@@ -122,7 +122,7 @@ const Navigation = () => {
           items: [
             'Help when you need it',
             'Policies to protect you',
-            'Payments powered by Patreon'
+            'Payments powered by True Fans'
           ]
         },
         {
@@ -138,13 +138,13 @@ const Navigation = () => {
       title: 'Pricing',
       sections: [
         {
-          title: 'Starting a Patreon is free',
+          title: 'Starting a True Fans is free',
           items: [
             'Powerful core features',
             'Earning made easy',
             'Paid membership',
             'Commerce',
-            'Payments powered by Patreon'
+            'Payments powered by True Fans'
           ]
         }
       ]
@@ -163,7 +163,7 @@ const Navigation = () => {
         {
           title: 'Newsroom',
           items: [
-            'Patreon HQ',
+            'True Fans HQ',
             'Read latest policy updates',
             'Explore product updates'
           ]
@@ -172,7 +172,7 @@ const Navigation = () => {
           title: 'Help Centre',
           items: [
             'Getting started',
-            'Patreon payments',
+            'True Fans payments',
             'Member management',
             'Content & engagement'
           ]
@@ -234,18 +234,7 @@ const Navigation = () => {
                   onMouseLeave={handleMouseLeave}
                 />
               ))}
-              <a 
-                href="#updates" 
-                className={`nav-menu-item-hover text-sm font-medium transition-all duration-200 relative px-3 py-2 ${
-                  activeDropdown === 'updates' ? 'nav-menu-item-hover-active' : ''
-                } ${
-                  isScrolled || activeDropdown === 'updates' ? 'text-gray-800' : 'text-white'
-                }`}
-                onMouseEnter={() => handleMouseEnter('updates')}
-                onMouseLeave={handleMouseLeave}
-              >
-                <span className="nav-menu-item-text">Updates</span>
-              </a>
+              
             </div>
 
             {/* Center Logo */}

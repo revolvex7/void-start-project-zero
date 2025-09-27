@@ -18,7 +18,7 @@ const membershipTiers = [
     badge: 'PLATINUM',
     benefits: [
       'I post copyrighted content here that I cannot post on Youtube such as reactions to music videos, albums, live performances, etc.',
-      'I do not take reaction requests from this Patreon anymore, I select the videos I\'m interested in that I think my audience would like to see as well.',
+      'I do not take reaction requests from this True Fans anymore, I select the videos I\'m interested in that I think my audience would like to see as well.',
       'There are thousands of videos in the archive here that have not been posted on Youtube, so you will have access to those videos as well'
     ]
   },

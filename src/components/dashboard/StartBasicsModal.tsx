@@ -93,10 +93,10 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
             />
           </div>
 
-          {/* Patreon URL */}
+          {/* True Fans URL */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Your Patreon URL
+              Your True Fans URL
             </label>
             <div className="flex">
               <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-300 text-sm">

@@ -41,7 +41,7 @@ const setupTasks = [
   {
     id: 'promote',
     icon: Megaphone,
-    title: 'Promote your Patreon',
+    title: 'Promote your True Fans',
     description: 'Share previews on social media with a link to your page.',
     completed: false,
     enabled: false
@@ -126,7 +126,7 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
           <div className="bg-gray-900 rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Welcome to Patreon</h3>
+                <h3 className="text-xl font-semibold mb-2">Welcome to True Fans</h3>
                 <p className="text-gray-400 mb-3">
                   Let's set up your page and start growing your community. <a href="#" className="text-blue-400 underline">Learn more</a>
                 </p>

@@ -5,7 +5,7 @@ const footerLinks = {
       { label: "Pricing", href: "#pricing" },
       { label: "Features", href: "#features" },
       { label: "Mobile app", href: "#mobile" },
-      { label: "Patreon logo", href: "#logo" }
+      { label: "True Fans logo", href: "#logo" }
     ]
   },
   forCreators: {
@@ -24,7 +24,7 @@ const footerLinks = {
     title: "Resources",
     links: [
       { label: "Blog", href: "#blog" },
-      { label: "Patreon U", href: "#university" },
+      { label: "True Fans U", href: "#university" },
       { label: "Help center & FAQ", href: "#help" },
       { label: "App directory", href: "#apps" },
       { label: "Developers", href: "#developers" }
@@ -154,7 +154,7 @@ const Footer = () => {
               </div>
               
               <p className="text-white/60 text-sm">
-                600 Townsend Street, Suite 500 | San Francisco, CA 94103, USA | © Patreon
+                600 Townsend Street, Suite 500 | San Francisco, CA 94103, USA | © True Fans
               </p>
             </div>
           </div>

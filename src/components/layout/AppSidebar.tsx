@@ -39,7 +39,7 @@ export function AppSidebar() {
                 }}></div>
               </div>
             </div>
-            <span className="font-bold text-white">Patreon</span>
+            <span className="font-bold text-white">True Fans</span>
           </div>
         </div>
 

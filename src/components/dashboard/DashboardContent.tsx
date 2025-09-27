@@ -45,7 +45,7 @@ const creators = [
     avatar: '🎬'
   },
   {
-    name: 'Unclear and Present Patreon',
+    name: 'Unclear and Present True Fans',
     description: 'creating a podcast about the world of Cold War thrillers.',
     avatar: '🎙️'
   },
