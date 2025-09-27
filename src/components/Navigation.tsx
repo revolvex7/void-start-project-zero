@@ -336,25 +336,54 @@ const Navigation = () => {
           >
                         <div className="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6 py-8">
               <div className="grid grid-cols-5 gap-6">
-                {menuItems[activeDropdown as keyof typeof menuItems]?.sections.map((section, sectionIndex) => (
-                  <div key={sectionIndex} className="space-y-3 mega-menu-item">
-                    <h3 className="text-[15px] font-semibold text-gray-900 tracking-wide flex items-center">
-                      {section.title}
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </h3>
-                    <div className="space-y-0.5">
-                      {section.items.map((item, itemIndex) => (
-                        <a
-                          key={itemIndex}
-                          href="#"
-                          className="block text-sm text-gray-600 transition-colors py-1"
-                        >
-                          {item}
-                        </a>
-                      ))}
+                {menuItems[activeDropdown as keyof typeof menuItems]?.sections.map((section, sectionIndex) => {
+                  const getSectionLink = (title: string) => {
+                    const titleLower = title.toLowerCase();
+                    if (titleLower.includes('podcaster')) return '/creators/podcasts';
+                    if (titleLower.includes('video')) return '/creators/video';
+                    if (titleLower.includes('musician')) return '/creators/music';
+                    if (titleLower.includes('artist')) return '/creators/visualartists';
+                    if (titleLower.includes('game')) return '/creators/gaming';
+                    return '#';
+                  };
+
+                  const getItemLink = (item: string, sectionTitle: string) => {
+                    const itemSlug = item.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+                    const sectionLink = getSectionLink(sectionTitle);
+                    if (activeDropdown === 'features') {
+                      if (item.toLowerCase().includes('getting started') || 
+                          item.toLowerCase().includes('make it your own') || 
+                          item.toLowerCase().includes('showcase')) {
+                        return '/product/create#' + itemSlug;
+                      }
+                      return '/product/create#' + itemSlug;
+                    }
+                    return sectionLink + '#' + itemSlug;
+                  };
+
+                  return (
+                    <div key={sectionIndex} className="space-y-3 mega-menu-item">
+                      <Link to={getSectionLink(section.title)} onClick={() => setActiveDropdown(null)}>
+                        <h3 className="text-[15px] font-semibold text-gray-900 tracking-wide flex items-center hover:text-gray-700 cursor-pointer">
+                          {section.title}
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </h3>
+                      </Link>
+                      <div className="space-y-0.5">
+                        {section.items.map((item, itemIndex) => (
+                          <Link
+                            key={itemIndex}
+                            to={getItemLink(item, section.title)}
+                            onClick={() => setActiveDropdown(null)}
+                            className="block text-sm text-gray-600 hover:text-gray-800 transition-colors py-1"
+                          >
+                            {item}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -370,8 +399,8 @@ const Navigation = () => {
           />
           <div className="fixed top-16 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-gray-200/20 shadow-lg">
             <div className="px-4 py-6 space-y-4">
-              <MobileNavLink href="#creators" onClick={toggleMobileMenu}>Creators</MobileNavLink>
-              <MobileNavLink href="#features" onClick={toggleMobileMenu}>Features</MobileNavLink>
+              <MobileNavLink href="/creators/podcasts" onClick={toggleMobileMenu}>Creators</MobileNavLink>
+              <MobileNavLink href="/product/create" onClick={toggleMobileMenu}>Features</MobileNavLink>
               <MobileNavLink href="#pricing" onClick={toggleMobileMenu}>Pricing</MobileNavLink>
               <MobileNavLink href="#resources" onClick={toggleMobileMenu}>Resources</MobileNavLink>
               <MobileNavLink href="#updates" onClick={toggleMobileMenu}>Updates</MobileNavLink>
@@ -482,13 +511,13 @@ interface MobileNavLinkProps {
 
 const MobileNavLink = ({ href, children, onClick }: MobileNavLinkProps) => {
   return (
-    <a 
-      href={href} 
+    <Link 
+      to={href} 
       onClick={onClick}
       className="block text-lg font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-lg px-3 py-2 transition-colors"
     >
       {children}
-    </a>
+    </Link>
   );
 };
 
