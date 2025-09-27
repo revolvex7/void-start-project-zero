@@ -48,6 +48,17 @@ export default {
           secondary: "hsl(var(--patreon-secondary))",
           orange: "hsl(var(--patreon-orange))",
         },
+        olive: {
+          100: '#E0E5D3',
+          200: '#C1CCAA',
+          300: '#A2B381',
+          400: '#839A58',
+          500: '#64812E',
+          600: '#506724',
+          700: '#3C4D1A',
+          800: '#283310',
+          900: '#141A08',
+        }
       },
       width: {
         "7/10": "70%",

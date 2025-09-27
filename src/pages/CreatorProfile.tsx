@@ -299,7 +299,7 @@ const CreatorProfile = () => {
           {/* User Profile Section */}
           <div className="mt-auto space-y-3 sm:space-y-4">
             {/* Profile Switcher */}
-            <div className="relative">
+          <div className="relative">
               <button
                 onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
                 className="w-full flex items-center space-x-3 p-2 hover:bg-gray-700 rounded-lg transition-colors"
@@ -371,7 +371,7 @@ const CreatorProfile = () => {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-80 pt-16 lg:pt-0">
-        {/* Cover Image */}
+            {/* Cover Image */}
         <div className="relative h-48 sm:h-64 lg:h-80 overflow-hidden">
           <img
             src={creator.coverImage}
@@ -389,16 +389,16 @@ const CreatorProfile = () => {
             >
               <Share2 size={14} className="mr-1" />
               Share
-            </Button>
+                </Button>
             <Button
               variant="outline"
               size="sm"
               className="bg-black/50 border-gray-600 text-white hover:bg-black/70 px-2 py-1.5"
             >
               <MoreHorizontal size={14} />
-            </Button>
-          </div>
-        </div>
+                </Button>
+              </div>
+            </div>
 
         {/* Profile Header */}
         <div className="px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-20 relative z-10">
@@ -413,9 +413,9 @@ const CreatorProfile = () => {
               {creator.isVerified && (
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-gray-900">
                   <span className="text-white text-xs sm:text-sm">✓</span>
-                </div>
+                  </div>
               )}
-            </div>
+                    </div>
 
             {/* Profile Info */}
             <div className="flex-1">
@@ -428,12 +428,12 @@ const CreatorProfile = () => {
                 
                 {/* Action Buttons */}
                 <div className="flex space-x-2 sm:space-x-3 mt-4 sm:mt-0">
-                  <Button
-                    onClick={() => setShowMembershipModal(true)}
+                <Button 
+                  onClick={() => setShowMembershipModal(true)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium"
-                  >
-                    Join now
-                  </Button>
+                >
+                  Join now
+                </Button>
                   <Button
                     variant="outline"
                     className="border-gray-600 text-gray-300 hover:bg-gray-800 px-3 sm:px-4 py-2 text-sm sm:text-base"
@@ -446,8 +446,8 @@ const CreatorProfile = () => {
                     className="border-gray-600 text-gray-300 hover:bg-gray-800 px-3 sm:px-4 py-2 text-sm sm:text-base"
                   >
                     <MessageCircle size={16} />
-                  </Button>
-                </div>
+                </Button>
+              </div>
               </div>
 
               {/* Stats */}
@@ -565,10 +565,10 @@ const CreatorProfile = () => {
                   </div>
                 </div>
 
-                {/* Recent Posts Grid */}
-                <div>
+            {/* Recent Posts Grid */}
+            <div>
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">Recent posts</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {Array.from({ length: 6 }).map((_, index) => (
                       <div key={index} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer">
                         <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
@@ -576,16 +576,16 @@ const CreatorProfile = () => {
                           <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
                             Members only
                           </div>
-                        </div>
+                          </div>
                         <div className="p-3 sm:p-4">
                           <h4 className="font-medium text-sm sm:text-base mb-1">Post title {index + 1}</h4>
                           <p className="text-gray-400 text-xs sm:text-sm">3 days ago</p>
-                        </div>
+                    </div>
                       </div>
                     ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             )}
 
             {/* Other tab content would go here */}
@@ -594,17 +594,17 @@ const CreatorProfile = () => {
                 <p className="text-gray-400 text-sm sm:text-base">Content for {tabs.find(t => t.id === activeTab)?.label} tab</p>
               </div>
             )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Membership Modal */}
-      <MembershipModal 
-        open={showMembershipModal} 
-        onOpenChange={setShowMembershipModal}
-        creatorName={creator.name}
-      />
-    </div>
+        {/* Membership Modal */}
+        <MembershipModal 
+          open={showMembershipModal}
+          onOpenChange={setShowMembershipModal}
+          creatorName={creator.name}
+        />
+      </div>
   );
 };
 

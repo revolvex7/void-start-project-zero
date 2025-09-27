@@ -14,6 +14,14 @@ import CreatorProfile from '@/pages/CreatorProfile';
 import CreatePost from '@/pages/CreatePost';
 import NotFound from '@/pages/NotFound';
 
+// Creator pages
+import Podcasters from '@/pages/Podcasters';
+import VideoCreators from '@/pages/VideoCreators';
+import Musicians from '@/pages/Musicians';
+import Artists from '@/pages/Artists';
+import GameDevs from '@/pages/GameDevs';
+import Product from '@/pages/Product';
+
 // Protected Route Component
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -40,6 +48,16 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
+            
+            {/* Creator Category Pages */}
+            <Route path="/creators/podcasts" element={<Podcasters />} />
+            <Route path="/creators/video" element={<VideoCreators />} />
+            <Route path="/creators/music" element={<Musicians />} />
+            <Route path="/creators/visualartists" element={<Artists />} />
+            <Route path="/creators/gaming" element={<GameDevs />} />
+            
+            {/* Product/Feature Pages */}
+            <Route path="/product/create" element={<Product />} />
             
             {/* Auth Routes - Only accessible when not logged in */}
             <Route 
