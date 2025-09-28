@@ -148,13 +148,13 @@ const Podcasters = () => {
       </section>
 
       {/* A True Home Section */}
-      <section className="py-20 lg:py-32 podcasters-gradient gradient-overlay-hover">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-50 to-olive-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white drop-shadow-lg">
+            <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
               A true home
               <br />
-              <span className="text-white/90">for podcasters</span>
+              <span className="text-olive-600">for podcasters</span>
             </h2>
           </div>
 
@@ -182,8 +182,8 @@ const Podcasters = () => {
                   </div>
                 </div>
               </div>
-              <h3 className="text-2xl font-semibold mb-4 text-white">Grow your income</h3>
-              <p className="text-white/80 leading-relaxed">
+              <h3 className="text-2xl font-semibold mb-4 text-black">Grow your income</h3>
+              <p className="text-gray-600 leading-relaxed">
                 Build your membership business and showcase exclusive episodes on both True Fans and Spotify to drive discovery and conversion.
               </p>
             </div>
@@ -217,8 +217,8 @@ const Podcasters = () => {
                   </div>
                 </div>
               </div>
-              <h3 className="text-2xl font-semibold mb-4 text-white">Strengthen your audience</h3>
-              <p className="text-white/80 leading-relaxed">
+              <h3 className="text-2xl font-semibold mb-4 text-black">Strengthen your audience</h3>
+              <p className="text-gray-600 leading-relaxed">
                 Go live to build hype in real time, and connect directly with your listeners in community chats, comments, and DMs.
               </p>
             </div>
@@ -258,8 +258,8 @@ const Podcasters = () => {
                   </div>
                 </div>
               </div>
-              <h3 className="text-2xl font-semibold mb-4 text-white">Run your business</h3>
-              <p className="text-white/80 leading-relaxed">
+              <h3 className="text-2xl font-semibold mb-4 text-black">Run your business</h3>
+              <p className="text-gray-600 leading-relaxed">
                 Host your entire podcast, manage multiple shows, and distribute to listeners via RSS.
               </p>
             </div>
@@ -268,13 +268,13 @@ const Podcasters = () => {
       </section>
 
       {/* Turn Reach Into Revenue */}
-      <section className="py-20 lg:py-32 bg-podcasters-medium gradient-overlay-hover">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-200 to-olive-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white drop-shadow-lg">
+            <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
               Turn reach into
               <br />
-              <span className="text-white/90">revenue</span>
+              <span className="text-olive-700">revenue</span>
             </h2>
           </div>
 
@@ -290,8 +290,8 @@ const Podcasters = () => {
                 alt="Spotify Sync"
                 className="w-full h-auto rounded-2xl shadow-xl mb-8 hover:shadow-2xl hover:scale-105 transition-all duration-500"
               />
-              <h3 className="text-3xl font-semibold mb-6 text-white">Sync to Spotify</h3>
-              <p className="text-lg text-white/80 mb-8 leading-relaxed">
+              <h3 className="text-3xl font-semibold mb-6 text-black">Sync to Spotify</h3>
+              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
                 Share True Fans exclusives directly on Spotify to reach and convert more listeners. 15% of listeners who visit a True Fans via the Spotify integration become paying members.
               </p>
               <Button className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-3 rounded-full transition-all duration-300">
@@ -303,8 +303,8 @@ const Podcasters = () => {
               ref={el => itemRefs.current['be-found-content'] = el as HTMLDivElement}
               className={`transition-all duration-1000 ease-out delay-200 ${animatedItems['be-found-content'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 translate-x-16 -rotate-3'}`}
             >
-              <h3 className="text-3xl font-semibold mb-6 text-white">Be found right here</h3>
-              <p className="text-lg text-white/80 leading-relaxed">
+              <h3 className="text-3xl font-semibold mb-6 text-black">Be found right here</h3>
+              <p className="text-lg text-gray-700 leading-relaxed">
                 Tap into a network of the most valuable fans on the internet. Over 60% of new paid memberships come from fans already on True Fans.
               </p>
             </div>
@@ -313,7 +313,7 @@ const Podcasters = () => {
       </section>
 
       {/* Make It Your Own */}
-      <section className="py-20 lg:py-32 bg-podcasters-dark gradient-overlay-hover">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-400 to-olive-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div 
@@ -324,9 +324,9 @@ const Podcasters = () => {
               <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white">
                 Make it
                 <br />
-                <span className="text-white/90">your own</span>
+                <span className="text-olive-100">your own</span>
               </h2>
-              <p className="text-lg text-white/80 leading-relaxed">
+              <p className="text-lg text-olive-100 leading-relaxed">
                 Showcase your work, your way. Curate your page to feature new releases, fan favorites, and everything in between—making it the go-to destination for your listeners.
               </p>
             </div>

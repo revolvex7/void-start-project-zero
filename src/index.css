@@ -172,19 +172,6 @@
     --patreon-secondary: 283 89% 74%; /* True Fans purple */
     --patreon-orange: 15 91% 67%; /* True Fans coral/orange */
     
-    /* Creator Page Color Schemes */
-    /* Podcasters - Green/Olive */
-    --podcasters-light: 98 22% 59%; /* #99ad83 */
-    --podcasters-medium: 98 26% 63%; /* #a1b58b */
-    --podcasters-dark: 98 22% 50%; /* Darker shade */
-    --podcasters-gradient: linear-gradient(135deg, hsl(var(--podcasters-light)) 0%, hsl(var(--podcasters-medium)) 50%, hsl(var(--podcasters-dark)) 100%);
-    
-    /* Musicians & Artists - Blue */
-    --musicians-light: 225 100% 68%; /* #5d95ff */
-    --musicians-medium: 225 100% 70%; /* #6097ff */
-    --musicians-dark: 225 100% 60%; /* Darker shade */
-    --musicians-gradient: linear-gradient(135deg, hsl(var(--musicians-light)) 0%, hsl(var(--musicians-medium)) 50%, hsl(var(--musicians-dark)) 100%);
-    
     /* Background System */
     --background: 231 25% 7%; /* Deep blue-black */
     --background-hero: 231 25% 7%;
@@ -262,43 +249,6 @@
     box-shadow: var(--shadow-glow);
     transition: var(--transition-smooth);
   }
-
-  /* Creator Page Gradients */
-  .podcasters-gradient {
-    background: var(--podcasters-gradient);
-  }
-  
-  .musicians-gradient {
-    background: var(--musicians-gradient);
-  }
-  
-  /* Animated gradient overlays */
-  .gradient-overlay-hover {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .gradient-overlay-hover::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-  
-  .gradient-overlay-hover:hover::before {
-    opacity: 1;
-    animation: shimmer 2s ease-in-out infinite;
-  }
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
 }
 
 @layer base {
