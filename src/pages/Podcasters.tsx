@@ -148,13 +148,17 @@ const Podcasters = () => {
       </section>
 
       {/* A True Home Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-50 to-olive-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#99ad83' }}>
+        {/* Beautiful hover layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-[#99ad83]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
               A true home
               <br />
-              <span className="text-olive-600">for podcasters</span>
+              <span className="text-gray-800">for podcasters</span>
             </h2>
           </div>
 
@@ -163,9 +167,9 @@ const Podcasters = () => {
             <div 
               id="grow-income-card"
               ref={el => itemRefs.current['grow-income-card'] = el as HTMLDivElement}
-              className={`text-center group transition-all duration-1000 ease-out ${animatedItems['grow-income-card'] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 rotate-3'}`}
+              className={`text-center group/card transition-all duration-1000 ease-out ${animatedItems['grow-income-card'] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 rotate-3'}`}
             >
-              <div className="mb-8 transition-transform duration-500 group-hover:-translate-y-4 group-hover:rotate-1">
+              <div className="mb-8 transition-transform duration-500 group-hover/card:-translate-y-4 group-hover/card:rotate-1">
                 <div className="w-80 h-80 mx-auto bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 p-6 relative overflow-hidden">
                   <div className="absolute top-4 left-4 w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
                     <span className="text-white font-bold">🌹</span>
@@ -183,7 +187,7 @@ const Podcasters = () => {
                 </div>
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-black">Grow your income</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-800 leading-relaxed">
                 Build your membership business and showcase exclusive episodes on both True Fans and Spotify to drive discovery and conversion.
               </p>
             </div>
@@ -192,16 +196,16 @@ const Podcasters = () => {
             <div 
               id="strengthen-audience-card"
               ref={el => itemRefs.current['strengthen-audience-card'] = el as HTMLDivElement}
-              className={`text-center group transition-all duration-1000 ease-out delay-200 ${animatedItems['strengthen-audience-card'] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 -rotate-3'}`}
+              className={`text-center group/card transition-all duration-1000 ease-out delay-200 ${animatedItems['strengthen-audience-card'] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 -rotate-3'}`}
             >
-              <div className="mb-8 transition-transform duration-500 group-hover:-translate-y-4 group-hover:-rotate-1">
+              <div className="mb-8 transition-transform duration-500 group-hover/card:-translate-y-4 group-hover/card:-rotate-1">
                 <div className="w-80 h-80 mx-auto bg-gray-900 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 p-6 relative overflow-hidden">
                   <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm animate-pulse">
                     Live
                   </div>
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white/30 transition-colors duration-300">
+                      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover/card:bg-white/30 transition-colors duration-300">
                         <Play className="w-8 h-8 text-white" />
                       </div>
                       <p className="text-white text-sm">2 Black Girls, 1 Rose</p>
@@ -218,7 +222,7 @@ const Podcasters = () => {
                 </div>
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-black">Strengthen your audience</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-800 leading-relaxed">
                 Go live to build hype in real time, and connect directly with your listeners in community chats, comments, and DMs.
               </p>
             </div>
@@ -227,9 +231,9 @@ const Podcasters = () => {
             <div 
               id="run-business-card"
               ref={el => itemRefs.current['run-business-card'] = el as HTMLDivElement}
-              className={`text-center group transition-all duration-1000 ease-out delay-400 ${animatedItems['run-business-card'] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 rotate-2'}`}
+              className={`text-center group/card transition-all duration-1000 ease-out delay-400 ${animatedItems['run-business-card'] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 rotate-2'}`}
             >
-              <div className="mb-8 transition-transform duration-500 group-hover:-translate-y-4 group-hover:rotate-1">
+              <div className="mb-8 transition-transform duration-500 group-hover/card:-translate-y-4 group-hover/card:rotate-1">
                 <div className="w-80 h-80 mx-auto bg-gradient-to-br from-red-400 to-red-600 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 p-6 relative overflow-hidden">
                   <div className="text-white h-full flex flex-col">
                     <div className="flex items-center justify-between mb-4">
@@ -259,7 +263,7 @@ const Podcasters = () => {
                 </div>
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-black">Run your business</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-800 leading-relaxed">
                 Host your entire podcast, manage multiple shows, and distribute to listeners via RSS.
               </p>
             </div>
@@ -268,13 +272,17 @@ const Podcasters = () => {
       </section>
 
       {/* Turn Reach Into Revenue */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-200 to-olive-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#a1b58b' }}>
+        {/* Beautiful hover layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-[#a1b58b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
               Turn reach into
               <br />
-              <span className="text-olive-700">revenue</span>
+              <span className="text-gray-800">revenue</span>
             </h2>
           </div>
 
@@ -291,7 +299,7 @@ const Podcasters = () => {
                 className="w-full h-auto rounded-2xl shadow-xl mb-8 hover:shadow-2xl hover:scale-105 transition-all duration-500"
               />
               <h3 className="text-3xl font-semibold mb-6 text-black">Sync to Spotify</h3>
-              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-800 mb-8 leading-relaxed">
                 Share True Fans exclusives directly on Spotify to reach and convert more listeners. 15% of listeners who visit a True Fans via the Spotify integration become paying members.
               </p>
               <Button className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-3 rounded-full transition-all duration-300">
@@ -304,7 +312,7 @@ const Podcasters = () => {
               className={`transition-all duration-1000 ease-out delay-200 ${animatedItems['be-found-content'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 translate-x-16 -rotate-3'}`}
             >
               <h3 className="text-3xl font-semibold mb-6 text-black">Be found right here</h3>
-              <p className="text-lg text-gray-700 leading-relaxed">
+              <p className="text-lg text-gray-800 leading-relaxed">
                 Tap into a network of the most valuable fans on the internet. Over 60% of new paid memberships come from fans already on True Fans.
               </p>
             </div>
@@ -313,20 +321,24 @@ const Podcasters = () => {
       </section>
 
       {/* Make It Your Own */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-400 to-olive-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#99ad83' }}>
+        {/* Beautiful hover layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-[#99ad83]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div 
               id="make-it-your-own-text"
               ref={el => itemRefs.current['make-it-your-own-text'] = el as HTMLDivElement}
               className={`transition-all duration-1000 ease-out ${animatedItems['make-it-your-own-text'] ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'}`}
             >
-              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white">
+              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
                 Make it
                 <br />
-                <span className="text-olive-100">your own</span>
+                <span className="text-gray-800">your own</span>
               </h2>
-              <p className="text-lg text-olive-100 leading-relaxed">
+              <p className="text-lg text-gray-800 leading-relaxed">
                 Showcase your work, your way. Curate your page to feature new releases, fan favorites, and everything in between—making it the go-to destination for your listeners.
               </p>
             </div>
@@ -379,8 +391,12 @@ const Podcasters = () => {
       </section>
 
       {/* Go Live */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-300 to-olive-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#a1b58b' }}>
+        {/* Beautiful hover layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-[#a1b58b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div 
               id="go-live-text"
@@ -390,7 +406,7 @@ const Podcasters = () => {
               <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
                 Go live
               </h2>
-              <p className="text-lg text-gray-700 leading-relaxed">
+              <p className="text-lg text-gray-800 leading-relaxed">
                 Host AMAs, give behind-the-scenes looks, or just hang out with your most loyal listeners in exclusive True Fans livestreams.
               </p>
             </div>
@@ -449,18 +465,22 @@ const Podcasters = () => {
       </section>
 
       {/* Tools to Grow */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-500 to-olive-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#99ad83' }}>
+        {/* Beautiful hover layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-[#99ad83]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div 
               id="tools-grow-text"
               ref={el => itemRefs.current['tools-grow-text'] = el as HTMLDivElement}
               className={`transition-all duration-1000 ease-out ${animatedItems['tools-grow-text'] ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'}`}
             >
-              <h2 className="text-5xl lg:text-6xl font-light mb-12 text-white">
+              <h2 className="text-5xl lg:text-6xl font-light mb-12 text-black">
                 Tools to grow
                 <br />
-                <span className="text-olive-100">with ease</span>
+                <span className="text-gray-800">with ease</span>
               </h2>
               
               <div className="space-y-12">
@@ -469,11 +489,11 @@ const Podcasters = () => {
                   ref={el => itemRefs.current['podcast-syncing-item'] = el as HTMLDivElement}
                   className={`transition-all duration-1000 ease-out delay-200 ${animatedItems['podcast-syncing-item'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 -translate-x-8 rotate-2'}`}
                 >
-                  <h3 className="text-2xl font-semibold mb-4 text-white">Podcast syncing</h3>
-                  <p className="text-olive-100 mb-6 leading-relaxed">
+                  <h3 className="text-2xl font-semibold mb-4 text-black">Podcast syncing</h3>
+                  <p className="text-gray-800 mb-6 leading-relaxed">
                     Bring your whole catalog to True Fans by automatically syncing your public and exclusive episodes from a third party host — no double posting required.
                   </p>
-                  <Button className="bg-white text-olive-600 hover:bg-olive-100 hover:scale-105 px-6 py-3 rounded-full transition-all duration-300">
+                  <Button className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-6 py-3 rounded-full transition-all duration-300">
                     Learn more
                   </Button>
                 </div>
@@ -483,8 +503,8 @@ const Podcasters = () => {
                   ref={el => itemRefs.current['multiple-podcasts-item'] = el as HTMLDivElement}
                   className={`transition-all duration-1000 ease-out delay-400 ${animatedItems['multiple-podcasts-item'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 -translate-x-8 -rotate-2'}`}
                 >
-                  <h3 className="text-2xl font-semibold mb-4 text-white">Multiple podcasts</h3>
-                  <p className="text-olive-100 leading-relaxed">
+                  <h3 className="text-2xl font-semibold mb-4 text-black">Multiple podcasts</h3>
+                  <p className="text-gray-800 leading-relaxed">
                     Set up multiple shows under a single True Fans to create a home for your entire media business and give your fans a personalized listening experience.
                   </p>
                 </div>
@@ -550,17 +570,21 @@ const Podcasters = () => {
       </section>
 
       {/* Podcasters Thrive */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-olive-400 to-olive-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#a1b58b' }}>
+        {/* Beautiful hover layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-[#a1b58b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div 
             id="podcasters-thrive-heading"
             ref={el => itemRefs.current['podcasters-thrive-heading'] = el as HTMLDivElement}
             className={`text-center mb-16 transition-all duration-1000 ease-out ${animatedItems['podcasters-thrive-heading'] ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'}`}
           >
-            <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white">
+            <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
               Podcasters thrive
               <br />
-              <span className="text-olive-100">on True Fans</span>
+              <span className="text-gray-800">on True Fans</span>
             </h2>
           </div>
 
@@ -570,15 +594,15 @@ const Podcasters = () => {
                 key={index} 
                 id={`podcaster-card-${index}`}
                 ref={el => itemRefs.current[`podcaster-card-${index}`] = el as HTMLDivElement}
-                className={`group cursor-pointer transition-all duration-1000 ease-out delay-${index * 100} ${animatedItems[`podcaster-card-${index}`] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 rotate-3'}`}
+                className={`group/card cursor-pointer transition-all duration-1000 ease-out delay-${index * 100} ${animatedItems[`podcaster-card-${index}`] ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 translate-y-16 rotate-3'}`}
               >
                 <div className="relative overflow-hidden rounded-2xl aspect-square">
                   <img 
                     src={podcaster.image} 
                     alt={podcaster.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent group-hover:from-black/40 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent group-hover/card:from-black/40 transition-all duration-300">
                     <div className="absolute bottom-4 left-4 right-4">
                       <h3 className="text-white font-semibold text-sm">{podcaster.name}</h3>
                       <p className="text-white/80 text-xs">{podcaster.category}</p>
@@ -594,14 +618,14 @@ const Podcasters = () => {
             ref={el => itemRefs.current['your-world-cta'] = el as HTMLDivElement}
             className={`text-center mt-16 transition-all duration-1000 ease-out delay-500 ${animatedItems['your-world-cta'] ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'}`}
           >
-            <h3 className="text-4xl lg:text-5xl font-light mb-8 text-white">
+            <h3 className="text-4xl lg:text-5xl font-light mb-8 text-black">
               Your world to create
             </h3>
-            <Button size="lg" className="bg-white text-olive-600 hover:bg-olive-100 hover:scale-105 px-8 py-4 text-lg rounded-full transition-all duration-300">
+            <Button size="lg" className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-4 text-lg rounded-full transition-all duration-300">
               Get started
             </Button>
-            <p className="mt-4 text-olive-100">
-              Already have an account? <a href="/login" className="text-white underline hover:text-olive-200 transition-colors">Log in</a>
+            <p className="mt-4 text-gray-800">
+              Already have an account? <a href="/login" className="text-black underline hover:text-gray-600 transition-colors">Log in</a>
             </p>
           </div>
         </div>
