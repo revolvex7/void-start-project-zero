@@ -48,6 +48,16 @@ export default {
           secondary: "hsl(var(--patreon-secondary))",
           orange: "hsl(var(--patreon-orange))",
         },
+        podcasters: {
+          light: "hsl(var(--podcasters-light))",
+          medium: "hsl(var(--podcasters-medium))",
+          dark: "hsl(var(--podcasters-dark))",
+        },
+        musicians: {
+          light: "hsl(var(--musicians-light))",
+          medium: "hsl(var(--musicians-medium))",
+          dark: "hsl(var(--musicians-dark))",
+        },
         olive: {
           100: '#E0E5D3',
           200: '#C1CCAA',
