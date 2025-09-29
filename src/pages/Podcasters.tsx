@@ -129,20 +129,20 @@ const Podcasters = () => {
           <h1 className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-light leading-tight mb-8 text-white drop-shadow-2xl">
             Where
             <br />
-            podcasts
-            <br />
+                podcasts
+                <br />
             <span className="font-normal bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">grow</span>
-          </h1>
-          
+              </h1>
+              
           <p className="text-lg sm:text-xl lg:text-2xl mb-12 max-w-2xl text-white/90 drop-shadow-lg">
             Podcasters like you earned more than ₦472 million on True Fans in 2024
-          </p>
-          
-          <Button 
-            size="lg"
+              </p>
+              
+              <Button 
+                size="lg"
             className="bg-white text-black hover:bg-gray-100 hover:scale-105 px-8 py-4 text-lg font-medium rounded-full shadow-2xl transform transition-all duration-300"
-          >
-            Start creating
+              >
+                Start creating
           </Button>
         </div>
       </section>
@@ -496,8 +496,8 @@ const Podcasters = () => {
                   <Button className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-6 py-3 rounded-full transition-all duration-300">
                     Learn more
                   </Button>
-                </div>
-                
+            </div>
+            
                 <div
                   id="multiple-podcasts-item"
                   ref={el => itemRefs.current['multiple-podcasts-item'] = el as HTMLDivElement}
