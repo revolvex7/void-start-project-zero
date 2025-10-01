@@ -328,25 +328,33 @@ const Navigation = () => {
                 {menuItems[activeDropdown as keyof typeof menuItems]?.sections.map((section, sectionIndex) => {
                   const getSectionLink = (title: string) => {
                     const titleLower = title.toLowerCase();
+                    // Creator pages
                     if (titleLower.includes('podcaster')) return '/creators/podcasts';
                     if (titleLower.includes('video')) return '/creators/video';
                     if (titleLower.includes('musician')) return '/creators/music';
                     if (titleLower.includes('artist')) return '/creators/visualartists';
                     if (titleLower.includes('game')) return '/creators/gaming';
+                    // Feature pages
+                    if (titleLower.includes('create on your terms')) return '/features/create-on-your-terms';
+                    if (titleLower.includes('build real community')) return '/features/online-community';
                     return '#';
                   };
 
                   const getItemLink = (item: string, sectionTitle: string) => {
                     const itemSlug = item.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
                     const sectionLink = getSectionLink(sectionTitle);
+                    
+                    // Handle feature pages
                     if (activeDropdown === 'features') {
-                      if (item.toLowerCase().includes('getting started') || 
-                          item.toLowerCase().includes('make it your own') || 
-                          item.toLowerCase().includes('showcase')) {
-                        return '/product/create#' + itemSlug;
+                      if (sectionTitle.toLowerCase().includes('create on your terms')) {
+                        return '/features/create-on-your-terms#' + itemSlug;
+                      }
+                      if (sectionTitle.toLowerCase().includes('build real community')) {
+                        return '/features/online-community#' + itemSlug;
                       }
                       return '/product/create#' + itemSlug;
                     }
+                    
                     return sectionLink + '#' + itemSlug;
                   };
 
@@ -389,7 +397,7 @@ const Navigation = () => {
           <div className="fixed top-16 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-gray-200/20 shadow-lg">
             <div className="px-4 py-6 space-y-4">
               <MobileNavLink href="/creators/podcasts" onClick={toggleMobileMenu}>Creators</MobileNavLink>
-              <MobileNavLink href="/product/create" onClick={toggleMobileMenu}>Features</MobileNavLink>
+              <MobileNavLink href="/features/create-on-your-terms" onClick={toggleMobileMenu}>Features</MobileNavLink>
               <MobileNavLink href="#pricing" onClick={toggleMobileMenu}>Pricing</MobileNavLink>
               <MobileNavLink href="#resources" onClick={toggleMobileMenu}>Resources</MobileNavLink>
               <MobileNavLink href="#updates" onClick={toggleMobileMenu}>Updates</MobileNavLink>

@@ -22,6 +22,10 @@ import Artists from '@/pages/Artists';
 import GameDevs from '@/pages/GameDevs';
 import Product from '@/pages/Product';
 
+// Feature pages
+import CreateOnYourTerms from '@/pages/CreateOnYourTerms';
+import OnlineCommunity from '@/pages/OnlineCommunity';
+
 // Protected Route Component
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -58,6 +62,8 @@ function App() {
             
             {/* Product/Feature Pages */}
             <Route path="/product/create" element={<Product />} />
+            <Route path="/features/create-on-your-terms" element={<CreateOnYourTerms />} />
+            <Route path="/features/online-community" element={<OnlineCommunity />} />
             
             {/* Auth Routes - Only accessible when not logged in */}
             <Route 
