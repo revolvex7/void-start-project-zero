@@ -105,13 +105,12 @@ const OnlineCommunity = () => {
       </section>
 
       {/* Every Post, Every Time Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-gradient-to-tl from-indigo-600/30 via-transparent to-blue-400/30 animate-pulse"></div>
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ background: 'linear-gradient(135deg, #93bbfe 0%, #6398fe 50%, #5c93fe 100%)' }}>
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
         {/* Floating shapes */}
-        <div className="absolute top-10 left-10 w-64 h-64 bg-blue-300/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-700/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(147,187,254,0.4) 0%, transparent 70%)' }}></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(92,147,254,0.4) 0%, transparent 70%)' }}></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -195,13 +194,12 @@ const OnlineCommunity = () => {
       </section>
 
       {/* More Ways to Stay Close Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-500 via-indigo-500 to-blue-600 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-pink-600/20 via-transparent to-indigo-700/20 animate-pulse"></div>
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ background: 'linear-gradient(135deg, #6398fe 0%, #5c93fe 50%, #5089ee 100%)' }}>
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
         {/* Floating shapes */}
-        <div className="absolute top-20 right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+        <div className="absolute top-20 right-20 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(99,152,254,0.4) 0%, transparent 70%)' }}></div>
+        <div className="absolute bottom-20 left-20 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(92,147,254,0.4) 0%, transparent 70%)' }}></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -288,13 +286,12 @@ const OnlineCommunity = () => {
       </section>
 
       {/* Get to Know Your Fans Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-gradient-to-bl from-blue-600/20 via-transparent to-purple-800/20 animate-pulse"></div>
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ background: 'linear-gradient(135deg, #7ba8ff 0%, #6398fe 50%, #5c93fe 100%)' }}>
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
         {/* Floating shapes */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-800/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(123,168,255,0.4) 0%, transparent 70%)' }}></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(92,147,254,0.4) 0%, transparent 70%)' }}></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -368,14 +365,13 @@ const OnlineCommunity = () => {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-500 via-indigo-500 to-blue-700 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-red-600/30 via-transparent to-purple-700/30 animate-pulse"></div>
+      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ background: 'linear-gradient(135deg, #93bbfe 0%, #6398fe 50%, #5c93fe 100%)' }}>
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
         {/* Floating shapes */}
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-700/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+        <div className="absolute top-10 left-10 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(147,187,254,0.5) 0%, transparent 70%)' }}></div>
+        <div className="absolute bottom-10 right-10 w-96 h-96 opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(92,147,254,0.5) 0%, transparent 70%)' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-15 rounded-full blur-3xl group-hover:scale-105 transition-transform duration-1000" style={{ background: 'radial-gradient(circle, rgba(99,152,254,0.6) 0%, transparent 70%)' }}></div>
         
         <div 
           id="final-cta"
