@@ -171,7 +171,7 @@ const VideoCreators = () => {
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-left lg:text-left transform group-hover:scale-[1.02] transition-all duration-700 ease-out">
           <h1 className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-light leading-tight mb-8 text-white drop-shadow-2xl transform transition-all duration-700 group-hover:translate-y-[-10px]">
-            True Fans for
+            [TrueFans] for
             <br />
             <span className="font-normal bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent animate-pulse">video creators</span>
           </h1>
@@ -184,7 +184,7 @@ const VideoCreators = () => {
             size="lg"
             className="bg-white text-black hover:bg-gray-100 hover:scale-110 hover:shadow-2xl px-8 py-4 text-lg font-medium rounded-full shadow-2xl transform transition-all duration-500 hover:rotate-1"
           >
-            Create on True Fans
+            Create on [TrueFans]
           </Button>
         </div>
         
@@ -196,10 +196,10 @@ const VideoCreators = () => {
         </div>
       </section>
 
-      {/* Turn Your Viewers Into Your People Section */}
-      <section className="py-20 lg:py-32 bg-white relative overflow-hidden">
+      {/* Turn Your Viewers Into Your People Section - Light Green Gradient */}
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-green-100 via-emerald-50 to-teal-50 relative overflow-hidden">
         {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-blue-50 to-transparent rounded-full -translate-y-48 translate-x-48 opacity-50"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-200/30 to-transparent rounded-full -translate-y-48 translate-x-48 opacity-50"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -298,10 +298,15 @@ const VideoCreators = () => {
         </div>
       </section>
 
-      {/* Reach Every Fan Section */}
-      <section className="py-20 lg:py-32 bg-gray-50 relative overflow-hidden">
+      {/* Reach Every Fan Section - Multi-Color Gradient */}
+      <section 
+        className="py-20 lg:py-32 relative overflow-hidden"
+        style={{ 
+          background: 'linear-gradient(to right, #7c7dae 0%, #ce628b 25%, #f5c78c 50%, #0c5c36 75%, #064a2a 100%)'
+        }}
+      >
         {/* Background decoration */}
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-red-50 to-transparent rounded-full translate-y-48 -translate-x-48 opacity-50"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-white/10 to-transparent rounded-full translate-y-48 -translate-x-48 opacity-50"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -310,15 +315,15 @@ const VideoCreators = () => {
               ref={el => itemRefs.current['reach-fans-text'] = el as HTMLDivElement}
               className={`transition-all duration-1000 ease-out ${animatedItems['reach-fans-text'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 -translate-x-16 rotate-3'}`}
             >
-              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black leading-tight">
+              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white leading-tight">
                 Reach every fan,
                 <br />
-                <span className="bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">every time</span>
+                <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">every time</span>
               </h2>
               
-              <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
+              <div className="space-y-6 text-lg text-white/90 leading-relaxed">
                 <p className="transform hover:translate-x-2 transition-transform duration-300">
-                  Your True Fans page is a direct line to your most engaged supporters. No algorithm decides who sees your content—
+                  Your [TrueFans] page is a direct line to your most engaged supporters. No algorithm decides who sees your content—
                   your fans get every update, every time.
                 </p>
                 <p className="transform hover:translate-x-2 transition-transform duration-300">

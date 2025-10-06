@@ -43,7 +43,29 @@ const CreatorProfile = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [currentView, setCurrentView] = useState<'fan' | 'creator'>('creator');
+  const [currentView, setCurrentView] = useState<'fan' | 'creator'>('fan');
+
+  // Determine the correct view based on user context
+  useEffect(() => {
+    const previousContext = sessionStorage.getItem('previousContext');
+    
+    // If user came from fan dashboard, show fan view regardless of their creator status
+    if (previousContext === 'fan-dashboard') {
+      setCurrentView('fan');
+    } 
+    // If user came from creator dashboard, show creator view
+    else if (previousContext === 'creator-dashboard') {
+      setCurrentView('creator');
+    }
+    // If user is a creator and no specific context, show creator view
+    else if (isCreator) {
+      setCurrentView('creator');
+    } 
+    // Default to fan view for non-creators
+    else {
+      setCurrentView('fan');
+    }
+  }, [isCreator]);
 
   // Close mobile sidebar when clicking outside
   useEffect(() => {
@@ -70,12 +92,21 @@ const CreatorProfile = () => {
     setShowMobileSidebar(false);
     
     if (view === 'fan') {
-      navigate('/dashboard');
+      // Clean up context and navigate to fan dashboard
+      sessionStorage.removeItem('previousContext');
+      navigate('/dashboard?view=fan');
+    } else if (view === 'creator') {
+      // Clean up context and navigate to creator dashboard
+      sessionStorage.removeItem('previousContext');
+      navigate('/dashboard?view=creator');
     }
   };
 
   const handleCreatorClick = (creatorName: string) => {
     const creatorUrl = creatorName.toLowerCase().replace(/\s+/g, '');
+    // Preserve the current context when navigating to another creator profile
+    const currentContext = currentView === 'fan' ? 'fan-dashboard' : 'creator-dashboard';
+    sessionStorage.setItem('previousContext', currentContext);
     navigate(`/c/${creatorUrl}`);
     setShowMobileSidebar(false);
   };

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, Settings, Users, BarChart3, DollarSign, Edit, Eye, Megaphone } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { StartBasicsModal } from './StartBasicsModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const setupTasks = [
   {
@@ -41,7 +42,7 @@ const setupTasks = [
   {
     id: 'promote',
     icon: Megaphone,
-    title: 'Promote your True Fans',
+    title: 'Promote your [TrueFans]',
     description: 'Share previews on social media with a link to your page.',
     completed: false,
     enabled: false
@@ -51,6 +52,7 @@ const setupTasks = [
 export function CreatorDashboardContent({ creatorName }: { creatorName: string }) {
   const navigate = useNavigate();
   const { creatorUrl } = useParams();
+  const { updateUser } = useAuth();
   const [showBasicsModal, setShowBasicsModal] = useState(false);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
 
@@ -64,8 +66,22 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
     }
   };
 
-  const handleBasicsSave = (data: any) => {
+  const handleBasicsSave = (data: {
+    pageName: string;
+    patreonUrl: string;
+    description: string;
+    profileImage?: string;
+  }) => {
     console.log('Basics saved:', data);
+    
+    // Update user context with the new data
+    updateUser({
+      creatorName: data.pageName,
+      pageName: data.patreonUrl,
+      description: data.description,
+      profilePhoto: data.profileImage
+    });
+    
     setCompletedTasks(prev => [...prev, 'basics']);
     setShowBasicsModal(false);
   };
@@ -126,7 +142,7 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
           <div className="bg-gray-900 rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Welcome to True Fans</h3>
+                <h3 className="text-xl font-semibold mb-2">Welcome to [TrueFans]</h3>
                 <p className="text-gray-400 mb-3">
                   Let's set up your page and start growing your community. <a href="#" className="text-blue-400 underline">Learn more</a>
                 </p>
@@ -200,7 +216,7 @@ export function CreatorDashboardContent({ creatorName }: { creatorName: string }
                   <DollarSign className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">$0</h3>
+                  <h3 className="text-lg font-semibold">₦0</h3>
                   <p className="text-gray-400 text-sm">Monthly revenue</p>
                 </div>
               </div>

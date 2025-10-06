@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StartBasicsModalProps {
   open: boolean;
@@ -17,10 +18,21 @@ interface StartBasicsModalProps {
 }
 
 export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModalProps) {
+  const { user } = useAuth();
   const [pageName, setPageName] = useState('');
   const [patreonUrl, setPatreonUrl] = useState('');
   const [description, setDescription] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  // Pre-populate fields with user data when modal opens
+  useEffect(() => {
+    if (open && user) {
+      setPageName(user.creatorName || user.name || '');
+      setPatreonUrl(user.pageName || '');
+      setProfileImage(user.profilePhoto || null);
+      setDescription(user.description || '');
+    }
+  }, [open, user]);
 
   const handleSave = () => {
     onSave({
@@ -65,7 +77,7 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
                     className="w-full h-full rounded-2xl object-cover" 
                   />
                 ) : (
-                  'S'
+                  user?.name?.charAt(0).toUpperCase() || 'U'
                 )}
               </div>
               <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-black rounded-full flex items-center justify-center cursor-pointer border-2 border-gray-700 hover:bg-gray-800 transition-colors">
@@ -96,11 +108,11 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
           {/* True Fans URL */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Your True Fans URL
+              Your [TrueFans] URL
             </label>
             <div className="flex">
               <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-300 text-sm">
-                patreon.com/
+                truefans.com/
               </span>
               <Input
                 value={patreonUrl}

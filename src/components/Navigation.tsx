@@ -245,7 +245,7 @@ const Navigation = () => {
                   isScrolled || activeDropdown ? 'text-gray-900' : 'text-white'
                 }`}
               >
-                TRUE FANS
+                [TrueFans]
               </Link>
             </div>
 
@@ -337,6 +337,11 @@ const Navigation = () => {
                     // Feature pages
                     if (titleLower.includes('create on your terms')) return '/features/create-on-your-terms';
                     if (titleLower.includes('build real community')) return '/features/online-community';
+                    if (titleLower.includes('expand your reach')) return '/features/expand-your-reach';
+                    if (titleLower.includes('get business support')) return '/features/get-business-support';
+                    if (titleLower.includes('earning made easy')) return '/features/earning-made-easy';
+                    // Pricing page
+                    if (titleLower.includes('starting a') || titleLower.includes('pricing')) return '/pricing';
                     return '#';
                   };
 
@@ -351,6 +356,15 @@ const Navigation = () => {
                       }
                       if (sectionTitle.toLowerCase().includes('build real community')) {
                         return '/features/online-community#' + itemSlug;
+                      }
+                      if (sectionTitle.toLowerCase().includes('expand your reach')) {
+                        return '/features/expand-your-reach#' + itemSlug;
+                      }
+                      if (sectionTitle.toLowerCase().includes('get business support')) {
+                        return '/features/get-business-support#' + itemSlug;
+                      }
+                      if (sectionTitle.toLowerCase().includes('earning made easy')) {
+                        return '/features/earning-made-easy#' + itemSlug;
                       }
                       return '/product/create#' + itemSlug;
                     }
@@ -398,10 +412,12 @@ const Navigation = () => {
             <div className="px-4 py-6 space-y-4">
               <MobileNavLink href="/creators/podcasts" onClick={toggleMobileMenu}>Creators</MobileNavLink>
               <MobileNavLink href="/features/create-on-your-terms" onClick={toggleMobileMenu}>Features</MobileNavLink>
-              <MobileNavLink href="#pricing" onClick={toggleMobileMenu}>Pricing</MobileNavLink>
+              <MobileNavLink href="/pricing" onClick={toggleMobileMenu}>Pricing</MobileNavLink>
               <MobileNavLink href="#resources" onClick={toggleMobileMenu}>Resources</MobileNavLink>
               <MobileNavLink href="#updates" onClick={toggleMobileMenu}>Updates</MobileNavLink>
-              
+              <MobileNavLink href="/features/expand-your-reach" onClick={toggleMobileMenu}>Expand your reach</MobileNavLink>
+              <MobileNavLink href="/features/get-business-support" onClick={toggleMobileMenu}>Get business support</MobileNavLink>
+              <MobileNavLink href="/features/earning-made-easy" onClick={toggleMobileMenu}>Earning made easy</MobileNavLink>
               <div className="pt-4 border-t border-gray-200/20">
                 <Button 
                   variant="ghost" 

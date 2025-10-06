@@ -8,6 +8,7 @@ interface User {
   creatorName?: string;
   pageName?: string;
   profilePhoto?: string;
+  description?: string;
   is18Plus?: boolean;
   isCreatorProfileComplete?: boolean;
 }

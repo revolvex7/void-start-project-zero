@@ -119,7 +119,7 @@ const Artists = () => {
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-left lg:text-left transform group-hover:scale-105 transition-transform duration-500">
           <h1 className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-light leading-tight mb-8 text-white drop-shadow-2xl">
-            True Fans for
+            [TrueFans] for
             <br />
             <span className="font-normal bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">artists</span>
           </h1>
@@ -132,7 +132,7 @@ const Artists = () => {
             size="lg"
             className="bg-white text-black hover:bg-gray-100 hover:scale-105 px-8 py-4 text-lg font-medium rounded-full shadow-2xl transform transition-all duration-300"
           >
-            Create on True Fans
+            Create on [TrueFans]
           </Button>
         </div>
       </section>
@@ -208,15 +208,15 @@ const Artists = () => {
               </h2>
               
               <p className="text-lg text-blue-100 leading-relaxed">
-                Not only can you earn recurring income on True Fans through paid membership, you can also sell individual pieces and other downloadable exclusives to all of your fans in your personal online shop.
+                Not only can you earn recurring income on [TrueFans] through paid membership, you can also sell individual pieces and other downloadable exclusives to all of your fans in your personal online shop.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Create What Inspires You Section */}
-      <section className="py-20 lg:py-32 bg-white relative overflow-hidden">
+      {/* Create What Inspires You Section - Light Gradient */}
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div 
@@ -231,7 +231,7 @@ const Artists = () => {
               </h2>
               
               <p className="text-lg text-gray-700 leading-relaxed">
-                Whether you're sharing rough sketches, polished pieces, tutorials, or behind-the-scenes content, when you post on True Fans, it gets sent directly to every single one of your fans' feeds and inboxes, without ever being blocked or buried by a gatekeeping algorithm.
+                Whether you're sharing rough sketches, polished pieces, tutorials, or behind-the-scenes content, when you post on [TrueFans], it gets sent directly to every single one of your fans' feeds and inboxes, without ever being blocked or buried by a gatekeeping algorithm.
               </p>
             </div>
             
@@ -312,11 +312,16 @@ const Artists = () => {
         </div>
       </section>
 
-      {/* Build Community Around Your Art Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-500 to-blue-600 relative overflow-hidden group">
+      {/* Build Community Around Your Art Section - Multi-Color Gradient */}
+      <section 
+        className="py-20 lg:py-32 relative overflow-hidden group"
+        style={{ 
+          background: 'linear-gradient(to right, #7c7dae 0%, #ce628b 25%, #f5c78c 50%, #0c5c36 75%, #064a2a 100%)'
+        }}
+      >
         {/* Beautiful hover layer */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -331,7 +336,7 @@ const Artists = () => {
                 around your art
               </h2>
               
-              <p className="text-lg text-blue-100 leading-relaxed">
+              <p className="text-lg text-white/90 leading-relaxed">
                 Bring your community together in real-time group chats, stay close through DMs, comments, and polls, or even reach out directly over email. Explore fan profiles to get to know the people behind all the love.
               </p>
             </div>

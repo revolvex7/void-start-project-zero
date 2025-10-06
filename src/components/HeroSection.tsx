@@ -22,7 +22,7 @@ const heroSlides = [
   {
     title: "Your wildest",
     subtitle: "creative reality",
-    description: "True Fans powers creative independence. Our platform makes it easy for creators to get paid for making the things they're already making.",
+    description: "[TrueFans] powers creative independence. Our platform makes it easy for creators to get paid for making the things they're already making.",
     background: heroBg1,
     creator: {
       name: "Jade Novah",

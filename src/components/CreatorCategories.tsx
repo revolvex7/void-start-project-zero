@@ -46,7 +46,7 @@ const CreatorCategories = () => {
             For every type of creator
           </h2>
           <p className="text-xl text-foreground/80 max-w-3xl mx-auto">
-            Whatever you create, there's a place for it on True Fans. Connect with your 
+            Whatever you create, there's a place for it on [TrueFans]. Connect with your 
             audience and start earning a living from your creativity.
           </p>
         </div>

@@ -119,7 +119,7 @@ const GameDevs = () => {
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-left lg:text-left transform group-hover:scale-105 transition-transform duration-500">
           <h1 className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-light leading-tight mb-8 text-white drop-shadow-2xl">
-            True Fans for
+            [TrueFans] for
             <br />
             <span className="font-normal bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">game devs</span>
           </h1>

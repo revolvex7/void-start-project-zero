@@ -60,7 +60,7 @@ const SignupComplete = () => {
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-8">
             <div className="h-36 rounded-xl bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 mb-4"></div>
             <div className="text-left">
-              <div className="text-2xl font-bold text-black mb-1">$5.00 <span className="text-sm font-normal">/ month</span></div>
+              <div className="text-2xl font-bold text-black mb-1">₦2,000 <span className="text-sm font-normal">/ month</span></div>
               <ul className="text-gray-700 text-sm space-y-2 mb-4">
                 <li>Access to exclusive content</li>
                 <li>Monthly livestreams</li>

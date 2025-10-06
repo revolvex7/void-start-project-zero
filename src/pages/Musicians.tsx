@@ -119,7 +119,7 @@ const Musicians = () => {
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-left lg:text-left transform group-hover:scale-105 transition-transform duration-500">
           <h1 className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-light leading-tight mb-8 text-white drop-shadow-2xl">
-            True Fans for
+            [TrueFans] for
             <br />
             <span className="font-normal bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">musicians</span>
           </h1>
@@ -132,7 +132,7 @@ const Musicians = () => {
             size="lg"
             className="bg-white text-black hover:bg-gray-100 hover:scale-105 px-8 py-4 text-lg font-medium rounded-full shadow-2xl transform transition-all duration-300"
           >
-            Create on True Fans
+            Create on [TrueFans]
           </Button>
         </div>
       </section>
@@ -166,7 +166,7 @@ const Musicians = () => {
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="bg-black/80 rounded-lg p-3 text-white">
                       <h3 className="font-semibold">New song demo 🎵</h3>
-                      <p className="text-sm opacity-80">Exclusive preview for True Fans supporters</p>
+                      <p className="text-sm opacity-80">Exclusive preview for [TrueFans] supporters</p>
                     </div>
                   </div>
                 </div>
@@ -206,8 +206,13 @@ const Musicians = () => {
         </div>
       </section>
 
-      {/* Share More Than Music Section */}
-      <section className="py-20 lg:py-32 bg-white relative overflow-hidden">
+      {/* Share More Than Music Section - Multi-Color Gradient */}
+      <section 
+        className="py-20 lg:py-32 relative overflow-hidden"
+        style={{ 
+          background: 'linear-gradient(to right, #7c7dae 0%, #ce628b 25%, #f5c78c 50%, #0c5c36 75%, #064a2a 100%)'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div 
@@ -215,13 +220,13 @@ const Musicians = () => {
               ref={el => itemRefs.current['share-more-text'] = el as HTMLDivElement}
               className={`transition-all duration-1000 ease-out ${animatedItems['share-more-text'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 -translate-x-16 rotate-3'}`}
             >
-              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black leading-tight">
+              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white leading-tight">
                 Share
                 <br />
                 more
               </h2>
               
-              <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
+              <div className="space-y-6 text-lg text-white/90 leading-relaxed">
                 <p>
                   Create what you want: as you travel the world, from studio sessions, or wherever you get inspired. From audio to video, images, and text, share your process with the people who care most.
                 </p>

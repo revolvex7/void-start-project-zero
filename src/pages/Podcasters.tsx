@@ -135,7 +135,7 @@ const Podcasters = () => {
               </h1>
               
           <p className="text-lg sm:text-xl lg:text-2xl mb-12 max-w-2xl text-white/90 drop-shadow-lg">
-            Podcasters like you earned more than ₦472 million on True Fans in 2024
+            Podcasters like you earned more than ₦472 million on [TrueFans] in 2024
               </p>
               
               <Button 
@@ -147,11 +147,11 @@ const Podcasters = () => {
         </div>
       </section>
 
-      {/* A True Home Section */}
-      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#99ad83' }}>
+      {/* A True Home Section - Light Green Gradient */}
+      <section className="py-20 lg:py-32 relative overflow-hidden group bg-gradient-to-br from-green-100 via-emerald-50 to-teal-50">
         {/* Beautiful hover layer */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-[#99ad83]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute inset-0 bg-green-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
@@ -188,7 +188,7 @@ const Podcasters = () => {
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-black">Grow your income</h3>
               <p className="text-gray-800 leading-relaxed">
-                Build your membership business and showcase exclusive episodes on both True Fans and Spotify to drive discovery and conversion.
+                Build your membership business and showcase exclusive episodes on both [TrueFans] and Spotify to drive discovery and conversion.
               </p>
             </div>
 
@@ -300,7 +300,7 @@ const Podcasters = () => {
               />
               <h3 className="text-3xl font-semibold mb-6 text-black">Sync to Spotify</h3>
               <p className="text-lg text-gray-800 mb-8 leading-relaxed">
-                Share True Fans exclusives directly on Spotify to reach and convert more listeners. 15% of listeners who visit a True Fans via the Spotify integration become paying members.
+                Share [TrueFans] exclusives directly on Spotify to reach and convert more listeners. 15% of listeners who visit a [TrueFans] via the Spotify integration become paying members.
               </p>
               <Button className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-3 rounded-full transition-all duration-300">
                 Learn more
@@ -313,18 +313,18 @@ const Podcasters = () => {
             >
               <h3 className="text-3xl font-semibold mb-6 text-black">Be found right here</h3>
               <p className="text-lg text-gray-800 leading-relaxed">
-                Tap into a network of the most valuable fans on the internet. Over 60% of new paid memberships come from fans already on True Fans.
+                Tap into a network of the most valuable fans on the internet. Over 60% of new paid memberships come from fans already on [TrueFans].
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Make It Your Own */}
-      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#99ad83' }}>
+      {/* Make It Your Own - Blue Gradient */}
+      <section className="py-20 lg:py-32 relative overflow-hidden group bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         {/* Beautiful hover layer */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-[#99ad83]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute inset-0 bg-blue-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -390,11 +390,16 @@ const Podcasters = () => {
         </div>
       </section>
 
-      {/* Go Live */}
-      <section className="py-20 lg:py-32 relative overflow-hidden group" style={{ backgroundColor: '#a1b58b' }}>
+      {/* Go Live - Multi-Color Gradient */}
+      <section 
+        className="py-20 lg:py-32 relative overflow-hidden group"
+        style={{ 
+          background: 'linear-gradient(to right, #7c7dae 0%, #ce628b 25%, #f5c78c 50%, #0c5c36 75%, #064a2a 100%)'
+        }}
+      >
         {/* Beautiful hover layer */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-[#a1b58b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -403,11 +408,11 @@ const Podcasters = () => {
               ref={el => itemRefs.current['go-live-text'] = el as HTMLDivElement}
               className={`lg:order-2 transition-all duration-1000 ease-out ${animatedItems['go-live-text'] ? 'opacity-100 translate-x-0 rotate-0' : 'opacity-0 translate-x-16 rotate-3'}`}
             >
-              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-black">
+              <h2 className="text-5xl lg:text-6xl font-light mb-8 text-white">
                 Go live
               </h2>
-              <p className="text-lg text-gray-800 leading-relaxed">
-                Host AMAs, give behind-the-scenes looks, or just hang out with your most loyal listeners in exclusive True Fans livestreams.
+              <p className="text-lg text-white/90 leading-relaxed">
+                Host AMAs, give behind-the-scenes looks, or just hang out with your most loyal listeners in exclusive [TrueFans] livestreams.
               </p>
             </div>
             <div 
