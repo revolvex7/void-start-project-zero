@@ -85,7 +85,7 @@ export function AppSidebar() {
           
           {/* Switch to Creator */}
           <NavLink 
-            to="/c/NissimBooth" 
+            to="/NissimBooth" 
             className="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors mb-3"
           >
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">

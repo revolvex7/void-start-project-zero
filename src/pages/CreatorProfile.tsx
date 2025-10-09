@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MembershipModal } from '@/components/modals/MembershipModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/contexts/UserRoleContext';
+import { useMembership } from '@/contexts/MembershipContext';
+import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { 
   MoreHorizontal, 
   Share2, 
@@ -18,54 +21,32 @@ import {
   Instagram,
   Youtube,
   Globe,
-  Home, 
-  Search, 
-  Settings,
   Star,
   ArrowRight,
   ChevronDown,
   LogOut,
   Menu,
   X,
-  BarChart3,
-  DollarSign,
-  MessageSquare,
-  Gift,
-  Smartphone,
+  Eye,
   Plus
 } from 'lucide-react';
 
 const CreatorProfile = () => {
   const { creatorUrl } = useParams<{ creatorUrl: string }>();
   const { user, logout, isCreator } = useAuth();
+  const { currentRole } = useUserRole();
+  const { tiers, hasTiers } = useMembership();
   const navigate = useNavigate();
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-  const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [currentView, setCurrentView] = useState<'fan' | 'creator'>('fan');
 
-  // Determine the correct view based on user context
+  // Set role context based on where user came from
   useEffect(() => {
     const previousContext = sessionStorage.getItem('previousContext');
-    
-    // If user came from fan dashboard, show fan view regardless of their creator status
-    if (previousContext === 'fan-dashboard') {
-      setCurrentView('fan');
-    } 
-    // If user came from creator dashboard, show creator view
-    else if (previousContext === 'creator-dashboard') {
-      setCurrentView('creator');
-    }
-    // If user is a creator and no specific context, show creator view
-    else if (isCreator) {
-      setCurrentView('creator');
-    } 
-    // Default to fan view for non-creators
-    else {
-      setCurrentView('fan');
-    }
-  }, [isCreator]);
+    // The UserRoleContext will handle the role management
+    // This component just needs to respect the current role
+  }, []);
 
   // Close mobile sidebar when clicking outside
   useEffect(() => {
@@ -84,31 +65,6 @@ const CreatorProfile = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
-  };
-
-  const handleViewSwitch = (view: 'fan' | 'creator') => {
-    setCurrentView(view);
-    setShowProfileSwitcher(false);
-    setShowMobileSidebar(false);
-    
-    if (view === 'fan') {
-      // Clean up context and navigate to fan dashboard
-      sessionStorage.removeItem('previousContext');
-      navigate('/dashboard?view=fan');
-    } else if (view === 'creator') {
-      // Clean up context and navigate to creator dashboard
-      sessionStorage.removeItem('previousContext');
-      navigate('/dashboard?view=creator');
-    }
-  };
-
-  const handleCreatorClick = (creatorName: string) => {
-    const creatorUrl = creatorName.toLowerCase().replace(/\s+/g, '');
-    // Preserve the current context when navigating to another creator profile
-    const currentContext = currentView === 'fan' ? 'fan-dashboard' : 'creator-dashboard';
-    sessionStorage.setItem('previousContext', currentContext);
-    navigate(`/c/${creatorUrl}`);
-    setShowMobileSidebar(false);
   };
 
   // Mock creator data - in a real app, this would come from an API
@@ -221,29 +177,10 @@ const CreatorProfile = () => {
 
   const tabs = [
     { id: 'home', label: 'Home', active: activeTab === 'home' },
-    { id: 'posts', label: 'Posts', active: activeTab === 'posts' },
-    { id: 'collections', label: 'Collections', active: activeTab === 'collections' },
-    { id: 'chats', label: 'Chats', active: activeTab === 'chats' },
+    { id: 'membership', label: 'Membership', active: activeTab === 'membership' },
     { id: 'about', label: 'About', active: activeTab === 'about' },
   ];
 
-  // Creator sidebar items
-  const creatorSidebarItems = [
-    { icon: BarChart3, label: 'Dashboard', active: true },
-    { icon: Users, label: 'Library', active: false },
-    { icon: Users, label: 'Audience', active: false },
-    { icon: BarChart3, label: 'Insights', active: false },
-    { icon: DollarSign, label: 'Payouts', active: false },
-    { icon: Gift, label: 'Promotions', active: false },
-    { icon: MessageSquare, label: 'Chats', active: false },
-    { icon: Bell, label: 'Notifications', active: false },
-    { icon: Settings, label: 'Settings', active: false },
-  ];
-
-  const recentlyVisited = [
-    { name: 'Joe Budden', avatar: '🎤' },
-    { name: 'Shane Dawson', avatar: '🎬' },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex">
@@ -285,154 +222,16 @@ const CreatorProfile = () => {
         ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         w-64 sm:w-72 lg:w-80 bg-gray-800 flex flex-col fixed h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out
       `} id="mobile-sidebar">
-        <div className="p-3 sm:p-4 lg:p-6 flex-1 flex flex-col">
-          {/* Logo - Hidden on mobile (shown in header) */}
-          <div className="hidden lg:flex items-center mb-6 lg:mb-8">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <div className="w-6 h-6 bg-black rounded-full relative">
-                <div className="absolute inset-0 bg-white rounded-full" style={{
-                  clipPath: 'polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%)'
-                }}></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="space-y-1 sm:space-y-2 mb-4 sm:mb-6 lg:mb-8 mt-4 lg:mt-0">
-            {creatorSidebarItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setShowMobileSidebar(false)}
-                className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-left transition-colors ${
-                  item.active 
-                    ? 'bg-gray-700 text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
-              >
-                <item.icon size={18} />
-                <span className="text-sm sm:text-base">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-
-          {/* Creator Actions */}
-          <div className="mb-4 sm:mb-6 lg:mb-8 space-y-2 sm:space-y-3">
-            <Button className="w-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 sm:py-2.5">
-              <Smartphone size={14} />
-              <span>Get app</span>
-            </Button>
-            <Button className="w-full bg-white hover:bg-gray-100 text-black flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 sm:py-2.5">
-              <Plus size={14} />
-              <span>Create</span>
-            </Button>
-          </div>
-
-          {/* User Profile Section */}
-          <div className="mt-auto space-y-3 sm:space-y-4">
-            {/* Profile Switcher */}
-          <div className="relative">
-              <button
-                onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
-                className="w-full flex items-center space-x-3 p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm sm:text-lg">
-                    {user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="font-medium text-xs sm:text-sm lg:text-base">{user?.creatorName || user?.name || 'User'}</div>
-                  <div className="text-gray-400 text-xs lg:text-sm">Creator</div>
-                </div>
-                <ChevronDown size={14} className="text-gray-400" />
-              </button>
-
-              {/* Profile Switcher Dropdown */}
-              {showProfileSwitcher && (
-                <div className="absolute bottom-full left-0 w-full bg-gray-700 rounded-lg shadow-lg mb-2 p-2">
-                  {/* Creator Profile Option */}
-                  <button
-                    onClick={() => handleViewSwitch('creator')}
-                    className="w-full flex items-center space-x-3 p-2 rounded bg-gray-600"
-                  >
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-pink-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs sm:text-sm">
-                        {user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-xs sm:text-sm font-medium">{user?.creatorName || user?.name || 'User'}</div>
-                      <div className="text-gray-400 text-xs">Creator</div>
-                    </div>
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 text-green-500">✓</div>
-                  </button>
-                  
-                  {/* Fan Profile Option */}
-                  <button
-                    onClick={() => handleViewSwitch('fan')}
-                    className="w-full flex items-center space-x-3 p-2 rounded hover:bg-gray-600"
-                  >
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs sm:text-sm">
-                        {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-xs sm:text-sm font-medium">{user?.name || 'User'}</div>
-                      <div className="text-gray-400 text-xs">Member</div>
-                    </div>
-                  </button>
-
-                  {/* Logout Button */}
-                  <div className="border-t border-gray-600 mt-2 pt-2">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center space-x-3 p-2 rounded hover:bg-gray-600 text-red-400 hover:text-red-300"
-                    >
-                      <LogOut size={14} />
-                      <span className="text-xs sm:text-sm">Log out</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <UnifiedSidebar 
+          showMobileSidebar={showMobileSidebar}
+          setShowMobileSidebar={setShowMobileSidebar}
+        />
       </div>
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-80 pt-16 lg:pt-0">
-            {/* Cover Image */}
-        <div className="relative h-48 sm:h-64 lg:h-80 overflow-hidden">
-          <img
-            src={creator.coverImage}
-            alt={`${creator.name} cover`}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          
-          {/* Cover Actions */}
-          <div className="absolute top-4 right-4 flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-black/50 border-gray-600 text-white hover:bg-black/70 px-3 py-1.5 text-xs sm:text-sm"
-            >
-              <Share2 size={14} className="mr-1" />
-              Share
-                </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-black/50 border-gray-600 text-white hover:bg-black/70 px-2 py-1.5"
-            >
-              <MoreHorizontal size={14} />
-                </Button>
-              </div>
-            </div>
-
         {/* Profile Header */}
-        <div className="px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-20 relative z-10">
+        <div className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
             {/* Avatar */}
             <div className="relative">
@@ -459,26 +258,14 @@ const CreatorProfile = () => {
                 
                 {/* Action Buttons */}
                 <div className="flex space-x-2 sm:space-x-3 mt-4 sm:mt-0">
-                <Button 
-                  onClick={() => setShowMembershipModal(true)}
+                  <Button 
+                    onClick={() => setShowMembershipModal(true)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium"
-                >
+                  >
                   Join now
                 </Button>
-                  <Button
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-800 px-3 sm:px-4 py-2 text-sm sm:text-base"
-                  >
-                    <Bell size={16} className="mr-1 sm:mr-2" />
-                    Follow
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-800 px-3 sm:px-4 py-2 text-sm sm:text-base"
-                  >
-                    <MessageCircle size={16} />
-                </Button>
-              </div>
+                 
+                </div>
               </div>
 
               {/* Stats */}
@@ -496,40 +283,10 @@ const CreatorProfile = () => {
 
               {/* Additional Info */}
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 text-xs sm:text-sm text-gray-400">
-                {creator.location && (
-                  <div className="flex items-center space-x-1">
-                    <MapPin size={14} />
-                    <span>{creator.location}</span>
-                  </div>
-                )}
                 <div className="flex items-center space-x-1">
                   <Calendar size={14} />
                   <span>Joined {creator.joinedDate}</span>
                 </div>
-              </div>
-
-              {/* Social Links */}
-              <div className="flex items-center space-x-3 mt-3">
-                {creator.socialLinks.website && (
-                  <a href={creator.socialLinks.website} className="text-gray-400 hover:text-white">
-                    <Globe size={16} />
-                  </a>
-                )}
-                {creator.socialLinks.twitter && (
-                  <a href={`https://twitter.com/${creator.socialLinks.twitter.replace('@', '')}`} className="text-gray-400 hover:text-white">
-                    <Twitter size={16} />
-                  </a>
-                )}
-                {creator.socialLinks.instagram && (
-                  <a href={`https://instagram.com/${creator.socialLinks.instagram.replace('@', '')}`} className="text-gray-400 hover:text-white">
-                    <Instagram size={16} />
-                  </a>
-                )}
-                {creator.socialLinks.youtube && (
-                  <a href={`https://youtube.com/@${creator.socialLinks.youtube}`} className="text-gray-400 hover:text-white">
-                    <Youtube size={16} />
-                  </a>
-                )}
               </div>
             </div>
           </div>
@@ -619,10 +376,81 @@ const CreatorProfile = () => {
                   </div>
             )}
 
-            {/* Other tab content would go here */}
-            {activeTab !== 'home' && (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-sm sm:text-base">Content for {tabs.find(t => t.id === activeTab)?.label} tab</p>
+            {/* Membership Tab Content */}
+            {activeTab === 'membership' && (
+              <div className="bg-gray-800 rounded-lg p-8">
+                <h2 className="text-2xl font-bold mb-6">Membership Tiers</h2>
+                
+                {/* Mock membership tiers for the creator */}
+                <div className="space-y-4">
+                  <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">Basic Support</h3>
+                        <p className="text-gray-400 mt-1">Get access to exclusive posts and updates</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">$5</div>
+                        <div className="text-sm text-gray-400">per month</div>
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-300">
+                      <li>• Exclusive posts</li>
+                      <li>• Member-only updates</li>
+                      <li>• Discord access</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-gray-700 rounded-lg p-6 border border-blue-500">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-blue-400">Premium Support</h3>
+                        <p className="text-gray-400 mt-1">Everything in Basic plus early access</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">$15</div>
+                        <div className="text-sm text-gray-400">per month</div>
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-300">
+                      <li>• Everything in Basic</li>
+                      <li>• Early access to content</li>
+                      <li>• Monthly Q&A sessions</li>
+                      <li>• Behind-the-scenes content</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-gray-700 rounded-lg p-6 border border-purple-500">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-purple-400">VIP Support</h3>
+                        <p className="text-gray-400 mt-1">The ultimate fan experience</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">$50</div>
+                        <div className="text-sm text-gray-400">per month</div>
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-300">
+                      <li>• Everything in Premium</li>
+                      <li>• 1-on-1 monthly video call</li>
+                      <li>• Custom content requests</li>
+                      <li>• Priority support</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* About Tab Content */}
+            {activeTab === 'about' && (
+              <div className="bg-gray-800 rounded-lg p-8">
+                <h2 className="text-2xl font-bold mb-6">About {creator.name}</h2>
+                <div className="prose prose-gray max-w-none">
+                  <p className="text-gray-300 leading-relaxed">
+                    {creator.description || "This creator hasn't added an about section yet."}
+                  </p>
+                </div>
               </div>
             )}
             </div>

@@ -27,7 +27,7 @@ export function CreatorSidebar() {
   const location = useLocation();
   const { creatorUrl } = useParams();
   const currentPath = location.pathname;
-  const basePath = `/c/${creatorUrl}`;
+  const basePath = `/${creatorUrl}`;
 
   const isActive = (path: string) => {
     const fullPath = path === "" ? basePath : basePath + path;

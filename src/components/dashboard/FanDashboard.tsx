@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ExplorePage } from './ExplorePage';
+import Feed from './Feed';
 import { 
   Home, 
   Search, 
@@ -49,7 +50,7 @@ const FanDashboard = () => {
     const creatorUrl = creatorName.toLowerCase().replace(/\s+/g, '');
     // Store that we came from fan dashboard
     sessionStorage.setItem('previousContext', 'fan-dashboard');
-    navigate(`/c/${creatorUrl}`);
+    navigate(`/${creatorUrl}`);
   };
 
   const handleSwitchToCreator = () => {
@@ -299,7 +300,7 @@ const FanDashboard = () => {
           </div>
         );
       default:
-        return renderHomePage();
+        return <Feed />;
     }
   };
 

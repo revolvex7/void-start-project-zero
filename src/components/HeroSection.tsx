@@ -85,7 +85,9 @@ const HeroSection = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [wasManuallyClicked, setWasManuallyClicked] = useState(false);
+  const [isHoveringButton, setIsHoveringButton] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
 
@@ -138,6 +140,17 @@ const HeroSection = () => {
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
     setCursorPos({ x: localX, y: localY });
+
+    // Check if cursor is over the button
+    if (buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const isOverButton = 
+        e.clientX >= buttonRect.left &&
+        e.clientX <= buttonRect.right &&
+        e.clientY >= buttonRect.top &&
+        e.clientY <= buttonRect.bottom;
+      setIsHoveringButton(isOverButton);
+    }
   };
 
   const currentSlide = heroSlides[currentSlideIndex];
@@ -174,7 +187,7 @@ const HeroSection = () => {
       ))}
 
       {/* Cursor-following amoeba preview of next slide */}
-      {isHovering && cursorPos.y > navbarHeight && (
+      {isHovering && cursorPos.y > navbarHeight && !isHoveringButton && (
         <div
           className="absolute z-50 pointer-events-auto cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200"
           style={{
@@ -240,7 +253,10 @@ const HeroSection = () => {
             </div>
             
             <div className="animate-fade-up delay-500">
-              <button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg transition-all duration-300 patreon-hover-glow shadow-lg w-full sm:w-auto">
+              <button 
+                ref={buttonRef}
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg transition-all duration-300 patreon-hover-glow shadow-lg w-full sm:w-auto"
+              >
                 Start my page
               </button>
             </div>

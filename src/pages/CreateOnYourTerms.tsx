@@ -163,16 +163,7 @@ const CreateOnYourTerms = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-[#ce628b] rounded-full flex items-center justify-center flex-shrink-0">
-                              <CheckCircle className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900">Choose your membership tiers</h4>
-                              <p className="text-sm text-gray-600">Offer benefits that fit your style</p>
-                            </div>
-                          </div>
-
+                         
                           <div className="flex items-start space-x-3">
                             <div className="w-8 h-8 bg-[#f5c78c] rounded-full flex items-center justify-center flex-shrink-0">
                               <CheckCircle className="w-5 h-5 text-white" />
@@ -235,7 +226,7 @@ const CreateOnYourTerms = () => {
               </h2>
               
               <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                Customize your page to reflect your unique brand. Choose your colors, layout, and content strategy. Your page, your personality, your way.
+                Customize your page to reflect your unique brand. Choose your colors, and content strategy. Your page, your personality, your way.
               </p>
               
               <Button className="bg-gradient-to-r from-[#7c7dae] to-[#ce628b] text-white hover:opacity-90 px-8 py-3 rounded-full font-medium transition-all duration-300">

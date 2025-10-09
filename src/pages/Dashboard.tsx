@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/contexts/UserRoleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import FanDashboard from '@/components/dashboard/FanDashboard';
-import CreatorDashboard from '@/components/dashboard/CreatorDashboard';
+import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
+import FanDashboard from '@/pages/FanDashboard';
+import CreatorDashboardPage from '@/pages/CreatorDashboardPage';
+import { Menu, X } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, completeCreatorProfile, updateUser, isCreator, fetchUserProfile } = useAuth();
+  const { currentRole } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   
   const [showCreatorSetup, setShowCreatorSetup] = useState(false);
-  const [currentView, setCurrentView] = useState<'fan' | 'creator'>('fan');
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [creatorData, setCreatorData] = useState({
     creatorName: '',
     pageName: '',
@@ -23,23 +28,13 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Determine initial view based on user status and URL params
+  // Handle creator setup from URL params
   useEffect(() => {
-    const viewParam = searchParams.get('view');
     const setupParam = searchParams.get('setup');
-    
     if (setupParam === 'creator') {
       setShowCreatorSetup(true);
-    } else if (viewParam === 'creator' && isCreator) {
-      setCurrentView('creator');
-    } else if (viewParam === 'fan') {
-      setCurrentView('fan');
-    } else if (isCreator) {
-      setCurrentView('creator');
-    } else {
-      setCurrentView('fan');
     }
-  }, [isCreator, searchParams]);
+  }, [searchParams]);
 
   // Fetch user profile on component mount
   useEffect(() => {
@@ -70,22 +65,22 @@ const Dashboard = () => {
       updateUser({
         creatorName: creatorData.creatorName,
         pageName: creatorData.pageName,
-        is18Plus: creatorData.is18Plus,
+        is18Plus: creatorData.is18Plus
       });
+      
+      setShowCreatorSetup(false);
       
       toast({
         title: "Creator profile completed!",
         description: "Welcome to your creator dashboard.",
       });
       
-      setShowCreatorSetup(false);
-      setCurrentView('creator');
-      // Update URL to reflect creator view
-      navigate('/dashboard?view=creator', { replace: true });
+      navigate('/dashboard?view=creator');
     } catch (error: any) {
+      console.error('Error completing creator profile:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to complete creator profile.",
+        description: error.message || "Failed to complete creator profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -93,61 +88,65 @@ const Dashboard = () => {
     }
   };
 
-  // Render the appropriate dashboard based on current view
+  // Show creator setup modal if needed
   if (showCreatorSetup) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="max-w-md mx-auto p-4 sm:p-6">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Complete Your Creator Profile</h1>
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-6 text-center">Complete Your Creator Profile</h2>
           
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="adult-content"
-                checked={creatorData.is18Plus}
-                onCheckedChange={(checked) => setCreatorData(prev => ({ ...prev, is18Plus: checked as boolean }))}
-                className="border-gray-400 mt-1"
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Creator Name</label>
+              <Input
+                type="text"
+                placeholder="Enter your creator name"
+                value={creatorData.creatorName}
+                onChange={(e) => setCreatorData(prev => ({ ...prev, creatorName: e.target.value }))}
+                className="bg-gray-700 border-gray-600 text-white"
               />
-              <label htmlFor="adult-content" className="text-white text-sm leading-relaxed">
-                My page isn't suitable for people under 18
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Page Name</label>
+              <Input
+                type="text"
+                placeholder="Enter your page name"
+                value={creatorData.pageName}
+                onChange={(e) => setCreatorData(prev => ({ ...prev, pageName: e.target.value }))}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="age-confirmation"
+                checked={creatorData.is18Plus}
+                onCheckedChange={(checked) => setCreatorData(prev => ({ ...prev, is18Plus: !!checked }))}
+              />
+              <label htmlFor="age-confirmation" className="text-sm">
+                I confirm that I am 18 years or older
               </label>
             </div>
-
-            <Input
-              type="text"
-              value={creatorData.creatorName}
-              onChange={(e) => setCreatorData(prev => ({ ...prev, creatorName: e.target.value }))}
-              placeholder="Your creator name"
-              className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg text-sm sm:text-base"
-            />
-
-            <div className="relative">
-              <div className="flex items-center bg-gray-700 border border-gray-600 rounded-lg">
-                <span className="text-gray-400 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base">truefans.com/</span>
-                <Input
-                  type="text"
-                  value={creatorData.pageName}
-                  onChange={(e) => setCreatorData(prev => ({ ...prev, pageName: e.target.value }))}
-                  placeholder="YourPageName"
-                  className="flex-1 bg-transparent border-0 text-white placeholder-gray-400 py-2.5 sm:py-3 text-sm sm:text-base"
-                />
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleCompleteCreatorProfile}
-              disabled={!creatorData.creatorName || !creatorData.pageName || isLoading}
-              className="w-full bg-white text-black hover:bg-gray-100 py-2.5 sm:py-3 h-auto rounded-lg font-medium text-sm sm:text-base"
-            >
-              {isLoading ? 'Creating...' : 'Complete Creator Profile'}
-            </Button>
-
+          </div>
+          
+          <div className="flex space-x-3 mt-6">
             <Button
               variant="outline"
-              onClick={() => setShowCreatorSetup(false)}
-              className="w-full bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 py-2.5 sm:py-3 text-sm sm:text-base"
+              onClick={() => {
+                setShowCreatorSetup(false);
+                navigate('/dashboard');
+              }}
+              className="flex-1"
             >
               Cancel
+            </Button>
+            <Button
+              onClick={handleCompleteCreatorProfile}
+              disabled={!creatorData.creatorName || !creatorData.pageName || !creatorData.is18Plus || isLoading}
+              className="flex-1"
+            >
+              {isLoading ? 'Creating...' : 'Complete Profile'}
             </Button>
           </div>
         </div>
@@ -155,12 +154,68 @@ const Dashboard = () => {
     );
   }
 
-  // Render the appropriate dashboard
-  if (currentView === 'creator') {
-    return <CreatorDashboard />;
-  }
+  return (
+    <div className="min-h-screen bg-gray-900 text-white flex">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50 px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          {showMobileSidebar ? <X size={20} /> : <Menu size={20} />}
+        </button>
+        
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+            <div className="w-4 h-4 bg-black rounded-full relative">
+              <div className="absolute inset-0 bg-white rounded-full" style={{
+                clipPath: 'polygon(0% 0%, 100% 0%, 100% 70%, 70% 100%, 0% 100%)'
+              }}></div>
+            </div>
+          </div>
+          <span className="font-semibold text-sm">[TrueFans] {currentRole === 'creator' ? 'Creator' : ''}</span>
+        </div>
 
-  return <FanDashboard />;
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+          currentRole === 'creator' ? 'bg-pink-600' : 'bg-blue-600'
+        }`}>
+          <span className="text-white font-bold text-sm">
+            {currentRole === 'creator' 
+              ? (user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C')
+              : (user?.name?.charAt(0)?.toUpperCase() || 'U')
+            }
+          </span>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {showMobileSidebar && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        w-64 sm:w-72 lg:w-80 bg-gray-800 flex flex-col fixed h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out
+      `}>
+        <UnifiedSidebar 
+          onPageChange={setCurrentPage}
+          currentPage={currentPage}
+          showMobileSidebar={showMobileSidebar}
+          setShowMobileSidebar={setShowMobileSidebar}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 overflow-y-auto">
+        {currentRole === 'member' ? (
+          <FanDashboard currentPage={currentPage} />
+        ) : (
+          <CreatorDashboardPage currentPage={currentPage} />
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;

@@ -50,14 +50,6 @@ const CreatorDashboard = () => {
     navigate('/dashboard?view=fan');
   };
 
-  const handleCreatorClick = (creatorName: string) => {
-    // Navigate to creator profile page and store the current context
-    const creatorUrl = creatorName.toLowerCase().replace(/\s+/g, '');
-    // Store that we came from creator dashboard
-    sessionStorage.setItem('previousContext', 'creator-dashboard');
-    navigate(`/c/${creatorUrl}`);
-  };
-
   // Creator sidebar items
   const creatorSidebarItems = [
     { icon: BarChart3, label: 'Dashboard', active: currentPage === 'dashboard', page: 'dashboard' },

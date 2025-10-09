@@ -1,10 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { UserRoleProvider } from '@/contexts/UserRoleContext';
+import { MembershipProvider } from '@/contexts/MembershipContext';
 import { Toaster } from '@/components/ui/toaster';
 
 // Pages
-import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import SignupComplete from '@/pages/SignupComplete';
@@ -12,26 +13,39 @@ import SignupName from '@/pages/SignupName';
 import Dashboard from '@/pages/Dashboard';
 import CreatorProfile from '@/pages/CreatorProfile';
 import CreatePost from '@/pages/CreatePost';
+import Library from '@/pages/Library';
+import EditCreatorPage from '@/pages/EditCreatorPage';
 import NotFound from '@/pages/NotFound';
+import Index from '@/pages/Index';
+import Membership from '@/pages/Membership';
+import Insights from '@/pages/Insights';
+import MemberChat from '@/pages/MemberChat';
+import CreatorChat from '@/pages/CreatorChat';
+import Payouts from '@/pages/Payouts';
+import MemberNotifications from '@/pages/MemberNotifications';
+import CreatorNotifications from '@/pages/CreatorNotifications';
+import PostPreview from '@/pages/PostPreview';
+import MemberSettings from '@/pages/MemberSettings';
+import CreatorSettings from '@/pages/CreatorSettings';
 
 // Creator pages
 import Podcasters from '@/pages/Podcasters';
-import VideoCreators from '@/pages/VideoCreators';
 import Musicians from '@/pages/Musicians';
 import Artists from '@/pages/Artists';
 import GameDevs from '@/pages/GameDevs';
 import Product from '@/pages/Product';
+import VideoCreators from '@/pages/VideoCreators';
 
 // Feature pages
 import CreateOnYourTerms from '@/pages/CreateOnYourTerms';
 import OnlineCommunity from '@/pages/OnlineCommunity';
 import ExpandYourReach from '@/pages/ExpandYourReach';
+import BusinessSupport from '@/pages/BusinessSupport';
+import EarningMadeEasy from '@/pages/EarningMadeEasy';
+import Pricing from '@/pages/Pricing';
 
 // Protected Route Component
 import ProtectedRoute from '@/components/ProtectedRoute';
-import BusinessSupport from './pages/BusinessSupport';
-import EarningMadeEasy from './pages/EarningMadeEasy';
-import Pricing from './pages/Pricing';
 
 // Public Route Component (redirects if already authenticated)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -52,8 +66,10 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
-          <Routes>
+        <UserRoleProvider>
+          <MembershipProvider>
+            <div className="App">
+            <Routes>
             {/* Public Routes - Only accessible when not logged in */}
             <Route path="/" element={<PublicRoute><Index /></PublicRoute>} />
             
@@ -117,7 +133,31 @@ function App() {
               } 
             />
             <Route 
-              path="/c/:creatorUrl" 
+              path="/dashboard/explore" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/notifications" 
+              element={
+                <ProtectedRoute>
+                  <MemberNotifications />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/settings" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/:creatorUrl" 
               element={
                 <ProtectedRoute>
                   <CreatorProfile />
@@ -125,10 +165,114 @@ function App() {
               } 
             />
             <Route 
-              path="/c/:creatorUrl/create-post" 
+              path="/customize" 
+              element={
+                <ProtectedRoute>
+                  <EditCreatorPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/create-post" 
               element={
                 <ProtectedRoute>
                   <CreatePost />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/library" 
+              element={
+                <ProtectedRoute>
+                  <Library />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/membership" 
+              element={
+                <ProtectedRoute>
+                  <Membership />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/:creatorUrl/membership" 
+              element={
+                <ProtectedRoute>
+                  <Membership />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/insights" 
+              element={
+                <ProtectedRoute>
+                  <Insights />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/member/chat" 
+              element={
+                <ProtectedRoute>
+                  <MemberChat />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/creator/chat" 
+              element={
+                <ProtectedRoute>
+                  <CreatorChat />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/payouts" 
+              element={
+                <ProtectedRoute>
+                  <Payouts />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notifications" 
+              element={
+                <ProtectedRoute>
+                  <CreatorNotifications />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/post/:postId" 
+              element={
+                <ProtectedRoute>
+                  <PostPreview />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/member-settings" 
+              element={
+                <ProtectedRoute>
+                  <MemberSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/creator-settings" 
+              element={
+                <ProtectedRoute>
+                  <CreatorSettings />
                 </ProtectedRoute>
               } 
             />
@@ -138,9 +282,10 @@ function App() {
           </Routes>
           <Toaster />
         </div>
+        </MembershipProvider>
+        </UserRoleProvider>
       </Router>
     </AuthProvider>
   );
 }
-
 export default App;

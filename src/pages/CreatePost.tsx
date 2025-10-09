@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,20 +14,43 @@ import {
   ChevronDown,
   Globe,
   Lock,
-  ChevronRight,
-  Plus,
-  ToggleLeft
+  ChevronRight
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useUserRole } from '@/contexts/UserRoleContext';
 
 export default function CreatePost() {
   const navigate = useNavigate();
   const { creatorUrl } = useParams();
+  const [searchParams] = useSearchParams();
+  const postId = searchParams.get('id');
+  const { currentRole } = useUserRole();
   const [selectedContentType, setSelectedContentType] = useState<string>('');
   const [showMediaUpload, setShowMediaUpload] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [accessType, setAccessType] = useState<'free' | 'paid'>('free');
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Mock post data for editing
+  const mockPostData = {
+    '1': { title: 'Voluptatem ducimus', content: 'Reiciendis ea exerci.', accessType: 'free' as const },
+    '2': { title: 'Behind the scenes content', content: 'Here\'s what goes on behind the camera...', accessType: 'paid' as const },
+    '3': { title: 'Monthly update video', content: 'This month has been incredible...', accessType: 'free' as const },
+    '4': { title: 'Upcoming project announcement', content: 'I\'m excited to share...', accessType: 'free' as const },
+    '5': { title: 'Q&A session recap', content: 'Thank you for all the great questions...', accessType: 'paid' as const }
+  };
+
+  // Load post data if editing
+  useEffect(() => {
+    if (postId && mockPostData[postId as keyof typeof mockPostData]) {
+      const postData = mockPostData[postId as keyof typeof mockPostData];
+      setTitle(postData.title);
+      setContent(postData.content);
+      setAccessType(postData.accessType);
+      setIsEditing(true);
+    }
+  }, [postId]);
 
   const handleContentTypeClick = (type: string) => {
     setSelectedContentType(type);
@@ -37,11 +60,16 @@ export default function CreatePost() {
   };
 
   const goBack = () => {
-    navigate(`/c/${creatorUrl}`);
+    // Navigate back based on current role context
+    if (currentRole === 'creator') {
+      navigate('/library');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Email Verification Banner */}
       <div className="bg-gray-900 px-6 py-3 flex items-center justify-between border-b border-gray-800">
         <span className="text-sm text-gray-300">Please verify your email address</span>
@@ -67,12 +95,12 @@ export default function CreatePost() {
             Preview post
           </Button>
           <Button className="bg-white text-black hover:bg-gray-100">
-            Publish
+            {isEditing ? 'Update' : 'Publish'}
           </Button>
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-1">
         {/* Main Content Area */}
         <div className="flex-1 p-6">
           {/* Content Type Buttons */}
@@ -161,35 +189,34 @@ export default function CreatePost() {
                   <button className="text-blue-400 hover:underline">Browse</button>
                   <span className="text-gray-400">,</span>
                   <button className="text-blue-400 hover:underline">embed URL</button>
-                  <span className="text-gray-400">or</span>
-                  <button className="text-blue-400 hover:underline">connect Vimeo</button>
+                  <span className="text-gray-400">or drag and drop</span>
                 </div>
               </div>
             </div>
           )}
-
-          {/* Title Input */}
-          <div className="mb-6">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title"
-              className="bg-transparent border-0 text-2xl font-semibold text-white placeholder-gray-500 px-0 focus:ring-0"
-            />
-          </div>
-
-          {/* Content Area */}
-          <div className="mb-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <Plus className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-400">Start writing...</span>
+            {/* Title */}
+            <div className="mb-6">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title"
+                className="bg-transparent border-0 text-2xl font-semibold text-white placeholder-gray-500 px-0 focus:ring-0"
+              />
             </div>
-          </div>
+
+            {/* Content Area */}
+            <div className="mb-6">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Start writing..."
+                className="bg-transparent border-0 text-white placeholder-gray-400 resize-none min-h-[200px] px-0 focus:ring-0"
+              />
+            </div>
         </div>
 
         {/* Right Sidebar */}
         <div className="w-80 bg-gray-900 p-6 border-l border-gray-800">
-          <h3 className="text-lg font-semibold mb-6">Settings</h3>
 
           {/* Audience Settings */}
           <div className="mb-6">
@@ -246,26 +273,9 @@ export default function CreatePost() {
               <ChevronRight className="w-4 h-4" />
             </Button>
 
-            <div>
-              <h4 className="font-medium mb-3">Add to collection</h4>
-              <Button variant="outline" className="w-full bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800">
-                <Plus className="w-4 h-4 mr-2" />
-                Create collection
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Make this a Drop</span>
-              <ToggleLeft className="w-8 h-8 text-gray-400" />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Set publish date</span>
-              <ToggleLeft className="w-8 h-8 text-gray-400" />
-            </div>
           </div>
         </div>
       </div>
-    </div>
+  </div>
   );
 }
