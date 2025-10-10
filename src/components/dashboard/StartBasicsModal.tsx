@@ -24,15 +24,16 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
   const [description, setDescription] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  // Pre-populate fields with user data when modal opens
+  // Pre-populate fields with user data when modal opens (only once)
   useEffect(() => {
     if (open && user) {
-      setPageName(user.creatorName || user.name || '');
-      setPatreonUrl(user.pageName || '');
-      setProfileImage(user.profilePhoto || null);
-      setDescription(user.description || '');
+      // Only set if the fields are empty (first time opening)
+      if (!pageName) setPageName(user.creatorName || user.name || '');
+      if (!patreonUrl) setPatreonUrl(user.pageName || '');
+      if (!profileImage) setProfileImage(user.profilePhoto || null);
+      if (!description) setDescription(user.description || '');
     }
-  }, [open, user]);
+  }, [open]);
 
   const handleSave = () => {
     onSave({

@@ -216,16 +216,9 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-2">Welcome to [TrueFans]</h3>
-                <p className="text-gray-400 mb-3">
-                  Let's set up your page and start growing your community. <a href="#" className="text-blue-400 underline">Learn more</a>
-                </p>
-                <div className="text-green-400 text-sm font-medium">
-                  {getCompletedCount()} of 5 complete
-                </div>
+               
               </div>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white ml-4">
-                ×
-              </Button>
+             
             </div>
 
             {/* Setup Tasks */}
