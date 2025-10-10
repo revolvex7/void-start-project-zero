@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Search } from 'lucide-react';
+import { Send, Search, Menu, X } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -25,6 +25,7 @@ export default function CreatorChat() {
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   // Mock members who have messaged the creator
   const members: Member[] = [
@@ -116,14 +117,55 @@ export default function CreatorChat() {
     }
   };
 
+  // Close mobile sidebar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const sidebar = document.getElementById('mobile-sidebar-creator-chat');
+      const menuButton = document.getElementById('mobile-menu-button-creator-chat');
+      if (showMobileSidebar && sidebar && !sidebar.contains(event.target as Node) && !menuButton?.contains(event.target as Node)) {
+        setShowMobileSidebar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMobileSidebar]);
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="fixed inset-y-0 left-0 w-64 sm:w-72 lg:w-80 bg-gray-800 z-50">
-        <UnifiedSidebar />
+    <div className="min-h-screen bg-gray-900 text-white flex">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50 px-4 py-3 flex items-center justify-between">
+        <button
+          id="mobile-menu-button-creator-chat"
+          onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          {showMobileSidebar ? <X size={20} /> : <Menu size={20} />}
+        </button>
+        
+        <h1 className="text-lg font-semibold">Fan Messages</h1>
+
+        <div className="w-8" /> {/* Spacer for centering */}
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {showMobileSidebar && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        w-64 sm:w-72 lg:w-80 bg-gray-800 flex flex-col fixed h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out
+      `} id="mobile-sidebar-creator-chat">
+        <UnifiedSidebar 
+          showMobileSidebar={showMobileSidebar}
+          setShowMobileSidebar={setShowMobileSidebar}
+        />
       </div>
       
       {/* Main Content */}
-      <div className="ml-64 sm:ml-72 lg:ml-80">
+      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0">
         {!selectedMember ? (
           /* Members List View */
           <div className="p-8">
@@ -189,7 +231,7 @@ export default function CreatorChat() {
           </div>
         ) : (
           /* Chat View */
-          <div className="h-screen flex flex-col">
+          <div className="h-screen flex flex-col pt-16 lg:pt-0">
             {/* Chat Header */}
             <div className="p-4 border-b border-gray-700 bg-gray-800">
               <div className="flex items-center space-x-3">

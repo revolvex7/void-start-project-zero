@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,9 @@ import {
   Settings,
   Bell,
   Shield,
-  Trash2
+  Trash2,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface Subscription {
@@ -42,6 +44,7 @@ interface PurchaseHistory {
 
 export default function MemberSettings() {
   const navigate = useNavigate();
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState<'subscriptions' | 'memberships' | 'history' | 'account'>('subscriptions');
 
   // Mock data
@@ -289,41 +292,59 @@ export default function MemberSettings() {
     </div>
   );
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const sidebar = document.getElementById('mobile-sidebar-member-settings');
+      const menuButton = document.getElementById('mobile-menu-button-member-settings');
+      if (showMobileSidebar && sidebar && !sidebar.contains(event.target as Node) && !menuButton?.contains(event.target as Node)) {
+        setShowMobileSidebar(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMobileSidebar]);
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 sm:w-72 lg:w-80 bg-gray-800 z-50">
-        <UnifiedSidebar />
+    <div className="min-h-screen bg-gray-900 text-white flex">
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50 px-4 py-3 flex items-center justify-between">
+        <button id="mobile-menu-button-member-settings" onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+          {showMobileSidebar ? <X size={20} /> : <Menu size={20} />}
+        </button>
+        <h1 className="text-lg font-semibold">Settings</h1>
+        <div className="w-8" />
       </div>
-      
-      {/* Main Content */}
-      <div className="ml-64 sm:ml-72 lg:ml-80 p-8">
+      {showMobileSidebar && <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" />}
+      <div className={`${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} w-64 sm:w-72 lg:w-80 bg-gray-800 flex flex-col fixed h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out`} id="mobile-sidebar-member-settings">
+        <UnifiedSidebar showMobileSidebar={showMobileSidebar} setShowMobileSidebar={setShowMobileSidebar} />
+      </div>
+      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
+          {/* Header - Hidden on mobile since it's in the fixed header */}
+          <div className="mb-8 hidden lg:block">
             <h1 className="text-3xl font-bold mb-2">Settings</h1>
             <p className="text-gray-400">Manage your subscriptions, memberships, and account preferences</p>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex space-x-1 mb-8 bg-gray-800 p-1 rounded-lg w-fit">
+          <div className="flex space-x-1 mb-8 bg-gray-800 p-1 rounded-lg overflow-x-auto scrollbar-hide">
             <Button
               variant={activeTab === 'subscriptions' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('subscriptions')}
-              className={`px-6 py-2 ${
+              className={`px-4 sm:px-6 py-2 whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'subscriptions' 
                   ? 'bg-white text-black' 
                   : 'text-gray-300 hover:text-white hover:bg-gray-700'
               }`}
             >
               <CreditCard className="w-4 h-4 mr-2" />
-              Subscriptions
+              <span className="hidden sm:inline">Subscriptions</span>
+              <span className="sm:hidden">Subs</span>
             </Button>
            
             <Button
               variant={activeTab === 'history' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('history')}
-              className={`px-6 py-2 ${
+              className={`px-4 sm:px-6 py-2 whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'history' 
                   ? 'bg-white text-black' 
                   : 'text-gray-300 hover:text-white hover:bg-gray-700'
@@ -335,7 +356,7 @@ export default function MemberSettings() {
             <Button
               variant={activeTab === 'account' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('account')}
-              className={`px-6 py-2 ${
+              className={`px-4 sm:px-6 py-2 whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'account' 
                   ? 'bg-white text-black' 
                   : 'text-gray-300 hover:text-white hover:bg-gray-700'

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye } from 'lucide-react';
 
 export default function EditCreatorPage() {
   const { user } = useAuth();
@@ -24,6 +24,7 @@ export default function EditCreatorPage() {
   const [selectedColor, setSelectedColor] = useState('#8017E8');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [aboutData, setAboutData] = useState({
     introVideo: '',
     bio: ''
@@ -123,38 +124,38 @@ export default function EditCreatorPage() {
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <button 
             onClick={handleCancel}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-lg font-semibold">Edit your page</h1>
+          <h1 className="text-base sm:text-lg font-semibold">Edit your page</h1>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <select 
             value={pageData.visibility}
             onChange={(e) => setPageData({ ...pageData, visibility: e.target.value as 'public' | 'free' | 'paid' })}
-            className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm"
+            className="bg-gray-700 border border-gray-600 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm"
           >
             <option value="public">Public</option>
             <option value="free">Free member</option>
             <option value="paid">Paid member</option>
           </select>
-          <Button variant="outline" onClick={handleCancel} className="bg-transparent border-gray-600">
+          <Button variant="outline" onClick={handleCancel} className="bg-transparent border-gray-600 hidden sm:inline-flex">
             Cancel
           </Button>
-          <Button onClick={handleSave} className="bg-white text-black hover:bg-gray-100">
+          <Button onClick={handleSave} className="bg-white text-black hover:bg-gray-100 text-sm sm:text-base px-3 sm:px-4">
             Save
           </Button>
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Left Sidebar - Settings */}
-        <div className="w-80 bg-gray-800 border-r border-gray-700 p-6">
+        <div className={`w-full lg:w-80 bg-gray-800 border-r border-gray-700 p-4 lg:p-6 max-h-screen overflow-y-auto ${showPreview ? 'hidden lg:block' : 'block'}`}>
           {/* Details Section */}
           <div className="mb-8">
             <button className="flex items-center justify-between w-full text-left py-2">
@@ -297,10 +298,33 @@ export default function EditCreatorPage() {
               </div>
             </button>
           </div>
+
+          {/* Mobile Preview Button */}
+          <div className="lg:hidden sticky bottom-0 bg-gray-800 pt-4 pb-2 border-t border-gray-700 -mx-4 px-4">
+            <Button 
+              onClick={() => setShowPreview(true)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview Page
+            </Button>
+          </div>
         </div>
 
         {/* Right Side - Preview */}
-        <div className="flex-1 bg-gray-900 p-6">
+        <div className={`flex-1 bg-gray-900 p-4 lg:p-6 ${showPreview ? 'block' : 'hidden lg:block'}`}>
+          {/* Mobile Preview Header */}
+          <div className="lg:hidden mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Preview</h2>
+            <Button 
+              onClick={() => setShowPreview(false)}
+              variant="outline"
+              className="border-gray-600 text-gray-300"
+            >
+              Back to Edit
+            </Button>
+          </div>
+          
           <div className="max-w-4xl mx-auto">
 
             {/* Preview Content */}

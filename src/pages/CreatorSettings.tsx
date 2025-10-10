@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,9 @@ import {
   Copy, 
   Send,
   Plus,
-  Trash2
+  Trash2,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface VIPGroup {
@@ -22,6 +24,7 @@ interface VIPGroup {
 }
 
 export default function CreatorSettings() {
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupPlatform, setNewGroupPlatform] = useState<'whatsapp' | 'telegram'>('whatsapp');
   const [newGroupLink, setNewGroupLink] = useState('');
@@ -103,16 +106,16 @@ export default function CreatorSettings() {
       </div>
 
       {/* Add New Group */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
         <h3 className="text-lg font-medium mb-4">Create New VIP Group</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Group Name</label>
             <Input
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               placeholder="e.g., Premium Fitness Community"
-              className="bg-gray-700 border-gray-600"
+              className="bg-gray-700 border-gray-600 w-full"
             />
           </div>
           <div>
@@ -126,17 +129,17 @@ export default function CreatorSettings() {
               <option value="telegram">Telegram</option>
             </select>
           </div>
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-medium mb-2">Invite Link</label>
             <Input
               value={newGroupLink}
               onChange={(e) => setNewGroupLink(e.target.value)}
               placeholder="https://chat.whatsapp.com/your-group-link"
-              className="bg-gray-700 border-gray-600"
+              className="bg-gray-700 border-gray-600 w-full"
             />
           </div>
-          <div className="md:col-span-2">
-            <Button onClick={addVIPGroup} className="bg-blue-600 hover:bg-blue-700">
+          <div>
+            <Button onClick={addVIPGroup} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Create Group
             </Button>
@@ -167,15 +170,15 @@ export default function CreatorSettings() {
             </div>
 
             <div className="bg-gray-700 rounded-lg p-3 mb-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300 font-mono truncate flex-1 mr-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-sm text-gray-300 font-mono break-all flex-1">
                   {group.inviteLink}
                 </span>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => copyToClipboard(group.inviteLink)}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-600"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-600 self-start sm:self-auto"
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -206,18 +209,35 @@ export default function CreatorSettings() {
 
 
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const sidebar = document.getElementById('mobile-sidebar-creator-settings');
+      const menuButton = document.getElementById('mobile-menu-button-creator-settings');
+      if (showMobileSidebar && sidebar && !sidebar.contains(event.target as Node) && !menuButton?.contains(event.target as Node)) {
+        setShowMobileSidebar(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMobileSidebar]);
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 sm:w-72 lg:w-80 bg-gray-800 z-50">
-        <UnifiedSidebar />
+    <div className="min-h-screen bg-gray-900 text-white flex">
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50 px-4 py-3 flex items-center justify-between">
+        <button id="mobile-menu-button-creator-settings" onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+          {showMobileSidebar ? <X size={20} /> : <Menu size={20} />}
+        </button>
+        <h1 className="text-lg font-semibold">Creator Settings</h1>
+        <div className="w-8" />
       </div>
-      
-      {/* Main Content */}
-      <div className="ml-64 sm:ml-72 lg:ml-80 p-8">
+      {showMobileSidebar && <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" />}
+      <div className={`${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} w-64 sm:w-72 lg:w-80 bg-gray-800 flex flex-col fixed h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out`} id="mobile-sidebar-creator-settings">
+        <UnifiedSidebar showMobileSidebar={showMobileSidebar} setShowMobileSidebar={setShowMobileSidebar} />
+      </div>
+      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
+          {/* Header - Hidden on mobile since it's in the fixed header */}
+          <div className="mb-8 hidden lg:block">
             <h1 className="text-3xl font-bold mb-2">Creator Settings</h1>
             <p className="text-gray-400">Manage your VIP group invites</p>
           </div>

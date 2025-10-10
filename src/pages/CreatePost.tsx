@@ -240,9 +240,9 @@ export default function CreatePost() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden h-[calc(100vh-73px)]">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden h-[calc(100vh-73px)]">
         {/* Main Content Area */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
           {/* Title */}
           <div className="mb-6">
             <Input
@@ -254,7 +254,7 @@ export default function CreatePost() {
           </div>
 
           {/* Text Formatting Toolbar */}
-          <div className="flex items-center space-x-2 mb-4 pb-4 border-b border-gray-800">
+          <div className="flex items-center space-x-1 sm:space-x-2 mb-4 pb-4 border-b border-gray-800 overflow-x-auto">
             <button 
               onClick={handleBold} 
               className={`p-2 hover:bg-gray-800 rounded transition-colors ${
@@ -540,8 +540,8 @@ export default function CreatePost() {
           </div>
         </div>
 
-        {/* Right Sidebar - Fixed */}
-        <div className="w-80 bg-gray-900 p-6 border-l border-gray-800 overflow-y-auto flex-shrink-0">
+        {/* Right Sidebar - Fixed on desktop, bottom sheet on mobile */}
+        <div className="w-full lg:w-80 bg-gray-900 p-4 lg:p-6 border-t lg:border-t-0 lg:border-l border-gray-800 overflow-y-auto flex-shrink-0">
           {/* Audience Settings */}
           <div className="mb-6">
             <h4 className="text-lg font-semibold mb-4 text-white">Audience</h4>
