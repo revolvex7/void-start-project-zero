@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,6 +24,7 @@ interface Notification {
 }
 
 export default function CreatorNotifications() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
@@ -82,12 +84,41 @@ export default function CreatorNotifications() {
     return `₦${amount.toLocaleString('en-NG')}`;
   };
 
-  const markAsRead = (id: string) => {
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read
     setNotifications(prev => 
       prev.map(notif => 
-        notif.id === id ? { ...notif, isRead: true } : notif
+        notif.id === notification.id ? { ...notif, isRead: true } : notif
       )
     );
+
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'message':
+        // Navigate to creator messages
+        navigate('/creator/chat');
+        break;
+      case 'new_subscriber':
+      case 'payment':
+        // Navigate to insights/analytics to see subscriber details
+        navigate('/insights');
+        break;
+      case 'comment':
+      case 'like':
+        // Navigate to a dummy post (you can change this to dynamic post ID later)
+        navigate('/post/1');
+        break;
+      case 'payout':
+        // Navigate to payouts page
+        navigate('/payouts');
+        break;
+      case 'milestone':
+        // Navigate to insights
+        navigate('/insights');
+        break;
+      default:
+        break;
+    }
   };
 
   const markAllAsRead = () => {
@@ -141,7 +172,7 @@ export default function CreatorNotifications() {
                         ? 'bg-gray-800 border-gray-700' 
                         : 'bg-gray-800/50 border-green-600 shadow-lg'
                     }`}
-                    onClick={() => markAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0">

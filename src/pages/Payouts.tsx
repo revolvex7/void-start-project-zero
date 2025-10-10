@@ -214,10 +214,7 @@ export default function Payouts() {
                   <div className="text-3xl font-bold mb-2">
                     {showBalance ? formatCurrency(walletData.totalBalance) : '₦***,***.**'}
                   </div>
-                  <div className="text-sm text-green-400 flex items-center">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +12.5% from last month
-                  </div>
+                
                 </div>
 
                 <div className="bg-gray-800 rounded-lg p-6">
@@ -233,7 +230,7 @@ export default function Payouts() {
 
                 <div className="bg-gray-800 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">This Month</h3>
+                    <h3 className="text-lg font-semibold">Pending Withdrawals</h3>
                     <Calendar className="w-6 h-6 text-blue-400" />
                   </div>
                   <div className="text-3xl font-bold mb-2">
@@ -243,36 +240,7 @@ export default function Payouts() {
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button 
-                    onClick={() => setActiveTab('withdraw')}
-                    className="bg-blue-600 hover:bg-blue-700 justify-start"
-                  >
-                    <ArrowUpRight className="w-4 h-4 mr-2" />
-                    Withdraw Funds
-                  </Button>
-                  <Button 
-                    onClick={() => setActiveTab('transactions')}
-                    variant="outline" 
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700 justify-start"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Statement
-                  </Button>
-                  <Button 
-                    onClick={() => setActiveTab('settings')}
-                    variant="outline" 
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700 justify-start"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Bank Account
-                  </Button>
-                </div>
-              </div>
-
+            
               {/* Recent Transactions */}
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">

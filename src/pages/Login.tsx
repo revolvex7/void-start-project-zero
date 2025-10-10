@@ -132,6 +132,12 @@ const Login = () => {
             </Link>
           </p>
           
+          <div className="text-center mt-4 sm:mt-6">
+            <Link to="/forgot-password" className="text-gray-400 hover:text-white underline text-xs sm:text-sm">
+              Need help signing in?
+            </Link>
+          </div>
+          
           <p className="text-xs text-gray-500 leading-relaxed px-2">
             By signing in, you agree to our{' '}
             <a href="#" className="underline hover:text-gray-400">Terms of Service</a>{' '}

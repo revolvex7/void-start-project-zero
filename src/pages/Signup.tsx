@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Check } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { userAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 const Signup = () => {
@@ -24,10 +22,7 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    password: '',
-    creatorName: '',
-    pageUrl: '',
-    isAdultContent: false
+    password: ''
   });
 
   const featureSlides = [
@@ -78,11 +73,6 @@ const Signup = () => {
     }
   ];
 
-  const handleJoinAsFan = () => {
-    console.log('Joining as fan with email:', formData.email || 'No email provided');
-    // Redirect to fan dashboard
-    navigate('/dashboard');
-  };
 
   const handleNext = async () => {
     if (isLoading) return;
@@ -91,36 +81,22 @@ const Signup = () => {
     
     try {
       if (currentStep === 2) {
-        // Register user after step 2 - only store tokens, don't fetch profile yet
+        // Register user after step 2 - only store tokens
         await register({
           name: formData.name,
           email: formData.email,
           password: formData.password
         });
-        toast({
-          title: "Account created successfully!",
-          description: "You can now continue as a creator or join as a fan.",
-        });
-        setCurrentStep(3);
-      } else if (currentStep === 3) {
-        // Fetch complete user profile from /user API first
+        
+        // Fetch complete user profile from /user API
         await fetchUserProfile();
         
-        // Then update user with creator name and adult content preference
-        await userAPI.update({
-          creatorName: formData.creatorName,
-          is18Plus: formData.isAdultContent,
-        });
-        setCurrentStep(4);
-      } else if (currentStep === 4) {
-        // Update user with page name
-        await userAPI.update({
-          pageName: formData.pageUrl,
-        });
         toast({
-          title: "Profile completed!",
-          description: "Welcome to your creator dashboard.",
+          title: "Account created successfully!",
+          description: "Welcome to True Fans! You can explore creators as a fan.",
         });
+        
+        // Redirect to fan dashboard
         navigate('/dashboard');
       } else {
         setCurrentStep(currentStep + 1);
@@ -152,10 +128,6 @@ const Signup = () => {
         return formData.email.length > 0;
       case 2:
         return formData.name.length > 0 && formData.password.length >= 8;
-      case 3:
-        return formData.creatorName.length > 0;
-      case 4:
-        return formData.pageUrl.length > 0;
       default:
         return false;
     }
@@ -190,11 +162,7 @@ const Signup = () => {
                 {isLoading ? 'Loading...' : 'Continue'}
               </Button>
 
-              <div className="text-center mt-4 sm:mt-6">
-                <a href="#" className="text-gray-400 hover:text-white underline text-xs sm:text-sm">
-                  Need help signing in?
-                </a>
-              </div>
+            
             </div>
 
             <div className="text-center mt-6 sm:mt-8 text-xs text-gray-500 leading-relaxed px-2">
@@ -252,111 +220,10 @@ const Signup = () => {
               <Button 
                 onClick={handleNext}
                 disabled={!isStepValid() || isLoading}
-                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
-              >
-                {isLoading ? 'Creating account...' : 'Continue'}
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="w-full">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Let's name your page</h1>
-              <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
-                You can get creative or start with your name. Don't worry, you can always change this later.
-              </p>
-            </div>
-
-            <div className="space-y-4 sm:space-y-6">
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  id="adult-content"
-                  checked={formData.isAdultContent}
-                  onCheckedChange={(checked) => handleInputChange('isAdultContent', checked)}
-                  className="border-gray-400 mt-1"
-                />
-                <label htmlFor="adult-content" className="text-white text-xs sm:text-sm leading-relaxed">
-                  My page isn't suitable for people under 18
-                </label>
-              </div>
-
-              <Input
-                type="text"
-                value={formData.creatorName}
-                onChange={(e) => handleInputChange('creatorName', e.target.value)}
-                placeholder="Your creator name"
-                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
-              />
-
-              <Button 
-                onClick={handleNext}
-                disabled={!isStepValid() || isLoading}
-                className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-800 disabled:text-gray-600 text-white py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
-              >
-                {isLoading ? 'Updating...' : 'Continue'}
-              </Button>
-            </div>
-
-            <div className="text-center mt-6 sm:mt-8">
-              <Button 
-                variant="outline" 
-                onClick={handleJoinAsFan}
-                className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm"
-              >
-                Not a creator? Join as a fan
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="w-full">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Choose your URL</h1>
-              <p className="text-gray-300 text-sm sm:text-base lg:text-lg">
-                You can always change this later.
-              </p>
-            </div>
-
-            <div className="space-y-4 sm:space-y-6">
-              <div className="relative">
-                <div className="flex items-center bg-gray-700 border border-gray-600 rounded-lg">
-                  <span className="text-gray-400 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm">truefans.com/</span>
-                  <Input
-                    type="text"
-                    value={formData.pageUrl}
-                    onChange={(e) => handleInputChange('pageUrl', e.target.value)}
-                    placeholder="YourPageName"
-                    className="flex-1 bg-transparent border-0 text-white placeholder-gray-400 py-2.5 sm:py-3 focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
-                  />
-                  {formData.pageUrl && (
-                    <div className="px-3">
-                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleNext}
-                disabled={!isStepValid() || isLoading}
                 className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-2.5 sm:py-3 h-auto rounded-lg font-medium shadow-sm text-sm sm:text-base"
               >
-                {isLoading ? 'Finishing...' : 'Continue'}
+                {isLoading ? 'Creating account...' : 'Sign up'}
               </Button>
-            </div>
-
-            <div className="text-center mt-4 sm:mt-6">
-              <button 
-                onClick={handleBack}
-                className="text-gray-400 hover:text-white underline text-xs sm:text-sm"
-              >
-                Back
-              </button>
             </div>
           </div>
         );

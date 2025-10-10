@@ -10,6 +10,8 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import SignupComplete from '@/pages/SignupComplete';
 import SignupName from '@/pages/SignupName';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import Dashboard from '@/pages/Dashboard';
 import CreatorProfile from '@/pages/CreatorProfile';
 import CreatePost from '@/pages/CreatePost';
@@ -119,6 +121,22 @@ function App() {
               element={
                 <PublicRoute>
                   <SignupName />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/forgot-password" 
+              element={
+                <PublicRoute>
+                  <ForgotPassword />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/reset-password" 
+              element={
+                <PublicRoute>
+                  <ResetPassword />
                 </PublicRoute>
               } 
             />

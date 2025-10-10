@@ -90,7 +90,6 @@ export default function PostPreview() {
       category: "Tech & Programming"
     },
     publishedAt: "2024-01-20",
-    views: 1250,
     readTime: "8 min read",
     type: "article",
     thumbnail: null
@@ -180,10 +179,6 @@ export default function PostPreview() {
                   <span className="flex items-center">
                     <Clock className="w-3 h-3 mr-1" />
                     {post.readTime}
-                  </span>
-                  <span className="flex items-center">
-                    <Eye className="w-3 h-3 mr-1" />
-                    {post.views.toLocaleString()} views
                   </span>
                 </div>
               </div>

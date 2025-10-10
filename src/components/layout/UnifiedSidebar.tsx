@@ -43,7 +43,10 @@ export function UnifiedSidebar({
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    // Clear role context from sessionStorage
+    sessionStorage.removeItem('userRoleContext');
+    // Use window.location for a clean redirect and full page reload
+    window.location.href = '/';
   };
 
   const handleRoleSwitch = (newRole: 'member' | 'creator') => {
@@ -162,6 +165,7 @@ export function UnifiedSidebar({
                 ) : (
                   <NavLink 
                     to={getNavUrl(item)}
+                    end
                     onClick={() => handleMenuClick(item)}
                     className={({ isActive: linkActive }) => 
                       `flex items-center px-3 py-2 rounded-lg transition-colors ${
@@ -171,8 +175,12 @@ export function UnifiedSidebar({
                       }`
                     }
                   >
-                    <item.icon className={`w-5 h-5 mr-3 text-gray-400`} />
-                    <span className="flex-1">{item.title}</span>
+                    {({ isActive: linkActive }) => (
+                      <>
+                        <item.icon className={`w-5 h-5 mr-3 ${linkActive ? 'text-white' : 'text-gray-400'}`} />
+                        <span className="flex-1">{item.title}</span>
+                      </>
+                    )}
                   </NavLink>
                 )}
               </div>

@@ -84,7 +84,6 @@ const featuredContent = [
     creator: 'Digital Dreams Studio',
     thumbnail: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop',
     duration: '45:32',
-    views: '2.1K',
     likes: '189',
     type: 'video'
   },
@@ -94,7 +93,6 @@ const featuredContent = [
     creator: 'Tech Talk Daily',
     thumbnail: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop',
     duration: '28:15',
-    views: '1.8K',
     likes: '156',
     type: 'video'
   },
@@ -104,7 +102,6 @@ const featuredContent = [
     creator: 'Melody Makers',
     thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
     duration: '32:48',
-    views: '3.2K',
     likes: '278',
     type: 'audio'
   }
@@ -193,11 +190,7 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
               <div className="p-4">
                 <h3 className="font-semibold mb-2 line-clamp-2">{content.title}</h3>
                 <p className="text-gray-400 text-sm mb-3">{content.creator}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="flex items-center">
-                    <Users size={12} className="mr-1" />
-                    {content.views} views
-                  </span>
+                <div className="flex items-center text-xs text-gray-500">
                   <span className="flex items-center">
                     <Heart size={12} className="mr-1" />
                     {content.likes} likes

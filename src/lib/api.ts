@@ -87,6 +87,20 @@ class ApiService {
     localStorage.removeItem('user');
   }
 
+  async forgotPassword(email: string) {
+    return await this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    return await this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    });
+  }
+
   // User endpoints
   async getCurrentUser() {
     return await this.request('/user', {
@@ -109,6 +123,8 @@ export const authAPI = {
   login: (credentials: { email: string; password: string }) => apiService.login(credentials),
   register: (userData: { name: string; email: string; password: string }) => apiService.register(userData),
   logout: () => apiService.logout(),
+  forgotPassword: (email: string) => apiService.forgotPassword(email),
+  resetPassword: (token: string, newPassword: string) => apiService.resetPassword(token, newPassword),
   completeCreatorProfile: async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const response = await apiService.updateUser(profileData);
     return { user: response.data };

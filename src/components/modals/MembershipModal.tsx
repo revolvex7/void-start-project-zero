@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Gift } from 'lucide-react';
 
 interface MembershipModalProps {
   open: boolean;
@@ -11,25 +10,31 @@ interface MembershipModalProps {
 
 const membershipTiers = [
   {
-    id: 'platinum',
-    name: 'Dee Hive Platinum',
-    price: 9.99,
-    image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=400&h=300&fit=crop',
-    badge: 'PLATINUM',
+    id: 'free',
+    name: 'Free',
+    price: 0,
+    image: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=400&h=300&fit=crop',
+    badge: 'FREE',
     benefits: [
-      'I post copyrighted content here that I cannot post on Youtube such as reactions to music videos, albums, live performances, etc.',
-      'I do not take reaction requests from this True Fans anymore, I select the videos I\'m interested in that I think my audience would like to see as well.',
-      'There are thousands of videos in the archive here that have not been posted on Youtube, so you will have access to those videos as well'
+      'Access to all free posts and content',
+      'Public updates and announcements',
+      'Community discussions and interactions',
+      'Follow to stay updated with new releases'
     ]
   },
   {
-    id: 'diamond',
-    name: 'Dee Hive Diamond VIP',
-    price: 19.99,
-    image: 'https://images.unsplash.com/photo-1589902726635-1d5ee5ad9f22?w=400&h=300&fit=crop',
-    badge: 'YOU MIGHT LIKE',
+    id: 'subscription',
+    name: 'Monthly Subscription',
+    price: 9.99,
+    image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=400&h=300&fit=crop',
+    badge: 'RECOMMENDED',
     benefits: [
-      'Show extra support! This tier gives the same exact access as the Platinum tier, it\'s just provided to those of you that want to give extra support.'
+      'Everything in Free tier',
+      'Access to all exclusive members-only posts',
+      'Early access to new content and releases',
+      'Behind-the-scenes content and updates',
+      'Direct messaging with creator',
+      'Support the creator directly'
     ]
   }
 ];
@@ -57,76 +62,52 @@ export function MembershipModal({ open, onOpenChange, creatorName }: MembershipM
           {/* Title */}
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold mb-4">Choose your membership</h2>
-            
-            {/* Annual Toggle */}
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <span className={`text-sm ${!isAnnual ? 'text-white' : 'text-gray-400'}`}>Monthly</span>
-              <button
-                onClick={() => setIsAnnual(!isAnnual)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  isAnnual ? 'bg-green-600' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  isAnnual ? 'translate-x-7' : 'translate-x-1'
-                }`}></div>
-              </button>
-              <span className={`text-sm ${isAnnual ? 'text-white' : 'text-gray-400'}`}>
-                Pay annually (Save {creatorName === 'Brad Evans' ? '10%' : '20%'})
-              </span>
-            </div>
+            <p className="text-gray-400">Support {creatorName} and get access to exclusive content</p>
           </div>
 
           {/* Membership Tiers */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {membershipTiers.map((tier) => (
               <div
                 key={tier.id}
-                className={`relative bg-gray-800 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${
+                className={`relative bg-gray-800 rounded-2xl border-2 transition-all cursor-pointer ${
                   selectedTier === tier.id ? 'border-green-500' : 'border-gray-700 hover:border-gray-600'
                 }`}
                 onClick={() => setSelectedTier(tier.id)}
               >
-                {/* Badge */}
-                {tier.badge && (
-                  <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${
-                    tier.id === 'diamond' 
-                      ? 'bg-purple-600 text-white' 
-                      : 'bg-gray-600 text-white'
-                  }`}>
-                    {tier.badge}
-                  </div>
-                )}
-
-                {/* Tier Image */}
-                <div className="h-48 relative">
-                  <img 
-                    src={tier.image} 
-                    alt={tier.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-800 to-transparent"></div>
-                </div>
-
                 <div className="p-6">
+                  {/* Badge */}
+                  {tier.badge && (
+                    <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${
+                      tier.id === 'subscription' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-green-600 text-white'
+                    }`}>
+                      {tier.badge}
+                    </div>
+                  )}
+                  
                   {/* Tier Name & Price */}
                   <div className="mb-4">
                     <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
                     <div className="flex items-baseline space-x-1">
-                      <span className="text-3xl font-bold">${isAnnual ? (tier.price * 12 * 0.8).toFixed(2) : tier.price}</span>
-                      <span className="text-gray-400">/ {isAnnual ? 'year' : 'month'}</span>
+                      <span className="text-3xl font-bold">${tier.price}</span>
+                      {tier.price > 0 && <span className="text-gray-400">/ month</span>}
+                      {tier.price === 0 && <span className="text-gray-400">forever</span>}
                     </div>
                   </div>
 
                   {/* Join Button */}
                   <Button 
                     className={`w-full mb-4 ${
-                      selectedTier === tier.id 
-                        ? 'bg-green-600 hover:bg-green-700' 
-                        : 'bg-blue-600 hover:bg-blue-700'
+                      tier.id === 'free'
+                        ? 'bg-green-600 hover:bg-green-700'
+                        : selectedTier === tier.id 
+                          ? 'bg-green-600 hover:bg-green-700' 
+                          : 'bg-blue-600 hover:bg-blue-700'
                     }`}
                   >
-                    Join
+                    {tier.id === 'free' ? 'Follow' : 'Subscribe'}
                   </Button>
 
                   {/* Benefits */}
@@ -140,17 +121,6 @@ export function MembershipModal({ open, onOpenChange, creatorName }: MembershipM
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Gift Option */}
-          <div className="flex items-center justify-center space-x-4 pt-6 border-t border-gray-700">
-            <div className="flex items-center space-x-2">
-              <Gift className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-300">Gift a membership to {creatorName}</span>
-            </div>
-            <Button variant="outline" className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800">
-              Gift now
-            </Button>
           </div>
         </div>
       </DialogContent>

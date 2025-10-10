@@ -13,7 +13,7 @@ import { Menu, X } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, completeCreatorProfile, updateUser, isCreator, fetchUserProfile } = useAuth();
-  const { currentRole } = useUserRole();
+  const { currentRole, switchRole } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -27,6 +27,15 @@ const Dashboard = () => {
     is18Plus: false
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Ensure new users without creator profile start in member view
+  useEffect(() => {
+    if (user && currentRole === 'creator' && !user.creatorName && !user.pageName) {
+      // User doesn't have creator profile, force member role
+      switchRole('member');
+      navigate('/dashboard?view=fan', { replace: true });
+    }
+  }, [user, currentRole, switchRole, navigate]);
 
   // Handle creator setup from URL params
   useEffect(() => {

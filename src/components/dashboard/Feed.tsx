@@ -14,7 +14,6 @@ import {
   Image as ImageIcon,
   FileText,
   Calendar,
-  Eye,
   User
 } from 'lucide-react';
 
@@ -30,7 +29,6 @@ interface Post {
   };
   publishedAt: string;
   readTime?: string;
-  views: number;
   type: 'article' | 'video' | 'audio' | 'image';
   thumbnail: string;
   likes: number;
@@ -64,7 +62,6 @@ export default function Feed() {
       },
       publishedAt: '2024-01-20',
       readTime: '8 min read',
-      views: 1250,
       type: 'article',
       thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=400&fit=crop',
       likes: 42,
@@ -82,7 +79,6 @@ export default function Feed() {
       },
       publishedAt: '2024-01-19',
       readTime: '12 min read',
-      views: 890,
       type: 'article',
       thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&h=400&fit=crop',
       likes: 28,
@@ -101,7 +97,6 @@ export default function Feed() {
       },
       publishedAt: '2024-01-18',
       readTime: '25 min',
-      views: 2100,
       type: 'video',
       thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop',
       likes: 156,
@@ -119,7 +114,6 @@ export default function Feed() {
       },
       publishedAt: '2024-01-17',
       readTime: '15 min read',
-      views: 670,
       type: 'article',
       thumbnail: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&h=400&fit=crop',
       likes: 34,
@@ -137,7 +131,6 @@ export default function Feed() {
       },
       publishedAt: '2024-01-16',
       readTime: '45 min',
-      views: 1890,
       type: 'audio',
       thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=400&fit=crop',
       likes: 89,
@@ -268,10 +261,6 @@ export default function Feed() {
                     <span className="flex items-center">
                       <Calendar className="w-3 h-3 mr-1" />
                       {new Date(post.publishedAt).toLocaleDateString()}
-                    </span>
-                    <span className="flex items-center">
-                      <Eye className="w-3 h-3 mr-1" />
-                      {post.views.toLocaleString()} views
                     </span>
                   </div>
                 </div>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MembershipModal } from '@/components/modals/MembershipModal';
+import { TipModal } from '@/components/modals/TipModal';
+import { SubscriptionRequiredModal } from '@/components/modals/SubscriptionRequiredModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/contexts/UserRoleContext';
 import { useMembership } from '@/contexts/MembershipContext';
@@ -28,7 +30,8 @@ import {
   Menu,
   X,
   Eye,
-  Plus
+  Plus,
+  Check
 } from 'lucide-react';
 
 const CreatorProfile = () => {
@@ -38,8 +41,12 @@ const CreatorProfile = () => {
   const { tiers, hasTiers } = useMembership();
   const navigate = useNavigate();
   const [showMembershipModal, setShowMembershipModal] = useState(false);
+  const [showTipModal, setShowTipModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // Set role context based on where user came from
   useEffect(() => {
@@ -65,6 +72,23 @@ const CreatorProfile = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    // In a real app, this would call an API to follow/unfollow the creator
+  };
+
+  const handleFreePostClick = () => {
+    navigate('/post/1');
+  };
+
+  const handlePaidPostClick = () => {
+    if (isSubscribed) {
+      navigate('/post/1');
+    } else {
+      setShowSubscriptionModal(true);
+    }
   };
 
   // Mock creator data - in a real app, this would come from an API
@@ -230,22 +254,29 @@ const CreatorProfile = () => {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-80 pt-16 lg:pt-0">
+        {/* Cover Image */}
+        {creator.coverImage && (
+          <div className="w-full h-48 sm:h-64 lg:h-80 overflow-hidden relative">
+            <img
+              src={creator.coverImage}
+              alt={`${creator.name} cover`}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-900"></div>
+          </div>
+        )}
+        
         {/* Profile Header */}
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-8 -mt-16 relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
             {/* Avatar */}
             <div className="relative">
               <img
                 src={creator.avatar}
                 alt={creator.name}
-                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-gray-900 object-cover"
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-gray-900 object-cover shadow-xl"
               />
-              {creator.isVerified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-gray-900">
-                  <span className="text-white text-xs sm:text-sm">✓</span>
-                  </div>
-              )}
-                    </div>
+            </div>
 
             {/* Profile Info */}
             <div className="flex-1">
@@ -259,12 +290,39 @@ const CreatorProfile = () => {
                 {/* Action Buttons */}
                 <div className="flex space-x-2 sm:space-x-3 mt-4 sm:mt-0">
                   <Button 
-                    onClick={() => setShowMembershipModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium"
+                    onClick={handleFollow}
+                    variant="outline"
+                    className={`px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg ${
+                      isFollowing 
+                        ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' 
+                        : 'bg-transparent border-gray-600 text-white hover:bg-gray-700 backdrop-blur-sm'
+                    }`}
                   >
-                  Join now
-                </Button>
-                 
+                    {isFollowing ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={() => setShowMembershipModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg"
+                  >
+                    Subscribe
+                  </Button>
+                  <Button
+                    onClick={() => setShowTipModal(true)}
+                    variant="outline"
+                    className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30 px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg backdrop-blur-sm"
+                  >
+                    💸 Dash Me
+                  </Button>
                 </div>
               </div>
 
@@ -314,129 +372,186 @@ const CreatorProfile = () => {
           <div className="pb-8">
             {activeTab === 'home' && (
               <div className="space-y-6 sm:space-y-8">
-                {/* Latest Post */}
-                <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg sm:text-xl font-semibold">Latest post</h3>
-                    <Button
-                      onClick={() => setShowMembershipModal(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm"
-                    >
-                      Become a member
-                    </Button>
-                  </div>
-                  
-                  <div className="aspect-video bg-gray-700 rounded-lg flex items-center justify-center mb-4">
-                    <div className="text-center">
-                      <Play className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-400 text-sm sm:text-base">Video preview</p>
-                    </div>
-                  </div>
-                  
-                  <h4 className="font-semibold text-base sm:text-lg mb-2">Behind the scenes of my latest project</h4>
-                  <p className="text-gray-400 text-sm sm:text-base mb-4">
-                    Get an exclusive look at what I've been working on. This is just a preview - become a member to see the full content!
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-400">
-                    <span>2 days ago</span>
-                    <div className="flex items-center space-x-4">
-                      <button className="flex items-center space-x-1 hover:text-white">
-                        <Heart size={16} />
-                        <span>24</span>
-                      </button>
-                      <button className="flex items-center space-x-1 hover:text-white">
-                        <MessageCircle size={16} />
-                        <span>8</span>
-                      </button>
-                    </div>
+                {/* Recent Posts Section */}
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Recent posts</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {/* Free Posts (First 3) */}
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div 
+                        key={`free-${index}`} 
+                        onClick={handleFreePostClick}
+                        className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
+                      >
+                        <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
+                          <Play className="w-8 h-8 text-white" />
+                          <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+                            Free
+                          </div>
+                        </div>
+                        <div className="p-3 sm:p-4">
+                          <h4 className="font-medium text-sm sm:text-base mb-1">Free Post {index + 1}</h4>
+                          <p className="text-gray-400 text-xs sm:text-sm">{3 - index} days ago</p>
+                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
+                            <button className="flex items-center space-x-1 hover:text-white">
+                              <Heart size={14} />
+                              <span>{12 + index * 3}</span>
+                            </button>
+                            <button className="flex items-center space-x-1 hover:text-white">
+                              <MessageCircle size={14} />
+                              <span>{5 + index}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Paid Posts (Next 3) */}
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div 
+                        key={`paid-${index}`} 
+                        onClick={handlePaidPostClick}
+                        className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
+                      >
+                        <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
+                          <Lock className="w-6 h-6 text-gray-400" />
+                          <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                            Members only
+                          </div>
+                        </div>
+                        <div className="p-3 sm:p-4">
+                          <h4 className="font-medium text-sm sm:text-base mb-1">Exclusive Post {index + 1}</h4>
+                          <p className="text-gray-400 text-xs sm:text-sm">{7 + index} days ago</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-            {/* Recent Posts Grid */}
-            <div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Recent posts</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {Array.from({ length: 6 }).map((_, index) => (
+                {/* Popular Products Section */}
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Popular products</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {Array.from({ length: 3 }).map((_, index) => (
                       <div key={index} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer">
-                        <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
-                          <Lock className="w-6 h-6 text-gray-400" />
-                          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                            Members only
+                        <div className="aspect-square bg-gray-700 flex items-center justify-center">
+                          <div className="text-center p-4">
+                            <div className="w-16 h-16 bg-gray-600 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                              📦
+                            </div>
+                            <p className="text-gray-400 text-sm">Product {index + 1}</p>
                           </div>
-                          </div>
+                        </div>
                         <div className="p-3 sm:p-4">
-                          <h4 className="font-medium text-sm sm:text-base mb-1">Post title {index + 1}</h4>
-                          <p className="text-gray-400 text-xs sm:text-sm">3 days ago</p>
-                    </div>
+                          <h4 className="font-medium text-sm sm:text-base mb-1">Digital Product {index + 1}</h4>
+                          <p className="text-blue-400 text-sm font-semibold">${(index + 1) * 9.99}</p>
+                        </div>
                       </div>
                     ))}
-                      </div>
-                    </div>
                   </div>
+                </div>
+
+                {/* Explore Other Section */}
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Explore other</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {/* Additional Free Posts */}
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div 
+                        key={`explore-${index}`} 
+                        onClick={handleFreePostClick}
+                        className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
+                      >
+                        <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
+                          <Play className="w-6 h-6 text-white" />
+                          <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+                            Free
+                          </div>
+                        </div>
+                        <div className="p-3 sm:p-4">
+                          <h4 className="font-medium text-sm sm:text-base mb-1">More from {creator.name} #{index + 1}</h4>
+                          <p className="text-gray-400 text-xs sm:text-sm">{10 + index * 2} days ago</p>
+                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
+                            <button className="flex items-center space-x-1 hover:text-white">
+                              <Heart size={14} />
+                              <span>{8 + index * 2}</span>
+                            </button>
+                            <button className="flex items-center space-x-1 hover:text-white">
+                              <MessageCircle size={14} />
+                              <span>{3 + index}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Membership Tab Content */}
             {activeTab === 'membership' && (
               <div className="bg-gray-800 rounded-lg p-8">
-                <h2 className="text-2xl font-bold mb-6">Membership Tiers</h2>
+                <h2 className="text-2xl font-bold mb-6">Membership Options</h2>
                 
-                {/* Mock membership tiers for the creator */}
+                {/* Simplified membership tiers */}
                 <div className="space-y-4">
-                  <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+                  {/* Free Tier */}
+                  <div className="bg-gray-700 rounded-lg p-6 border border-green-500">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold">Basic Support</h3>
-                        <p className="text-gray-400 mt-1">Get access to exclusive posts and updates</p>
+                        <h3 className="text-xl font-semibold text-green-400">Free</h3>
+                        <p className="text-gray-400 mt-1">Follow to access free content</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold">$5</div>
-                        <div className="text-sm text-gray-400">per month</div>
+                        <div className="text-2xl font-bold">$0</div>
+                        <div className="text-sm text-gray-400">forever</div>
                       </div>
                     </div>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                      <li>• Exclusive posts</li>
-                      <li>• Member-only updates</li>
-                      <li>• Discord access</li>
+                    <ul className="space-y-2 text-sm text-gray-300 mb-4">
+                      <li>• Access to all free posts</li>
+                      <li>• Public updates and announcements</li>
+                      <li>• Community discussions</li>
                     </ul>
+                    <Button 
+                      onClick={handleFollow}
+                      variant="outline"
+                      className={`w-full ${
+                        isFollowing 
+                          ? 'bg-gray-600 border-gray-500 text-white' 
+                          : 'bg-transparent border-green-500 text-green-400 hover:bg-green-900/20'
+                      }`}
+                    >
+                      {isFollowing ? 'Following' : 'Follow for Free'}
+                    </Button>
                   </div>
 
+                  {/* Subscription Tier */}
                   <div className="bg-gray-700 rounded-lg p-6 border border-blue-500">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold text-blue-400">Premium Support</h3>
-                        <p className="text-gray-400 mt-1">Everything in Basic plus early access</p>
+                        <h3 className="text-xl font-semibold text-blue-400">Subscription</h3>
+                        <p className="text-gray-400 mt-1">Get access to all exclusive content</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold">$15</div>
+                        <div className="text-2xl font-bold">$9.99</div>
                         <div className="text-sm text-gray-400">per month</div>
                       </div>
                     </div>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                      <li>• Everything in Basic</li>
-                      <li>• Early access to content</li>
-                      <li>• Monthly Q&A sessions</li>
+                    <ul className="space-y-2 text-sm text-gray-300 mb-4">
+                      <li>• Everything in Free</li>
+                      <li>• Access to all exclusive posts</li>
+                      <li>• Member-only content</li>
+                      <li>• Early access to new releases</li>
                       <li>• Behind-the-scenes content</li>
+                      <li>• Direct messaging with creator</li>
                     </ul>
-                  </div>
-
-                  <div className="bg-gray-700 rounded-lg p-6 border border-purple-500">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-xl font-semibold text-purple-400">VIP Support</h3>
-                        <p className="text-gray-400 mt-1">The ultimate fan experience</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">$50</div>
-                        <div className="text-sm text-gray-400">per month</div>
-                      </div>
-                    </div>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                      <li>• Everything in Premium</li>
-                      <li>• 1-on-1 monthly video call</li>
-                      <li>• Custom content requests</li>
-                      <li>• Priority support</li>
-                    </ul>
+                    <Button 
+                      onClick={() => setShowMembershipModal(true)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Subscribe Now
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -462,6 +577,21 @@ const CreatorProfile = () => {
           open={showMembershipModal}
           onOpenChange={setShowMembershipModal}
           creatorName={creator.name}
+        />
+
+        {/* Tip Modal */}
+        <TipModal
+          open={showTipModal}
+          onOpenChange={setShowTipModal}
+          creatorName={creator.name}
+        />
+
+        {/* Subscription Required Modal */}
+        <SubscriptionRequiredModal
+          open={showSubscriptionModal}
+          onOpenChange={setShowSubscriptionModal}
+          creatorName={creator.name}
+          onSubscribe={() => setShowMembershipModal(true)}
         />
       </div>
   );

@@ -52,6 +52,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
   const [activeTab, setActiveTab] = useState('home');
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [showNewTierModal, setShowNewTierModal] = useState(false);
+  const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [newTier, setNewTier] = useState({
     name: '',
     price: 0,
@@ -80,22 +81,40 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
       setShowEmailVerificationModal(true);
     }, 3000);
   };
-
   const handleEditPage = () => {
     navigate('/customize');
   };
 
   const handleAddTier = () => {
-    if (newTier.name && newTier.price > 0) {
+    if (!newTier.name || newTier.price <= 0) return;
+    
+    if (editingTierId) {
+      // Update existing tier (in a real app, this would call an API)
+      console.log('Updating tier:', editingTierId, newTier);
+      // For now, just close the modal
+    } else {
+      // Add new tier
       addTier({
         name: newTier.name,
         price: newTier.price,
         description: newTier.description,
-        memberCount: 0
+        memberCount: 0,
       });
-      setNewTier({ name: '', price: 0, description: '' });
-      setShowNewTierModal(false);
     }
+    
+    setNewTier({ name: '', price: 0, description: '' });
+    setEditingTierId(null);
+    setShowNewTierModal(false);
+  };
+
+  const handleEditTier = (tier: any) => {
+    setNewTier({
+      name: tier.name,
+      price: tier.price,
+      description: tier.description || ''
+    });
+    setEditingTierId(tier.id);
+    setShowNewTierModal(true);
   };
 
   const handleBasicsSave = (data: {
@@ -122,9 +141,9 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
     return completedTasks.length;
   };
   return (
-    <div className="flex-1 bg-black text-white">
+    <div className="flex-1 bg-gray-900 text-white">
       {/* Top banner */}
-      <div className="bg-gray-900 px-6 py-3 flex items-center justify-between border-b border-gray-800">
+      <div className="bg-gray-800 px-6 py-3 flex items-center justify-between border-b border-gray-700">
         <span className="text-sm text-gray-300">You need to verify your email before you can launch your page.</span>
         <Button 
           onClick={handleVerifyEmail}
@@ -138,7 +157,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
       </div>
 
       {/* Creator Name Header */}
-      <div className="px-6 py-6 border-b border-gray-800">
+      <div className="px-6 py-6 border-b border-gray-700">
         <div className="flex items-center justify-center">
           <h1 className="text-4xl font-bold text-white">{creatorName}</h1>
         </div>
@@ -185,9 +204,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                 <Edit className="w-4 h-4 mr-2" />
                 Edit page
               </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                •••
-              </Button>
+             
             </div>
           </div>
 
@@ -195,7 +212,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
           {activeTab === 'home' ? (
             <>
               {/* Welcome Card */}
-              <div className="bg-gray-900 rounded-2xl p-6 mb-6">
+              <div className="bg-gray-800 rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-xl font-semibold mb-2">Welcome to [TrueFans]</h3>
@@ -219,13 +236,13 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                   onClick={() => handleTaskClick(task)}
                   className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
                     task.enabled 
-                      ? 'bg-gray-800 hover:bg-gray-750 cursor-pointer' 
-                      : 'bg-gray-900 cursor-not-allowed opacity-50'
+                      ? 'bg-gray-700 hover:bg-gray-600 cursor-pointer' 
+                      : 'bg-gray-800 cursor-not-allowed opacity-50'
                   } ${completedTasks.includes(task.id) ? 'ring-2 ring-green-500' : ''}`}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                      <task.icon className={`w-5 h-5 ${task.enabled ? 'text-gray-400' : 'text-gray-600'}`} />
+                    <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                      <task.icon className={`w-5 h-5 ${task.enabled ? 'text-gray-300' : 'text-gray-600'}`} />
                     </div>
                     <div>
                       <h4 className={`font-medium ${task.enabled ? 'text-white' : 'text-gray-500'}`}>
@@ -253,8 +270,8 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-900 rounded-xl p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-800 rounded-xl p-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
                   <Users className="w-5 h-5 text-blue-400" />
@@ -266,7 +283,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
               </div>
             </div>
             
-            <div className="bg-gray-900 rounded-xl p-6">
+            <div className="bg-gray-800 rounded-xl p-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-green-400" />
@@ -274,18 +291,6 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                 <div>
                   <h3 className="text-lg font-semibold">₦0</h3>
                   <p className="text-gray-400 text-sm">Monthly revenue</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-900 rounded-xl p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">0</h3>
-                  <p className="text-gray-400 text-sm">Page views</p>
                 </div>
               </div>
             </div>
@@ -378,10 +383,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                       <h2 className="text-2xl font-bold">Paid membership tiers</h2>
                       <p className="text-gray-400 mt-2">Creators can set monthly or one-time prices with different perks.</p>
                     </div>
-                    <Button className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-500">
-                      <Eye size={16} />
-                      <span>Preview</span>
-                    </Button>
+                   
                   </div>
 
                   <div className="space-y-4 mb-6">
@@ -394,6 +396,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                             <p className="text-gray-400">{tier.description}</p>
                           </div>
                           <Button 
+                            onClick={() => handleEditTier(tier)}
                             variant="ghost" 
                             className="text-blue-400 hover:text-blue-300"
                           >
@@ -438,7 +441,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">New tier</h2>
+              <h2 className="text-2xl font-bold">{editingTierId ? 'Edit Subscription Tier' : 'Create Subscription Tier'}</h2>
               <button
                 onClick={() => setShowNewTierModal(false)}
                 className="text-gray-400 hover:text-white"
@@ -448,74 +451,79 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
             </div>
 
             <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Customise tier</h3>
-                
-                <div className="space-y-4">
+              {hasTiers && !editingTierId ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-300 mb-4">You already have a subscription tier. You can only have one subscription tier at this time.</p>
+                  <Button 
+                    onClick={() => setShowNewTierModal(false)}
+                    className="bg-white text-black hover:bg-gray-100"
+                  >
+                    Close
+                  </Button>
+                </div>
+              ) : (
+                <>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Name</label>
-                    <Input
-                      placeholder="Tier name"
-                      value={newTier.name}
-                      onChange={(e) => setNewTier({ ...newTier, name: e.target.value })}
-                      className="bg-gray-700 border-gray-600 text-white"
-                    />
-                  </div>
+                    <h3 className="text-lg font-semibold mb-4">Set up your monthly subscription</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tier Name</label>
+                        <Input
+                          placeholder="e.g., Premium Membership"
+                          value={newTier.name}
+                          onChange={(e) => setNewTier({ ...newTier, name: e.target.value })}
+                          className="bg-gray-700 border-gray-600 text-white"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Monthly price</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={newTier.price || ''}
-                        onChange={(e) => setNewTier({ ...newTier, price: parseFloat(e.target.value) || 0 })}
-                        className="bg-gray-700 border-gray-600 text-white pl-8"
-                      />
-                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <Eye size={16} className="text-gray-400" />
-                      </button>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Monthly Price</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                          <Input
+                            type="number"
+                            placeholder="9.99"
+                            value={newTier.price || ''}
+                            onChange={(e) => setNewTier({ ...newTier, price: parseFloat(e.target.value) || 0 })}
+                            className="bg-gray-700 border-gray-600 text-white pl-8"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Set your monthly subscription price</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Description</label>
+                        <Textarea
+                          placeholder="Describe the benefits subscribers will get (e.g., exclusive content, early access, behind-the-scenes, etc.)"
+                          value={newTier.description}
+                          onChange={(e) => setNewTier({ ...newTier, description: e.target.value })}
+                          className="bg-gray-700 border-gray-600 text-white min-h-[120px]"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Tier description (optional)</label>
-                    <Textarea
-                      placeholder="Describe the benefits and exclusive content people can expect to get when they join."
-                      value={newTier.description}
-                      onChange={(e) => setNewTier({ ...newTier, description: e.target.value })}
-                      className="bg-gray-700 border-gray-600 text-white min-h-[120px]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Cover image (optional)</label>
-                    <Button variant="outline" className="bg-gray-700 border-gray-600 text-gray-300">
-                      <Plus size={16} className="mr-2" />
-                      Add cover image
+                  <div className="flex justify-end space-x-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowNewTierModal(false)}
+                      className="bg-transparent border-gray-600 text-gray-300"
+                    >
+                      Cancel
                     </Button>
-                    <p className="text-sm text-gray-400 mt-2">Recommended size: 460 by 200 pixels</p>
+                    <Button 
+                      onClick={handleAddTier}
+                      disabled={!newTier.name || newTier.price <= 0}
+                      className="bg-white text-black hover:bg-gray-100"
+                    >
+                      {editingTierId ? 'Update Tier' : 'Create Tier'}
+                    </Button>
                   </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowNewTierModal(false)}
-                  className="bg-transparent border-gray-600 text-gray-300"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleAddTier}
-                  disabled={!newTier.name || newTier.price <= 0}
-                  className="bg-white text-black hover:bg-gray-100"
-                >
-                  Save tier
-                </Button>
-              </div>
+                </>
+              )}
             </div>
           </div>
         </div>

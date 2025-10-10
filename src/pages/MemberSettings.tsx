@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { 
@@ -40,6 +41,7 @@ interface PurchaseHistory {
 }
 
 export default function MemberSettings() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'subscriptions' | 'memberships' | 'history' | 'account'>('subscriptions');
 
   // Mock data
@@ -179,7 +181,12 @@ export default function MemberSettings() {
             </div>
 
             <div className="flex items-center space-x-3 mt-4 pt-4 border-t border-gray-700">
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Button 
+                onClick={() => navigate(`/${subscription.creatorName.toLowerCase().replace(' ', '-')}`)} 
+                variant="outline" 
+                size="sm" 
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 View Profile
               </Button>
@@ -189,10 +196,6 @@ export default function MemberSettings() {
                   Cancel
                 </Button>
               )}
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                <Settings className="w-4 h-4 mr-2" />
-                Manage
-              </Button>
             </div>
           </div>
         ))}
@@ -200,63 +203,6 @@ export default function MemberSettings() {
     </div>
   );
 
-  const renderMemberships = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">My Memberships</h2>
-        <span className="text-sm text-gray-400">
-          Following {subscriptions.length} creators
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {subscriptions.map((subscription) => (
-          <div key={subscription.id} className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold">{subscription.creatorAvatar}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-1">
-                  <h3 className="font-medium text-sm truncate">{subscription.creatorName}</h3>
-                  {subscription.isVerified && (
-                    <Star className="w-3 h-3 text-yellow-400 fill-current flex-shrink-0" />
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 truncate">{subscription.planName}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Plan:</span>
-                <span>{formatCurrency(subscription.amount, subscription.currency)}/month</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Status:</span>
-                <span className={`px-2 py-1 rounded-full ${getStatusColor(subscription.status)}`}>
-                  {subscription.status}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Since:</span>
-                <span>{new Date(subscription.subscribedDate).toLocaleDateString()}</span>
-              </div>
-            </div>
-
-            <div className="flex space-x-2 mt-4">
-              <Button variant="outline" size="sm" className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 text-xs">
-                View
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 text-xs">
-                Message
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   const renderPurchaseHistory = () => (
     <div className="space-y-6">
@@ -309,32 +255,32 @@ export default function MemberSettings() {
       
       <div className="grid gap-6">
         <div className="bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-4">Notification Preferences</h3>
+          <h3 className="text-lg font-medium mb-4">Profile Settings</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium">New Content Notifications</h4>
-                <p className="text-sm text-gray-400">Get notified when creators you follow post new content</p>
+                <h4 className="font-medium">Update Profile</h4>
+                <p className="text-sm text-gray-400">Edit your profile information, avatar, and bio</p>
               </div>
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                <Bell className="w-4 h-4 mr-2" />
-                Manage
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <User className="w-4 h-4 mr-2" />
+                Edit Profile
               </Button>
             </div>
           </div>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-4">Privacy & Security</h3>
+          <h3 className="text-lg font-medium mb-4">Security</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium">Account Privacy</h4>
-                <p className="text-sm text-gray-400">Manage who can see your profile and activity</p>
+                <h4 className="font-medium">Change Password</h4>
+                <p className="text-sm text-gray-400">Update your password to keep your account secure</p>
               </div>
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
                 <Shield className="w-4 h-4 mr-2" />
-                Settings
+                Change Password
               </Button>
             </div>
           </div>
@@ -373,18 +319,7 @@ export default function MemberSettings() {
               <CreditCard className="w-4 h-4 mr-2" />
               Subscriptions
             </Button>
-            <Button
-              variant={activeTab === 'memberships' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('memberships')}
-              className={`px-6 py-2 ${
-                activeTab === 'memberships' 
-                  ? 'bg-white text-black' 
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              <User className="w-4 h-4 mr-2" />
-              Memberships
-            </Button>
+           
             <Button
               variant={activeTab === 'history' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('history')}
@@ -414,7 +349,6 @@ export default function MemberSettings() {
           {/* Tab Content */}
           <div>
             {activeTab === 'subscriptions' && renderSubscriptions()}
-            {activeTab === 'memberships' && renderMemberships()}
             {activeTab === 'history' && renderPurchaseHistory()}
             {activeTab === 'account' && renderAccountSettings()}
           </div>

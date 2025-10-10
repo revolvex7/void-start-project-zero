@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,6 +24,7 @@ interface Notification {
 }
 
 export default function MemberNotifications() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
@@ -79,12 +81,37 @@ export default function MemberNotifications() {
     }
   };
 
-  const markAsRead = (id: string) => {
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read
     setNotifications(prev => 
       prev.map(notif => 
-        notif.id === id ? { ...notif, isRead: true } : notif
+        notif.id === notification.id ? { ...notif, isRead: true } : notif
       )
     );
+
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'new_content':
+        // Navigate to a dummy post (you can change this to dynamic post ID later)
+        navigate('/post/1');
+        break;
+      case 'message':
+        // Navigate to member messages
+        navigate('/member/chat');
+        break;
+      case 'subscription':
+      case 'like':
+      case 'comment':
+        // Navigate to the specific post or creator page
+        navigate('/post/1');
+        break;
+      case 'creator_live':
+        // Navigate to creator profile or live page
+        navigate('/dashboard/explore');
+        break;
+      default:
+        break;
+    }
   };
 
   const markAllAsRead = () => {
@@ -138,7 +165,7 @@ export default function MemberNotifications() {
                         ? 'bg-gray-800 border-gray-700' 
                         : 'bg-gray-800/50 border-blue-600 shadow-lg'
                     }`}
-                    onClick={() => markAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0">

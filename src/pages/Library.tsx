@@ -4,19 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { 
-  Filter, 
   Search, 
   MoreHorizontal,
   FileText,
-  Calendar,
-  Eye,
-  Edit3
+  Trash2
 } from 'lucide-react';
 
 const Library = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('posts');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Mock data for posts
   const mockPosts = [
@@ -46,27 +43,6 @@ const Library = () => {
     }
   ];
 
-  // Mock data for drafts
-  const mockDrafts = [
-    {
-      id: '4',
-      title: 'Upcoming project announcement',
-      publishDate: 'Draft',
-      access: 'Public',
-      type: 'Text + images',
-      status: 'draft'
-    },
-    {
-      id: '5',
-      title: 'Q&A session recap',
-      publishDate: 'Draft',
-      access: 'Paid members',
-      type: 'Video + text',
-      status: 'draft'
-    }
-  ];
-
-  const currentData = activeTab === 'posts' ? mockPosts : mockDrafts;
 
   const handlePostClick = (postId: string) => {
     navigate(`/create-post?id=${postId}`);
@@ -109,52 +85,17 @@ const Library = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Library</h1>
-            <p className="text-gray-400">Manage your posts and drafts</p>
-          </div>
-
-          {/* Tabs */}
-          <div className="border-b border-gray-700 mb-6">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab('posts')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'posts'
-                    ? 'border-blue-500 text-blue-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                Posts
-              </button>
-              <button
-                onClick={() => setActiveTab('drafts')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'drafts'
-                    ? 'border-blue-500 text-blue-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                Drafts
-              </button>
-            </nav>
+            <p className="text-gray-400">Manage your posts</p>
           </div>
 
           {/* Controls */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                className="bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                <Filter size={16} className="mr-2" />
-                Filter
-              </Button>
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search"
-                  className="pl-10 bg-gray-800 border-gray-600 text-white w-64"
-                />
-              </div>
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search posts"
+                className="pl-10 bg-gray-800 border-gray-600 text-white w-64"
+              />
             </div>
             <Button
               onClick={handleCreatePost}
@@ -165,19 +106,14 @@ const Library = () => {
           </div>
 
           {/* Content */}
-          {currentData.length === 0 ? (
+          {mockPosts.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FileText size={24} className="text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">
-                {activeTab === 'posts' ? 'No posts yet' : 'No drafts yet'}
-              </h3>
+              <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
               <p className="text-gray-400 mb-6">
-                {activeTab === 'posts' 
-                  ? 'Use your library to keep track of everything you publish. Post an update today to kick things off.'
-                  : 'Start writing a post and save it as a draft to see it here.'
-                }
+                Use your library to keep track of everything you publish. Post an update today to kick things off.
               </p>
               <Button
                 onClick={handleCreatePost}
@@ -190,10 +126,7 @@ const Library = () => {
             <div className="bg-gray-800 rounded-lg overflow-hidden">
               {/* Table Header */}
               <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-700 text-sm font-medium text-gray-400">
-                <div className="col-span-1">
-                  <input type="checkbox" className="rounded border-gray-600 bg-gray-700" />
-                </div>
-                <div className="col-span-4">Title</div>
+                <div className="col-span-5">Title</div>
                 <div className="col-span-2 flex items-center cursor-pointer hover:text-white">
                   Publish date
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,20 +140,13 @@ const Library = () => {
 
               {/* Table Content */}
               <div className="divide-y divide-gray-700">
-                {currentData.map((item) => (
+                {mockPosts.map((item) => (
                   <div
                     key={item.id}
                     className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-750 transition-colors cursor-pointer"
                     onClick={() => handlePostClick(item.id)}
                   >
-                    <div className="col-span-1">
-                      <input 
-                        type="checkbox" 
-                        className="rounded border-gray-600 bg-gray-700"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                    <div className="col-span-4">
+                    <div className="col-span-5">
                       <div className="font-medium text-white">{item.title}</div>
                     </div>
                     <div className="col-span-2 text-gray-300">
@@ -241,16 +167,31 @@ const Library = () => {
                       <FileText size={14} className="mr-2" />
                       {item.type}
                     </div>
-                    <div className="col-span-1">
+                    <div className="col-span-1 relative">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Handle more options
+                          setOpenMenuId(openMenuId === item.id ? null : item.id);
                         }}
                         className="p-1 hover:bg-gray-600 rounded"
                       >
                         <MoreHorizontal size={16} className="text-gray-400" />
                       </button>
+                      {openMenuId === item.id && (
+                        <div className="absolute right-0 top-8 bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1 z-10 w-32">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Delete post:', item.id);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-red-400 hover:bg-gray-600 flex items-center space-x-2"
+                          >
+                            <Trash2 size={14} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
