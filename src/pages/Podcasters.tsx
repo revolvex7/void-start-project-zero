@@ -135,7 +135,7 @@ const Podcasters = () => {
               </h1>
               
           <p className="text-lg sm:text-xl lg:text-2xl mb-12 max-w-2xl text-white/90 drop-shadow-lg">
-            Podcasters like you earned more than ₦472 million on [TrueFans] in 2024
+            Podcasters like you earned more than ₦472 million on True Fans in 2024
               </p>
               
               <Button 
@@ -188,7 +188,7 @@ const Podcasters = () => {
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-black">Grow your income</h3>
               <p className="text-gray-800 leading-relaxed">
-                Build your membership business and showcase exclusive episodes on both [TrueFans] and Spotify to drive discovery and conversion.
+                Build your membership business and showcase exclusive episodes on both True Fans and Spotify to drive discovery and conversion.
               </p>
             </div>
 
@@ -300,7 +300,7 @@ const Podcasters = () => {
               />
               <h3 className="text-3xl font-semibold mb-6 text-black">Sync to Spotify</h3>
               <p className="text-lg text-gray-800 mb-8 leading-relaxed">
-                Share [TrueFans] exclusives directly on Spotify to reach and convert more listeners. 15% of listeners who visit a [TrueFans] via the Spotify integration become paying members.
+                Share True Fans exclusives directly on Spotify to reach and convert more listeners. 15% of listeners who visit a True Fans via the Spotify integration become paying members.
               </p>
               <Button className="bg-black text-white hover:bg-gray-800 hover:scale-105 px-8 py-3 rounded-full transition-all duration-300">
                 Learn more
@@ -313,7 +313,7 @@ const Podcasters = () => {
             >
               <h3 className="text-3xl font-semibold mb-6 text-black">Be found right here</h3>
               <p className="text-lg text-gray-800 leading-relaxed">
-                Tap into a network of the most valuable fans on the internet. Over 60% of new paid memberships come from fans already on [TrueFans].
+                Tap into a network of the most valuable fans on the internet. Over 60% of new paid memberships come from fans already on True Fans.
               </p>
             </div>
           </div>
@@ -360,7 +360,7 @@ const Podcasters = () => {
                     <div className="flex space-x-2">
                       <Button size="sm" className="bg-white text-red-600 hover:bg-gray-100">Home</Button>
                       <Button size="sm" variant="ghost" className="text-white">Posts</Button>
-                      <Button size="sm" variant="ghost" className="text-white">Collections</Button>
+                      <Button size="sm" variant="ghost" className="text-white">Series</Button>
                       <Button size="sm" variant="ghost" className="text-white">Chats</Button>
                       <Button size="sm" variant="ghost" className="text-white">Shop</Button>
                       <Button size="sm" className="bg-red-700 text-white">Join for free</Button>
@@ -412,7 +412,7 @@ const Podcasters = () => {
                 Go live
               </h2>
               <p className="text-lg text-white/90 leading-relaxed">
-                Host AMAs, give behind-the-scenes looks, or just hang out with your most loyal listeners in exclusive [TrueFans] livestreams.
+                Host AMAs, give behind-the-scenes looks, or just hang out with your most loyal listeners in exclusive True Fans livestreams.
               </p>
             </div>
             <div 

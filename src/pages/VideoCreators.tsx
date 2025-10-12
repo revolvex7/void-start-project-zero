@@ -323,7 +323,7 @@ const VideoCreators = () => {
               
               <div className="space-y-6 text-lg text-white/90 leading-relaxed">
                 <p className="transform hover:translate-x-2 transition-transform duration-300">
-                  Your [TrueFans] page is a direct line to your most engaged supporters. No algorithm decides who sees your content—
+                  Your True Fans page is a direct line to your most engaged supporters. No algorithm decides who sees your content—
                   your fans get every update, every time.
                 </p>
                 <p className="transform hover:translate-x-2 transition-transform duration-300">

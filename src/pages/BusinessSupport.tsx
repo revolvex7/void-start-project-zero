@@ -103,7 +103,7 @@ const BusinessSupport = () => {
             </h1>
             
             <p className="text-lg sm:text-xl lg:text-2xl mb-8 max-w-2xl text-white/95 leading-relaxed">
-              Get the help, protection, and tools you need to run a successful creative business on [TrueFans].
+              Get the help, protection, and tools you need to run a successful creative business on True Fans.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
@@ -455,7 +455,7 @@ const BusinessSupport = () => {
           </h2>
           
           <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of creators who trust [TrueFans] to support and protect their creative businesses.
+            Join thousands of creators who trust True Fans to support and protect their creative businesses.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

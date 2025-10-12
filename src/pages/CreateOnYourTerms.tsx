@@ -103,7 +103,7 @@ const CreateOnYourTerms = () => {
             </h1>
             
             <p className="text-lg sm:text-xl lg:text-2xl mb-8 max-w-2xl text-white/95 leading-relaxed">
-              [TrueFans] is the best place to build a family with your fans, share exclusive work, and earn money from showcasing your talent to the world.
+              True Fans is the best place to build a family with your fans, share exclusive work, and earn money from showcasing your talent to the world.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
@@ -361,7 +361,7 @@ const CreateOnYourTerms = () => {
               </h2>
               
               <p className="text-lg text-white/90 leading-relaxed mb-6">
-                When you post on [TrueFans], your content goes directly to every single one of your supporters' feeds and inboxes. No algorithms deciding who sees your work.
+                When you post on True Fans, your content goes directly to every single one of your supporters' feeds and inboxes. No algorithms deciding who sees your work.
               </p>
               
               <Button className="bg-white text-[#0c5c36] hover:bg-gray-100 px-8 py-3 rounded-full font-medium transition-all duration-300">
@@ -412,7 +412,7 @@ const CreateOnYourTerms = () => {
                   </div>
                 </div>
                 <p className="text-gray-700 mb-6 leading-relaxed">
-                  "[TrueFans] helped me turn my art into a sustainable income. My community loves the exclusive content!"
+                  "True Fans helped me turn my art into a sustainable income. My community loves the exclusive content!"
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="text-center">

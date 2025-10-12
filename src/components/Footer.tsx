@@ -58,7 +58,7 @@ const Footer = () => {
             </div>
             
             <p className="text-foreground/70 mb-6">
-              [TrueFans] powers creative independence. We're building a future where creators are valued and fans directly support the work they love.
+              True Fans powers creative independence. We're building a future where creators are valued and fans directly support the work they love.
             </p>
             
             <div className="flex space-x-4">

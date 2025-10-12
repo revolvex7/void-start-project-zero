@@ -208,7 +208,7 @@ const Artists = () => {
               </h2>
               
               <p className="text-lg text-blue-100 leading-relaxed">
-                Not only can you earn recurring income on [TrueFans] through paid membership, you can also sell individual pieces and other downloadable exclusives to all of your fans in your personal online shop.
+                Not only can you earn recurring income on True Fans through paid membership, you can also sell individual pieces and other downloadable exclusives to all of your fans in your personal online shop.
               </p>
             </div>
           </div>
@@ -231,7 +231,7 @@ const Artists = () => {
               </h2>
               
               <p className="text-lg text-gray-700 leading-relaxed">
-                Whether you're sharing rough sketches, polished pieces, tutorials, or behind-the-scenes content, when you post on [TrueFans], it gets sent directly to every single one of your fans' feeds and inboxes, without ever being blocked or buried by a gatekeeping algorithm.
+                Whether you're sharing rough sketches, polished pieces, tutorials, or behind-the-scenes content, when you post on True Fans, it gets sent directly to every single one of your fans' feeds and inboxes, without ever being blocked or buried by a gatekeeping algorithm.
               </p>
             </div>
             

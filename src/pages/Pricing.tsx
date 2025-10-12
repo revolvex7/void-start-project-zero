@@ -236,7 +236,7 @@ const Pricing = () => {
               <span className="font-light bg-gradient-to-r from-[#7c7dae] to-[#0c5c36] bg-clip-text text-transparent">made easy</span>
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              [TrueFans] is a membership platform that makes it easy for creators to get paid. We help you build a sustainable creative business.
+              True Fans is a membership platform that makes it easy for creators to get paid. We help you build a sustainable creative business.
             </p>
           </div>
 
@@ -337,7 +337,7 @@ const Pricing = () => {
           </h2>
           
           <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of creators building sustainable businesses on [TrueFans]. It's free to get started.
+            Join thousands of creators building sustainable businesses on True Fans. It's free to get started.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

@@ -16,7 +16,7 @@ const TestimonialSection = () => {
         <div className="flex flex-col justify-center min-h-[600px] text-center">
           <blockquote className="mb-12">
             <p className="text-3xl lg:text-4xl xl:text-5xl font-light text-white leading-relaxed max-w-5xl mx-auto">
-              "[TrueFans] provides a space for artists to sustain ourselves by connecting us directly to our own communities."
+              "True Fans provides a space for artists to sustain ourselves by connecting us directly to our own communities."
             </p>
           </blockquote>
           

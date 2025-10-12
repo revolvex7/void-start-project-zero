@@ -43,7 +43,7 @@ const CreativitySection = () => {
             
             <div className="space-y-6">
               <p className="text-xl text-foreground/80 max-w-lg leading-relaxed">
-                [TrueFans] is the best place to build community with your biggest fans, share exclusive work and turn your passion into a lasting creative business.
+                True Fans is the best place to build community with your biggest fans, share exclusive work and turn your passion into a lasting creative business.
               </p>
               
               <div className="flex items-center space-x-4 text-sm text-foreground/60">

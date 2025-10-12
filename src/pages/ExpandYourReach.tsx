@@ -210,7 +210,7 @@ const ExpandYourReach = () => {
               <div className="bg-white rounded-2xl shadow-2xl p-6">
                 <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 mb-4">
                   <h3 className="font-bold text-gray-900 mb-2">Autopilot</h3>
-                  <p className="text-sm text-gray-600 mb-4">Put your membership growth on Autopilot. [TrueFans] will send targeted offers to selected fans to help grow your paid membership.</p>
+                  <p className="text-sm text-gray-600 mb-4">Put your membership growth on Autopilot. True Fans will send targeted offers to selected fans to help grow your paid membership.</p>
                   
                   <div className="bg-white rounded-lg p-3 mb-3">
                     <div className="flex items-center justify-between mb-2">
