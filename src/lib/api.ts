@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://tf-backend-toc9.onrender.com/api/v_1/internal';
+// const BASE_URL = 'https://tf-backend-toc9.onrender.com/api/v_1/internal';
+const BASE_URL = 'http://localhost:8000/api/v_1/internal';
 
 const api = axios.create({
   baseURL: BASE_URL,

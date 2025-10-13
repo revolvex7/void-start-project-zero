@@ -1,10 +1,26 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI } from '@/lib/api';
 
+interface Creator {
+  pageName: string;
+  creatorName: string;
+  is18Plus: boolean;
+  profilePhoto?: string;
+  bio?: string;
+  coverPhoto?: string;
+  introVideo?: string;
+  themeColor?: string;
+  socialLinks?: any;
+}
+
 interface User {
   id: string;
   name: string;
   email: string;
+  creator: Creator | null;
+  createdAt: string;
+  updatedAt: string;
+  // Legacy properties for backward compatibility
   creatorName?: string;
   pageName?: string;
   profilePhoto?: string;
@@ -71,6 +87,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       id: 'temp-id',
       name: credentials.email.split('@')[0], // Use email prefix as name
       email: credentials.email,
+      creator: undefined,
+      createdAt: '',
+      updatedAt: ''
     };
     setUser(basicUser);
     localStorage.setItem('user', JSON.stringify(basicUser));
@@ -83,6 +102,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       id: 'temp-id',
       name: userData.name,
       email: userData.email,
+      creator: undefined,
+      createdAt: '',
+      updatedAt: ''
     };
     setUser(basicUser);
     localStorage.setItem('user', JSON.stringify(basicUser));
@@ -108,15 +130,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const completeCreatorProfile = async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const response = await authAPI.completeCreatorProfile(profileData);
-    setUser(response.user);
+    const userData = response.user;
+    
+    // Transform the response to include legacy properties
+    const transformedUser: User = {
+      ...userData,
+      creatorName: userData.creator?.creatorName,
+      pageName: userData.creator?.pageName,
+      profilePhoto: userData.creator?.profilePhoto,
+      is18Plus: userData.creator?.is18Plus,
+      description: userData.creator?.bio,
+      isCreatorProfileComplete: !!userData.creator?.pageName
+    };
+    
+    setUser(transformedUser);
+    localStorage.setItem('user', JSON.stringify(transformedUser));
   };
 
   const fetchUserProfile = async () => {
-    const response = await authAPI.getUserProfile();
-    setUser(response.user);
+    try {
+      const response = await authAPI.getUserProfile();
+      const userData = response.user;
+      
+      // Transform the new nested structure to include legacy properties for backward compatibility
+      const transformedUser: User = {
+        ...userData,
+        // Legacy properties from creator object
+        creatorName: userData.creator?.creatorName,
+        pageName: userData.creator?.pageName,
+        profilePhoto: userData.creator?.profilePhoto,
+        is18Plus: userData.creator?.is18Plus,
+        description: userData.creator?.bio,
+        isCreatorProfileComplete: !!userData.creator?.pageName
+      };
+      
+      setUser(transformedUser);
+      localStorage.setItem('user', JSON.stringify(transformedUser));
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      // If token is invalid, clear auth state
+      if (error instanceof Error && error.message.includes('401')) {
+        logout();
+      }
+      throw error;
+    }
   };
 
-  const isCreator = !!user?.pageName;
+  const isCreator = !!user?.creator?.pageName || !!user?.pageName;
 
   const value: AuthContextType = {
     user,

@@ -45,7 +45,7 @@ const Dashboard = () => {
     }
   }, [searchParams]);
 
-  // Fetch user profile on component mount
+  // Fetch user profile on component mount only if user data is incomplete
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
@@ -58,7 +58,7 @@ const Dashboard = () => {
     if (user) {
       loadUserProfile();
     }
-  }, [fetchUserProfile, user]);
+  }, []); // Remove dependencies to prevent infinite loops
 
   const handleCompleteCreatorProfile = async () => {
     if (isLoading) return;
