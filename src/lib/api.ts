@@ -123,6 +123,18 @@ class ApiService {
     });
   }
 
+  async getCreatorById(creatorId: string) {
+    return await this.request(`/user/creator/${creatorId}`, {
+      method: 'GET',
+    });
+  }
+
+  async toggleFollowCreator(creatorId: string) {
+    return await this.request(`/user/creators/${creatorId}/follow`, {
+      method: 'POST',
+    });
+  }
+
   // Common endpoints
   async getCategories() {
     return await this.request('/common/categories', {
@@ -157,6 +169,8 @@ export const userAPI = {
 
 export const creatorAPI = {
   getAllCreators: () => apiService.getAllCreators(),
+  getCreatorById: (creatorId: string) => apiService.getCreatorById(creatorId),
+  toggleFollow: (creatorId: string) => apiService.toggleFollowCreator(creatorId),
 };
 
 export const commonAPI = {
@@ -189,6 +203,28 @@ export interface Category {
   name: string;
 }
 
+export interface Membership {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+}
+
+export interface Post {
+  id: string;
+  title: string;
+  createdAt: string;
+  public: boolean;
+  totalLikes: number;
+  totalComments: number;
+}
+
+export interface SocialLink {
+  id: string;
+  url: string;
+  platform: string;
+}
+
 export interface Creator {
   id: string;
   pageName: string;
@@ -199,11 +235,31 @@ export interface Creator {
   coverPhoto?: string;
   introVideo?: string;
   themeColor?: string;
-  socialLinks?: any;
+  socialLinks?: SocialLink[];
   followersCount: number;
-  tags: string[];
-  category: string;
   subscribersCount: number;
+  tags: string[];
+  categoryId: string;
+  category: string;
+  totalPosts: number;
+  createdAt: string;
+  updatedAt: string;
+  memberships: Membership[];
+  recentPosts: Post[];
+  exploreOthers: Post[];
+  isFollowing?: boolean;
+}
+
+export interface CreatorProfileResponse {
+  data: Creator;
+}
+
+export interface ToggleFollowResponse {
+  message: string;
+  data: {
+    action: 'followed' | 'unfollowed';
+    isFollowing: boolean;
+  };
 }
 
 export default apiService;

@@ -85,6 +85,19 @@ export const useCreators = () => {
   });
 };
 
+export const useCreatorById = (creatorId: string) => {
+  return useQuery({
+    queryKey: queryKeys.creators.byId(creatorId),
+    queryFn: async () => {
+      const response = await creatorAPI.getCreatorById(creatorId);
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!creatorId, // Only run if creatorId is provided
+  });
+};
+
 // Categories Queries
 export const useCategories = () => {
   return useQuery({
@@ -154,24 +167,17 @@ export const useToggleFollow = () => {
   
   return useMutation({
     mutationFn: async (creatorId: string) => {
-      const BASE_URL = 'http://localhost:8000/api/v_1/internal';
-      const response = await fetch(`${BASE_URL}/user/creators/${creatorId}/follow`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'access-token': localStorage.getItem('accessToken') || '',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to toggle follow status');
-      }
-      
-      return response.json();
+      const response = await creatorAPI.toggleFollow(creatorId);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data, creatorId) => {
       // Invalidate creators list to refresh follow status
       queryClient.invalidateQueries({ queryKey: queryKeys.creators.all });
+      // Invalidate specific creator to refresh their follow status
+      queryClient.invalidateQueries({ queryKey: queryKeys.creators.byId(creatorId) });
+    },
+    onError: (error) => {
+      console.error('Failed to toggle follow status:', error);
     },
   });
 };
