@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { authAPI } from '@/lib/api';
+import { useResetPassword } from '@/hooks/useApi';
 import { Eye, EyeOff } from 'lucide-react';
 
 const ResetPassword = () => {
@@ -11,12 +11,12 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const resetPasswordMutation = useResetPassword();
 
   useEffect(() => {
     // Get token from URL query parameters
@@ -35,7 +35,7 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return;
+    if (resetPasswordMutation.isPending) return;
     
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -66,10 +66,8 @@ const ResetPassword = () => {
       return;
     }
     
-    setIsLoading(true);
-    
     try {
-      await authAPI.resetPassword(token, password);
+      await resetPasswordMutation.mutateAsync({ token, newPassword: password });
       
       toast({
         title: "Password reset successful!",
@@ -86,8 +84,6 @@ const ResetPassword = () => {
         description: error.message || "Please try again or request a new reset link.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -153,10 +149,10 @@ const ResetPassword = () => {
 
           <Button
             type="submit"
-            disabled={isLoading || !password || !confirmPassword}
+            disabled={resetPasswordMutation.isPending || !password || !confirmPassword}
             className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg"
           >
-            {isLoading ? 'Resetting...' : 'Reset Password'}
+            {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
           </Button>
         </form>
 

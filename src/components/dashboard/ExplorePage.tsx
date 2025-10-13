@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Filter, TrendingUp, Star, Users, Play, Heart, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Creator } from '@/lib/api';
+import { useCreators, useToggleFollow } from '@/hooks/useApi';
 
 const categories = [
   'All', 'Trending', 'New creators', 'Art & Design', 'Music', 'Gaming', 
@@ -115,10 +117,32 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCreators = trendingCreators.filter(creator => {
-    const matchesCategory = selectedCategory === 'All' || creator.category === selectedCategory;
-    const matchesSearch = creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         creator.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  // Use React Query hooks
+  const { 
+    data: creators = [], 
+    isLoading: loading, 
+    error,
+    refetch 
+  } = useCreators();
+  
+  const toggleFollowMutation = useToggleFollow();
+
+  const handleFollowClick = async (creatorId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await toggleFollowMutation.mutateAsync(creatorId);
+    } catch (error) {
+      console.error('Failed to toggle follow:', error);
+    }
+  };
+
+  const filteredCreators = creators.filter(creator => {
+    const matchesCategory = selectedCategory === 'All' || 
+                           selectedCategory === 'Trending' || 
+                           selectedCategory === 'New creators' ||
+                           creator.category?.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesSearch = creator.creatorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         creator.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          creator.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
@@ -216,85 +240,136 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCreators.map((creator) => (
-            <div 
-              key={creator.id}
-              onClick={() => onCreatorClick(creator.name)}
-              className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors cursor-pointer group"
-            >
-              <div className="flex items-start space-x-4 mb-4">
-                <div className="relative">
-                  <img
-                    src={creator.image}
-                    alt={creator.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  {creator.isVerified && (
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Star size={12} className="text-white fill-current" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-400 transition-colors">
-                    {creator.name}
-                  </h3>
-                  <p className="text-gray-400 text-sm line-clamp-2 mb-2">
-                    {creator.description}
-                  </p>
-                  <div className="flex items-center space-x-4 text-xs text-gray-500">
-                    <span className="flex items-center">
-                      <Users size={12} className="mr-1" />
-                      {creator.subscribers} subscribers
-                    </span>
-                    <span className="text-green-400 font-medium">
-                      {creator.monthlyEarnings}/mo
-                    </span>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-gray-800 rounded-xl p-6 animate-pulse">
+                <div className="flex items-start space-x-4 mb-4">
+                  <div className="w-16 h-16 bg-gray-700 rounded-full"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-700 rounded mb-2 w-3/4"></div>
+                    <div className="h-3 bg-gray-700 rounded w-1/2"></div>
                   </div>
                 </div>
+                <div className="flex gap-2 mb-4">
+                  <div className="h-6 bg-gray-700 rounded-full w-16"></div>
+                  <div className="h-6 bg-gray-700 rounded-full w-20"></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="h-6 bg-gray-700 rounded w-16"></div>
+                  <div className="h-8 bg-gray-700 rounded w-20"></div>
+                </div>
               </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">{error instanceof Error ? error.message : 'Failed to load creators'}</p>
+            <Button 
+              onClick={() => refetch()}
+              variant="outline" 
+              className="bg-gray-800 border-gray-700 text-gray-300"
+            >
+              Try Again
+            </Button>
+          </div>
+        ) : filteredCreators.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">No creators found matching your criteria</p>
+            <Button 
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+              }}
+              variant="outline" 
+              className="bg-gray-800 border-gray-700 text-gray-300"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCreators.map((creator) => (
+              <div 
+                key={creator.id}
+                onClick={() => onCreatorClick(creator.creatorName)}
+                className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-start space-x-4 mb-4">
+                  <div className="relative">
+                    <img
+                      src={creator.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.creatorName)}&background=6366f1&color=fff&size=64`}
+                      alt={creator.creatorName}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    {creator.subscribersCount > 10 && (
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <Star size={12} className="text-white fill-current" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-400 transition-colors">
+                      {creator.creatorName}
+                    </h3>
+                    <p className="text-gray-400 text-sm line-clamp-2 mb-2">
+                      {creator.bio || 'No description available'}
+                    </p>
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span className="flex items-center">
+                        <Users size={12} className="mr-1" />
+                        {creator.subscribersCount} subscribers
+                      </span>
+                      <span className="flex items-center">
+                        <Heart size={12} className="mr-1" />
+                        {creator.followersCount} followers
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                {creator.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full"
-                  >
-                    {tag}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {creator.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full capitalize"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded capitalize">
+                    {creator.category}
                   </span>
-                ))}
+                  <Button 
+                    size="sm" 
+                    className={creator.isFollowing ? "bg-gray-600 hover:bg-gray-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}
+                    onClick={(e) => handleFollowClick(creator.id, e)}
+                    disabled={toggleFollowMutation.isPending}
+                  >
+                    {toggleFollowMutation.isPending ? 'Loading...' : (creator.isFollowing ? 'Following' : 'Follow')}
+                  </Button>
+                </div>
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
-                  {creator.category}
-                </span>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCreatorClick(creator.name);
-                  }}
-                >
-                  Follow
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Load More */}
-      <div className="text-center">
-        <Button 
-          variant="outline" 
-          className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
-        >
-          Load More Creators
-        </Button>
-      </div>
+      {!loading && !error && filteredCreators.length > 0 && (
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+          >
+            Load More Creators
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

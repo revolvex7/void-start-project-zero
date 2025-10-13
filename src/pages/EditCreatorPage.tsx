@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye } from 'lucide-react';
+import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye, Tag } from 'lucide-react';
+import { Category, UpdateUserData } from '@/lib/api';
+import { useCategories, useUpdateUser } from '@/hooks/useApi';
 
 export default function EditCreatorPage() {
   const { user } = useAuth();
@@ -12,31 +14,69 @@ export default function EditCreatorPage() {
   const { creatorUrl } = useParams();
   
   const [pageData, setPageData] = useState({
-    pageName: user?.creatorName || '',
+    pageName: user?.creator?.creatorName || user?.creatorName || '',
     profilePhoto: null as File | null,
     profileImageUrl: '',
     coverPhoto: null as File | null,
     coverImageUrl: '',
-    themeColor: '#8017E8',
-    visibility: 'public' as 'public' | 'free' | 'paid'
+    themeColor: user?.creator?.themeColor || '#8017E8',
+    visibility: 'public' as 'public' | 'free' | 'paid',
+    categoryId: user?.creator?.categoryId || '',
+    tags: user?.creator?.tags || [] as string[]
   });
 
-  const [selectedColor, setSelectedColor] = useState('#8017E8');
+  const [selectedColor, setSelectedColor] = useState(user?.creator?.themeColor || '#8017E8');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [aboutData, setAboutData] = useState({
-    introVideo: '',
-    bio: ''
+    introVideo: user?.creator?.introVideo || '',
+    bio: user?.creator?.bio || ''
   });
-  const [profileImageUrl, setProfileImageUrl] = useState('');
-  const [coverImageUrl, setCoverImageUrl] = useState('');
-  const [socialLinks, setSocialLinks] = useState<Array<{id: string, platform: string, url: string}>>([
-    { id: '1', platform: 'Instagram', url: 'https://instagram.com/username' },
-    { id: '2', platform: 'Twitter', url: 'https://twitter.com/username' }
-  ]);
+  const [profileImageUrl, setProfileImageUrl] = useState(user?.creator?.profilePhoto || '');
+  const [coverImageUrl, setCoverImageUrl] = useState(user?.creator?.coverPhoto || '');
+  const [socialLinks, setSocialLinks] = useState<Array<{id: string, platform: string, url: string}>>(
+    user?.creator?.socialLinks || [
+      { id: '1', platform: 'Instagram', url: 'https://instagram.com/username' },
+      { id: '2', platform: 'Twitter', url: 'https://twitter.com/username' }
+    ]
+  );
   const [newSocialPlatform, setNewSocialPlatform] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
+  const [tagInput, setTagInput] = useState('');
+
+  // React Query hooks
+  const { 
+    data: categories = [], 
+    isLoading: categoriesLoading 
+  } = useCategories();
+  
+  const updateUserMutation = useUpdateUser();
+
+  // Update state when user data changes
+  useEffect(() => {
+    if (user?.creator) {
+      setPageData(prev => ({
+        ...prev,
+        pageName: user.creator?.creatorName || prev.pageName,
+        themeColor: user.creator?.themeColor || prev.themeColor,
+        categoryId: user.creator?.categoryId || prev.categoryId,
+        tags: user.creator?.tags || prev.tags
+      }));
+      setSelectedColor(user.creator?.themeColor || '#8017E8');
+      setAboutData({
+        introVideo: user.creator?.introVideo || '',
+        bio: user.creator?.bio || ''
+      });
+      setProfileImageUrl(user.creator?.profilePhoto || '');
+      setCoverImageUrl(user.creator?.coverPhoto || '');
+      setSocialLinks(user.creator?.socialLinks || [
+        { id: '1', platform: 'Instagram', url: 'https://instagram.com/username' },
+        { id: '2', platform: 'Twitter', url: 'https://twitter.com/username' }
+      ]);
+    }
+  }, [user]);
+
 
   const colorPalette = [
     // Green shades
@@ -55,24 +95,40 @@ export default function EditCreatorPage() {
     '#6b7280'
   ];
 
-  const handleSave = () => {
-    const completePageData = {
-      ...pageData,
-      selectedColor,
-      aboutData,
-      profileImageUrl
-    };
-    
-    console.log('=== SAVING PAGE DATA ===');
-    console.log('Page Name:', completePageData.pageName);
-    console.log('Profile Image URL:', completePageData.profileImageUrl);
-    console.log('Theme Color:', completePageData.themeColor);
-    console.log('Visibility:', completePageData.visibility);
-    console.log('About Data:', completePageData.aboutData);
-    console.log('Complete Data:', completePageData);
-    console.log('========================');
-    
-    navigate('/dashboard');
+  const handleSave = async () => {
+    try {
+      const updateData: UpdateUserData = {
+        pageName: pageData.pageName,
+        creatorName: pageData.pageName, // Using pageName as creatorName
+        profilePhoto: profileImageUrl || undefined,
+        coverPhoto: coverImageUrl || undefined,
+        themeColor: selectedColor,
+        bio: aboutData.bio || undefined,
+        introVideo: aboutData.introVideo || undefined,
+        socialLinks: socialLinks.length > 0 ? socialLinks : undefined,
+        tags: pageData.tags.length > 0 ? pageData.tags : undefined,
+        categoryId: pageData.categoryId || undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof UpdateUserData] === undefined) {
+          delete updateData[key as keyof UpdateUserData];
+        }
+      });
+      
+      console.log('=== SAVING PAGE DATA ===');
+      console.log('Update Data:', updateData);
+      console.log('========================');
+      
+      await updateUserMutation.mutateAsync(updateData);
+      
+      // Navigate back to dashboard on success
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      alert('Failed to save changes. Please try again.');
+    }
   };
 
   const handleCancel = () => {
@@ -84,7 +140,8 @@ export default function EditCreatorPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setProfileImageUrl(e.target?.result as string);
+        const imageUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}?w=400&h=400&fit=crop&crop=face`;
+        setProfileImageUrl(imageUrl);
       };
       reader.readAsDataURL(file);
       setPageData({ ...pageData, profilePhoto: file });
@@ -96,7 +153,8 @@ export default function EditCreatorPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCoverImageUrl(e.target?.result as string);
+        const imageUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}?w=1920&h=400&fit=crop`;
+        setCoverImageUrl(imageUrl);
       };
       reader.readAsDataURL(file);
       setPageData({ ...pageData, coverPhoto: file });
@@ -118,6 +176,20 @@ export default function EditCreatorPage() {
 
   const deleteSocialLink = (linkId: string) => {
     setSocialLinks(socialLinks.filter(link => link.id !== linkId));
+  };
+
+  const handleTagInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      if (!pageData.tags.includes(tagInput.trim())) {
+        setPageData({ ...pageData, tags: [...pageData.tags, tagInput.trim()] });
+      }
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setPageData({ ...pageData, tags: pageData.tags.filter(tag => tag !== tagToRemove) });
   };
 
   return (
@@ -147,8 +219,12 @@ export default function EditCreatorPage() {
           <Button variant="outline" onClick={handleCancel} className="bg-transparent border-gray-600 hidden sm:inline-flex">
             Cancel
           </Button>
-          <Button onClick={handleSave} className="bg-white text-black hover:bg-gray-100 text-sm sm:text-base px-3 sm:px-4">
-            Save
+          <Button 
+            onClick={handleSave} 
+            disabled={updateUserMutation.isPending}
+            className="bg-white text-black hover:bg-gray-100 text-sm sm:text-base px-3 sm:px-4 disabled:opacity-50"
+          >
+            {updateUserMutation.isPending ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
@@ -283,6 +359,71 @@ export default function EditCreatorPage() {
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Category Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Category</label>
+            <p className="text-sm text-gray-400 mb-3">Choose a category that best describes your content</p>
+            <select
+              value={pageData.categoryId}
+              onChange={(e) => setPageData({ ...pageData, categoryId: e.target.value })}
+              disabled={categoriesLoading}
+              className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">
+                {categoriesLoading ? 'Loading categories...' : 'Select a category'}
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tags Section */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Tags</label>
+            <p className="text-sm text-gray-400 mb-3">Add up to 5 tags to help people discover your content</p>
+            
+            {/* Tag Input */}
+            <div className="mb-3">
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={handleTagInputKeyPress}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="Type a tag and press Enter"
+                maxLength={20}
+                disabled={pageData.tags.length >= 5}
+              />
+            </div>
+
+            {/* Display Tags */}
+            {pageData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {pageData.tags.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full text-sm"
+                  >
+                    <Tag className="w-3 h-3 mr-1" />
+                    <span>{tag}</span>
+                    <button
+                      onClick={() => removeTag(tag)}
+                      className="ml-2 hover:text-red-300 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {pageData.tags.length >= 5 && (
+              <p className="text-xs text-yellow-400 mt-2">Maximum 5 tags allowed</p>
             )}
           </div>
 

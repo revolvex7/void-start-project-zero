@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { 
+  useUserProfile, 
+  useLogin, 
+  useRegister, 
+  useLogout, 
+  useCompleteCreatorProfile,
+  useForgotPassword,
+  useResetPassword,
+  queryKeys 
+} from '@/hooks/useApi';
 
 interface Creator {
   pageName: string;
@@ -10,7 +20,9 @@ interface Creator {
   coverPhoto?: string;
   introVideo?: string;
   themeColor?: string;
-  socialLinks?: any;
+  socialLinks?: Array<{id: string, platform: string, url: string}>;
+  tags?: string[];
+  categoryId?: string;
 }
 
 interface User {
@@ -40,6 +52,8 @@ interface AuthContextType {
   switchToCreator: () => void;
   completeCreatorProfile: (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
   isCreator: boolean;
 }
 
@@ -59,7 +73,23 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  // React Query hooks
+  const loginMutation = useLogin();
+  const registerMutation = useRegister();
+  const logoutMutation = useLogout();
+  const completeCreatorProfileMutation = useCompleteCreatorProfile();
+  const forgotPasswordMutation = useForgotPassword();
+  const resetPasswordMutation = useResetPassword();
+
+  // User profile query - only enabled if we have a token and no temp user
+  const { 
+    data: userProfileData, 
+    isLoading: isProfileLoading, 
+    refetch: refetchProfile 
+  } = useUserProfile();
 
   useEffect(() => {
     // Check if user is logged in on app start
@@ -68,7 +98,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // If it's a temp user (from login/register), fetch real profile
+        if (parsedUser.id === 'temp-id') {
+          refetchProfile();
+        }
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('accessToken');
@@ -77,17 +113,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
     
-    setIsLoading(false);
-  }, []);
+    setIsInitialLoading(false);
+  }, [refetchProfile]);
+
+  // Update user state when profile data changes
+  useEffect(() => {
+    if (userProfileData) {
+      const transformedUser: User = {
+        ...userProfileData,
+        creatorName: userProfileData.creator?.creatorName,
+        pageName: userProfileData.creator?.pageName,
+        profilePhoto: userProfileData.creator?.profilePhoto,
+        is18Plus: userProfileData.creator?.is18Plus,
+        description: userProfileData.creator?.bio,
+        isCreatorProfileComplete: !!userProfileData.creator?.pageName
+      };
+      
+      setUser(transformedUser);
+      localStorage.setItem('user', JSON.stringify(transformedUser));
+    }
+  }, [userProfileData]);
 
   const login = async (credentials: { email: string; password: string }) => {
-    const response = await authAPI.login(credentials);
+    await loginMutation.mutateAsync(credentials);
+    
     // Set a basic user object so isAuthenticated becomes true
     const basicUser: User = {
       id: 'temp-id',
-      name: credentials.email.split('@')[0], // Use email prefix as name
+      name: credentials.email.split('@')[0],
       email: credentials.email,
-      creator: undefined,
+      creator: null,
       createdAt: '',
       updatedAt: ''
     };
@@ -96,13 +151,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const register = async (userData: { name: string; email: string; password: string }) => {
-    const response = await authAPI.register(userData);
+    await registerMutation.mutateAsync(userData);
+    
     // Set a basic user object so isAuthenticated becomes true
     const basicUser: User = {
       id: 'temp-id',
       name: userData.name,
       email: userData.email,
-      creator: undefined,
+      creator: null,
       createdAt: '',
       updatedAt: ''
     };
@@ -111,7 +167,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    authAPI.logout();
+    logoutMutation.mutate();
     setUser(null);
   };
 
@@ -129,8 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const completeCreatorProfile = async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
-    const response = await authAPI.completeCreatorProfile(profileData);
-    const userData = response.user;
+    const userData = await completeCreatorProfileMutation.mutateAsync(profileData);
     
     // Transform the response to include legacy properties
     const transformedUser: User = {
@@ -149,23 +204,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await authAPI.getUserProfile();
-      const userData = response.user;
-      
-      // Transform the new nested structure to include legacy properties for backward compatibility
-      const transformedUser: User = {
-        ...userData,
-        // Legacy properties from creator object
-        creatorName: userData.creator?.creatorName,
-        pageName: userData.creator?.pageName,
-        profilePhoto: userData.creator?.profilePhoto,
-        is18Plus: userData.creator?.is18Plus,
-        description: userData.creator?.bio,
-        isCreatorProfileComplete: !!userData.creator?.pageName
-      };
-      
-      setUser(transformedUser);
-      localStorage.setItem('user', JSON.stringify(transformedUser));
+      await refetchProfile();
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
       // If token is invalid, clear auth state
@@ -176,7 +215,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    await forgotPasswordMutation.mutateAsync(email);
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    await resetPasswordMutation.mutateAsync({ token, newPassword });
+  };
+
   const isCreator = !!user?.creator?.pageName || !!user?.pageName;
+  const isLoading = isInitialLoading || isProfileLoading;
 
   const value: AuthContextType = {
     user,
@@ -189,6 +237,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     switchToCreator,
     completeCreatorProfile,
     fetchUserProfile,
+    forgotPassword,
+    resetPassword,
     isCreator,
   };
 

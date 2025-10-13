@@ -115,6 +115,20 @@ class ApiService {
       body: JSON.stringify(userData),
     });
   }
+
+  // Creator endpoints
+  async getAllCreators() {
+    return await this.request('/user/creators', {
+      method: 'GET',
+    });
+  }
+
+  // Common endpoints
+  async getCategories() {
+    return await this.request('/common/categories', {
+      method: 'GET',
+    });
+  }
 }
 
 // Create API instances
@@ -141,6 +155,14 @@ export const userAPI = {
   update: (userData: any) => apiService.updateUser(userData),
 };
 
+export const creatorAPI = {
+  getAllCreators: () => apiService.getAllCreators(),
+};
+
+export const commonAPI = {
+  getCategories: () => apiService.getCategories(),
+};
+
 // Types
 export interface UserRegistrationData {
   name: string;
@@ -153,6 +175,35 @@ export interface UpdateUserData {
   creatorName?: string;
   is18Plus?: boolean;
   profilePhoto?: string;
+  bio?: string;
+  coverPhoto?: string;
+  introVideo?: string;
+  themeColor?: string;
+  socialLinks?: any;
+  tags?: string[];
+  categoryId?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export interface Creator {
+  id: string;
+  pageName: string;
+  creatorName: string;
+  is18Plus: boolean;
+  profilePhoto?: string;
+  bio?: string;
+  coverPhoto?: string;
+  introVideo?: string;
+  themeColor?: string;
+  socialLinks?: any;
+  followersCount: number;
+  tags: string[];
+  category: string;
+  subscribersCount: number;
 }
 
 export default apiService;

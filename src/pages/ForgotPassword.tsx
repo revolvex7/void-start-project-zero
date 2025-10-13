@@ -3,22 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { authAPI } from '@/lib/api';
+import { useForgotPassword } from '@/hooks/useApi';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const forgotPasswordMutation = useForgotPassword();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return;
-    
-    setIsLoading(true);
+    if (forgotPasswordMutation.isPending) return;
     
     try {
-      await authAPI.forgotPassword(email);
+      await forgotPasswordMutation.mutateAsync(email);
       
       toast({
         title: "Email sent!",
@@ -35,8 +33,6 @@ const ForgotPassword = () => {
         description: error.message || "Please try again later.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -75,10 +71,10 @@ const ForgotPassword = () => {
 
           <Button
             type="submit"
-            disabled={isLoading || !email}
+            disabled={forgotPasswordMutation.isPending || !email}
             className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg"
           >
-            {isLoading ? 'Sending...' : 'Send Reset Link'}
+            {forgotPasswordMutation.isPending ? 'Sending...' : 'Send Reset Link'}
           </Button>
         </form>
 

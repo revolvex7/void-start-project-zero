@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { UpdateUserData } from '@/lib/api';
+import { useUpdateUser } from '@/hooks/useApi';
 
 interface StartBasicsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: {
+  onSave?: (data: {
     pageName: string;
     patreonUrl: string;
     description: string;
@@ -23,26 +25,58 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
   const [patreonUrl, setPatreonUrl] = useState('');
   const [description, setDescription] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  
+  // React Query hook
+  const updateUserMutation = useUpdateUser();
 
   // Pre-populate fields with user data when modal opens (only once)
   useEffect(() => {
     if (open && user) {
       // Only set if the fields are empty (first time opening)
-      if (!pageName) setPageName(user.creatorName || user.name || '');
-      if (!patreonUrl) setPatreonUrl(user.pageName || '');
-      if (!profileImage) setProfileImage(user.profilePhoto || null);
-      if (!description) setDescription(user.description || '');
+      if (!pageName) setPageName(user.creator?.creatorName || user.name || '');
+      if (!patreonUrl) setPatreonUrl(user.creator?.pageName || '');
+      if (!profileImage) setProfileImage(user.creator?.profilePhoto || null);
+      if (!description) setDescription(user.creator?.bio || '');
     }
   }, [open]);
 
-  const handleSave = () => {
-    onSave({
-      pageName,
-      patreonUrl,
-      description,
-      profileImage: profileImage || undefined
-    });
-    onOpenChange(false);
+  const handleSave = async () => {
+    try {
+      const updateData: UpdateUserData = {
+        creatorName: pageName,
+        pageName: patreonUrl,
+        bio: description,
+        profilePhoto: profileImage || undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof UpdateUserData] === undefined) {
+          delete updateData[key as keyof UpdateUserData];
+        }
+      });
+      
+      console.log('=== SAVING BASICS DATA ===');
+      console.log('Update Data:', updateData);
+      console.log('========================');
+      
+      await updateUserMutation.mutateAsync(updateData);
+      
+      // Call the optional onSave callback if provided
+      if (onSave) {
+        onSave({
+          pageName,
+          patreonUrl,
+          description,
+          profileImage: profileImage || undefined
+        });
+      }
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      alert('Failed to save changes. Please try again.');
+    }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +84,9 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
+        // Generate unique image URL like in EditCreatorPage
+        const imageUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}?w=400&h=400&fit=crop&crop=face`;
+        setProfileImage(imageUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -151,10 +187,10 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!pageName.trim()}
+              disabled={!pageName.trim() || updateUserMutation.isPending}
               className="flex-1 bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400"
             >
-              Save
+              {updateUserMutation.isPending ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </div>
