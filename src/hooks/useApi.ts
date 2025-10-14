@@ -175,10 +175,36 @@ export const useToggleFollow = () => {
       return response;
     },
     onSuccess: (data, creatorId) => {
-      // Invalidate creators list to refresh follow status
-      queryClient.invalidateQueries({ queryKey: queryKeys.creators.all });
-      // Invalidate specific creator to refresh their follow status
-      queryClient.invalidateQueries({ queryKey: queryKeys.creators.byId(creatorId) });
+      // Update creators list cache directly for immediate UI update
+      queryClient.setQueryData(queryKeys.creators.all, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return oldData.map((creator: any) => {
+          if (creator.id === creatorId) {
+            return {
+              ...creator,
+              isFollowing: data.data.isFollowing,
+              followersCount: data.data.isFollowing 
+                ? creator.followersCount + 1 
+                : Math.max(0, creator.followersCount - 1)
+            };
+          }
+          return creator;
+        });
+      });
+      
+      // Update specific creator cache
+      queryClient.setQueryData(queryKeys.creators.byId(creatorId), (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          isFollowing: data.data.isFollowing,
+          followersCount: data.data.isFollowing 
+            ? oldData.followersCount + 1 
+            : Math.max(0, oldData.followersCount - 1)
+        };
+      });
     },
     onError: (error) => {
       console.error('Failed to toggle follow status:', error);

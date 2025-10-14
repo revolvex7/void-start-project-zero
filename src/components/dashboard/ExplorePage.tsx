@@ -110,7 +110,7 @@ const featuredContent = [
 ];
 
 interface ExplorePageProps {
-  onCreatorClick: (creatorName: string) => void;
+  onCreatorClick: (pageName: string, creatorId: string) => void;
 }
 
 export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
@@ -293,7 +293,7 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
             {filteredCreators.map((creator) => (
               <div 
                 key={creator.id}
-                onClick={() => onCreatorClick(creator.creatorName)}
+                onClick={() => onCreatorClick(creator.pageName, creator.id)}
                 className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors cursor-pointer group"
               >
                 <div className="flex items-start space-x-4 mb-4">
