@@ -1,33 +1,29 @@
+import { Twitter, Instagram, Youtube, Facebook } from 'lucide-react';
+
 const footerLinks = {
   product: {
     title: "Product",
     links: [
-      { label: "Pricing", href: "#pricing" },
-      { label: "Features", href: "#features" },
-      { label: "Mobile app", href: "#mobile" },
-      { label: "[TrueFans] logo", href: "#logo" }
+      { label: "Pricing", href: "/pricing" },
+      { label: "Features", href: "/features/create-on-your-terms" },
     ]
   },
   forCreators: {
     title: "For creators",
     links: [
-      { label: "Podcasters", href: "#podcasters" },
-      { label: "Video creators", href: "#video" },
-      { label: "Musicians", href: "#musicians" },
-      { label: "Visual artists", href: "#artists" },
-      { label: "Writers & journalists", href: "#writers" },
-      { label: "Communities", href: "#communities" },
-      { label: "Gaming creators", href: "#gaming" }
+      { label: "Podcasters", href: "/creators/podcasts" },
+      { label: "Video creators", href: "/creators/video" },
+      { label: "Musicians", href: "/creators/music" },
+      { label: "Artists", href: "/creators/visualartists" },
     ]
   },
   resources: {
     title: "Resources",
     links: [
-      { label: "Blog", href: "#blog" },
-      { label: "[TrueFans] U", href: "#university" },
-      { label: "Help center & FAQ", href: "#help" },
-      { label: "App directory", href: "#apps" },
-      { label: "Developers", href: "#developers" }
+      { label: "Creator Hub", href: "#creator-hub" },
+      { label: "Newsroom", href: "#newsroom" },
+      { label: "Help Centre", href: "#help" },
+      { label: "Partners & integrations", href: "#partners" },
     ]
   },
   company: {
@@ -38,8 +34,7 @@ const footerLinks = {
       { label: "Careers", href: "#careers" },
       { label: "Privacy", href: "#privacy" },
       { label: "Policy & Terms", href: "#terms" },
-      { label: "Accessibility", href: "#accessibility" },
-      { label: "Impressum", href: "#impressum" }
+      { label: "Accessibility", href: "#accessibility" }
     ]
   }
 };
@@ -61,11 +56,11 @@ const Footer = () => {
               True Fans powers creative independence. We're building a future where creators are valued and fans directly support the work they love.
             </p>
             
-            <div className="flex space-x-4">
-              <SocialLink icon="twitter" href="#twitter" />
-              <SocialLink icon="instagram" href="#instagram" />
-              <SocialLink icon="youtube" href="#youtube" />
-              <SocialLink icon="facebook" href="#facebook" />
+            <div className="flex space-x-3">
+              <SocialLink icon={<Twitter className="w-4 h-4" />} href="#twitter" label="Twitter" />
+              <SocialLink icon={<Instagram className="w-4 h-4" />} href="#instagram" label="Instagram" />
+              <SocialLink icon={<Youtube className="w-4 h-4" />} href="#youtube" label="YouTube" />
+              <SocialLink icon={<Facebook className="w-4 h-4" />} href="#facebook" label="Facebook" />
             </div>
           </div>
 
@@ -96,39 +91,24 @@ const Footer = () => {
         <div className="border-t border-white/10 mt-12 pt-8">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-6 lg:space-y-0">
             {/* Left Side - Language and Currency */}
-            <div className="flex items-center space-x-4">
-              <select className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm">
-                <option className="bg-black">English (United...)</option>
-                <option className="bg-black">Français</option>
-                <option className="bg-black">Deutsch</option>
-                <option className="bg-black">Español</option>
-              </select>
-              
-              <select className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm">
-                <option className="bg-black">🇵🇰 Pakistan (پاکستان)</option>
+            <div className="flex flex-wrap items-center gap-3">
+              <select className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm hover:bg-white/20 transition-colors cursor-pointer">
+                <option className="bg-black">🇳🇬 Nigeria</option>
                 <option className="bg-black">🇺🇸 United States</option>
                 <option className="bg-black">🇬🇧 United Kingdom</option>
               </select>
               
-              <select className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm">
-                <option className="bg-black">💲 USD</option>
+              <select className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm hover:bg-white/20 transition-colors cursor-pointer">
+                <option className="bg-black">₦ NGN</option>
                 <option className="bg-black">€ EUR</option>
                 <option className="bg-black">£ GBP</option>
               </select>
             </div>
 
-            {/* Right Side - Social Icons and Address */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-6">
-              <div className="flex items-center space-x-4">
-                <SocialLink icon="𝕏" href="#twitter" />
-                <SocialLink icon="f" href="#facebook" />
-                <SocialLink icon="📷" href="#instagram" />
-                <SocialLink icon="▶" href="#youtube" />
-                <SocialLink icon="in" href="#linkedin" />
-              </div>
-              
+            {/* Right Side - Copyright */}
+            <div className="flex items-center">
               <p className="text-white/60 text-sm">
-                600 Townsend Street, Suite 500 | San Francisco, CA 94103, USA | © True Fans
+                © {new Date().getFullYear()} True Fans. All rights reserved.
               </p>
             </div>
           </div>
@@ -139,17 +119,19 @@ const Footer = () => {
 };
 
 interface SocialLinkProps {
-  icon: string;
+  icon: React.ReactNode;
   href: string;
+  label: string;
 }
 
-const SocialLink = ({ icon, href }: SocialLinkProps) => {
+const SocialLink = ({ icon, href, label }: SocialLinkProps) => {
   return (
     <a 
       href={href}
-      className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300"
+      className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 group"
+      aria-label={label}
     >
-      <span className="text-white/70 hover:text-white transition-colors text-sm font-semibold">
+      <span className="text-white/70 group-hover:text-white transition-colors">
         {icon}
       </span>
     </a>
