@@ -154,7 +154,23 @@ export const authAPI = {
   resetPassword: (token: string, newPassword: string) => apiService.resetPassword(token, newPassword),
   completeCreatorProfile: async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const response = await apiService.updateUser(profileData);
-    return { user: response.data };
+    console.log('Raw API response from updateUser:', response);
+    console.log('response.data:', response.data);
+    console.log('Full response keys:', Object.keys(response));
+    
+    // Handle different possible response structures
+    // Option 1: { success: true, data: { user object } }
+    // Option 2: { data: { user object } }
+    // Option 3: { user object } directly
+    
+    if (response.data) {
+      return { user: response.data };
+    } else if (response.user) {
+      return { user: response.user };
+    } else {
+      // Response might be the user object directly
+      return { user: response };
+    }
   },
   getUserProfile: async () => {
     const response = await apiService.getCurrentUser();

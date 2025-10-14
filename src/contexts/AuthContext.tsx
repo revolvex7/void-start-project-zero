@@ -187,15 +187,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const completeCreatorProfile = async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const userData = await completeCreatorProfileMutation.mutateAsync(profileData);
     
-    // Transform the response to include legacy properties
+    // The API returns the user object directly with creator fields at the top level
     const transformedUser: User = {
       ...userData,
-      creatorName: userData.creator?.creatorName,
-      pageName: userData.creator?.pageName,
-      profilePhoto: userData.creator?.profilePhoto,
-      is18Plus: userData.creator?.is18Plus,
-      description: userData.creator?.bio,
-      isCreatorProfileComplete: !!userData.creator?.pageName
+      isCreatorProfileComplete: !!userData.pageName
     };
     
     setUser(transformedUser);

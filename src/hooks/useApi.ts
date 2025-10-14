@@ -52,18 +52,22 @@ export const useCompleteCreatorProfile = () => {
   return useMutation({
     mutationFn: async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
       const response = await authAPI.completeCreatorProfile(profileData);
+      console.log('Complete creator profile response:', response);
       return response.user;
     },
     onSuccess: (userData) => {
-      // Transform and update cache
+      console.log('User data received in onSuccess:', userData);
+      
+      // The API returns the user object directly with creator fields at the top level
+      // No need to access nested creator property
+      if (!userData) {
+        console.error('userData is undefined in onSuccess');
+        return;
+      }
+      
       const transformedUser = {
         ...userData,
-        creatorName: userData.creator?.creatorName,
-        pageName: userData.creator?.pageName,
-        profilePhoto: userData.creator?.profilePhoto,
-        is18Plus: userData.creator?.is18Plus,
-        description: userData.creator?.bio,
-        isCreatorProfileComplete: !!userData.creator?.pageName
+        isCreatorProfileComplete: !!userData.pageName
       };
       
       queryClient.setQueryData(queryKeys.user.profile, transformedUser);
