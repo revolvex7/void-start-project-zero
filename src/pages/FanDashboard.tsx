@@ -14,10 +14,9 @@ export default function FanDashboard({ currentPage = 'home' }: FanDashboardProps
   const { currentRole } = useUserRole();
   const navigate = useNavigate();
 
-  const handleCreatorClick = (creatorName: string) => {
-    const creatorUrl = creatorName.toLowerCase().replace(/\s+/g, '');
+  const handleCreatorClick = (pageName: string, creatorId: string) => {
     sessionStorage.setItem('previousContext', 'fan-dashboard');
-    navigate(`/${creatorUrl}`);
+    navigate(`/${pageName}`, { state: { creatorId } });
   };
 
   const renderContent = () => {

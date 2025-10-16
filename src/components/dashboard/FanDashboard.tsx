@@ -45,12 +45,10 @@ const FanDashboard = () => {
     navigate('/');
   };
 
-  const handleCreatorClick = (creatorName: string) => {
+  const handleCreatorClick = (pageName: string, creatorId: string) => {
     // Navigate to creator profile page and store the current context
-    const creatorUrl = creatorName.toLowerCase().replace(/\s+/g, '');
-    // Store that we came from fan dashboard
     sessionStorage.setItem('previousContext', 'fan-dashboard');
-    navigate(`/${creatorUrl}`);
+    navigate(`/${pageName}`, { state: { creatorId } });
   };
 
   const handleSwitchToCreator = () => {
@@ -75,6 +73,7 @@ const FanDashboard = () => {
     {
       id: 1,
       name: 'Da jungleboy',
+      pageName: 'dajungleboy',
       description: 'creating Video Vlogs',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
       category: 'Entertainment'
@@ -82,6 +81,7 @@ const FanDashboard = () => {
     {
       id: 2,
       name: 'More Than Friends',
+      pageName: 'morethanfriends',
       description: 'creating Podcasts',
       image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
       category: 'Podcasts'
@@ -89,6 +89,7 @@ const FanDashboard = () => {
     {
       id: 3,
       name: 'Dee Shanell',
+      pageName: 'deeshanell',
       description: 'Creating Reaction Videos',
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b977?w=400&h=400&fit=crop&crop=face',
       category: 'Entertainment'
@@ -96,6 +97,7 @@ const FanDashboard = () => {
     {
       id: 4,
       name: 'Insimnia',
+      pageName: 'insimnia',
       description: 'Creating Sims 4 Custom Content',
       image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
       category: 'Gaming'
@@ -103,6 +105,7 @@ const FanDashboard = () => {
     {
       id: 5,
       name: 'Brad Evans',
+      pageName: 'bradevans',
       description: 'Creating entertainment content',
       image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
       category: 'Entertainment'
@@ -110,6 +113,7 @@ const FanDashboard = () => {
     {
       id: 6,
       name: 'TripleTake Reacts',
+      pageName: 'tripletakereacts',
       description: 'Creating reaction content',
       image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop&crop=face',
       category: 'Entertainment'
@@ -120,6 +124,7 @@ const FanDashboard = () => {
     {
       id: 1,
       name: 'FUT Simple Trader',
+      pageName: 'futsimpletrader',
       description: 'Creating EA FC 25 Ultimate Team Trading content.',
       image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=400&fit=crop',
       category: 'Gaming'
@@ -127,6 +132,7 @@ const FanDashboard = () => {
     {
       id: 2,
       name: 'matt bernstein',
+      pageName: 'mattbernstein',
       description: 'creating accessible social and political commentary',
       image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop&crop=face',
       category: 'Commentary'
@@ -134,6 +140,7 @@ const FanDashboard = () => {
     {
       id: 3,
       name: 'Zach Campbell',
+      pageName: 'zachcampbell',
       description: 'Creating Reaction Videos',
       image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
       category: 'Entertainment'
@@ -141,6 +148,7 @@ const FanDashboard = () => {
     {
       id: 4,
       name: 'Chapo Trap House',
+      pageName: 'chapotraphouse',
       description: 'Creating Chapo Trap House Podcast',
       image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
       category: 'Podcasts'
@@ -148,6 +156,7 @@ const FanDashboard = () => {
     {
       id: 5,
       name: 'Shelf Respect',
+      pageName: 'shelfrespect',
       description: 'Judging Books By Their Covers. And Then Some.',
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b977?w=400&h=400&fit=crop&crop=face',
       category: 'Books'
@@ -155,6 +164,7 @@ const FanDashboard = () => {
     {
       id: 6,
       name: 'RocketJump',
+      pageName: 'rocketjump',
       description: 'documenting the creation of feature films',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
       category: 'Film'
@@ -214,7 +224,7 @@ const FanDashboard = () => {
           {featuredCreators.map((creator) => (
             <div 
               key={creator.id} 
-              onClick={() => handleCreatorClick(creator.name)}
+              onClick={() => handleCreatorClick(creator.pageName, `mock-${creator.id}`)}
               className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition-colors cursor-pointer"
             >
               <div className="aspect-square">
@@ -253,7 +263,7 @@ const FanDashboard = () => {
           {popularThisWeek.map((creator) => (
             <div 
               key={creator.id} 
-              onClick={() => handleCreatorClick(creator.name)}
+              onClick={() => handleCreatorClick(creator.pageName, `mock-${creator.id}`)}
               className="flex space-x-3 sm:space-x-4 bg-gray-800 rounded-lg p-3 sm:p-4 hover:bg-gray-700 transition-colors cursor-pointer"
             >
               <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://tf-backend-toc9.onrender.com/api/v_1/internal';
-// const BASE_URL = 'http://localhost:8000/api/v_1/internal';
+// const BASE_URL = 'https://tf-backend-toc9.onrender.com/api/v_1/internal';
+const BASE_URL = 'http://localhost:8000/api/v_1/internal';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -129,6 +129,12 @@ class ApiService {
     });
   }
 
+  async getCreatorByPageName(pageName: string) {
+    return await this.request(`/user/creator/page/${pageName}`, {
+      method: 'GET',
+    });
+  }
+
   async toggleFollowCreator(creatorId: string) {
     return await this.request(`/user/creators/${creatorId}/follow`, {
       method: 'POST',
@@ -186,6 +192,7 @@ export const userAPI = {
 export const creatorAPI = {
   getAllCreators: () => apiService.getAllCreators(),
   getCreatorById: (creatorId: string) => apiService.getCreatorById(creatorId),
+  getCreatorByPageName: (pageName: string) => apiService.getCreatorByPageName(pageName),
   toggleFollow: (creatorId: string) => apiService.toggleFollowCreator(creatorId),
 };
 

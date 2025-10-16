@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MembershipModal } from '@/components/modals/MembershipModal';
 import { TipModal } from '@/components/modals/TipModal';
@@ -9,6 +9,7 @@ import { useUserRole } from '@/contexts/UserRoleContext';
 import { useMembership } from '@/contexts/MembershipContext';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { creatorAPI, Creator } from '@/lib/api';
+import { useToggleFollow } from '@/hooks/useApi';
 import { 
   MoreHorizontal, 
   Share2, 
@@ -37,6 +38,7 @@ import {
 
 const CreatorProfile = () => {
   const { creatorUrl } = useParams<{ creatorUrl: string }>();
+  const location = useLocation();
   const { user, logout, isCreator } = useAuth();
   const { currentRole } = useUserRole();
   const { tiers, hasTiers } = useMembership();
@@ -51,6 +53,7 @@ const CreatorProfile = () => {
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const toggleFollowMutation = useToggleFollow();
 
   // Fetch creator data
   useEffect(() => {
@@ -61,24 +64,19 @@ const CreatorProfile = () => {
         setLoading(true);
         setError(null);
         
-        // First, get all creators to find the one with matching pageName
-        const allCreatorsResponse = await creatorAPI.getAllCreators();
-        const allCreators = allCreatorsResponse.data;
+        // Get creator ID from navigation state
+        const creatorId = location.state?.creatorId;
         
-        // Find creator by pageName (case-insensitive)
-        const foundCreator = allCreators.find(creator => 
-          creator.pageName?.toLowerCase() === creatorUrl.toLowerCase()
-        );
-        
-        if (!foundCreator) {
-          setError('Creator not found');
-          return;
+        let response;
+        if (creatorId && !creatorId.startsWith('mock-')) {
+          // Use creator ID directly for efficient single API call
+          response = await creatorAPI.getCreatorById(creatorId);
+        } else {
+          // Fallback to pageName lookup (for direct URL access or mock data)
+          response = await creatorAPI.getCreatorByPageName(creatorUrl);
         }
         
-        // Now get the full creator data by ID
-        const response = await creatorAPI.getCreatorById(foundCreator.id);
         setCreator(response.data);
-        
         setIsFollowing(response.data.isFollowing || false);
       } catch (err) {
         console.error('Error fetching creator data:', err);
@@ -89,7 +87,7 @@ const CreatorProfile = () => {
     };
 
     fetchCreatorData();
-  }, [creatorUrl]);
+  }, [creatorUrl, location.state?.creatorId]);
 
   // Set role context based on where user came from
   useEffect(() => {
@@ -121,8 +119,10 @@ const CreatorProfile = () => {
     if (!creator) return;
     
     try {
-      const response = await creatorAPI.toggleFollow(creator.id);
-      setIsFollowing(response.data.isFollowing);
+      await toggleFollowMutation.mutateAsync(creator.id);
+      // The mutation will handle updating the cache and UI
+      // Update local state as well for immediate feedback
+      setIsFollowing(!isFollowing);
     } catch (err) {
       console.error('Error toggling follow:', err);
     }
@@ -268,6 +268,7 @@ const CreatorProfile = () => {
                 <div className="flex space-x-2 sm:space-x-3 mt-4 sm:mt-0">
                   <Button 
                     onClick={handleFollow}
+                    disabled={toggleFollowMutation.isPending}
                     variant="outline"
                     className={`px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg ${
                       isFollowing 
@@ -275,7 +276,9 @@ const CreatorProfile = () => {
                         : 'bg-transparent border-gray-600 text-white hover:bg-gray-700 backdrop-blur-sm'
                     }`}
                   >
-                    {isFollowing ? (
+                    {toggleFollowMutation.isPending ? (
+                      'Loading...'
+                    ) : isFollowing ? (
                       <>
                         <Check className="w-4 h-4 mr-2" />
                         Following
@@ -540,6 +543,7 @@ const CreatorProfile = () => {
                         </ul>
                         <Button 
                           onClick={membership.price === 0 ? handleFollow : () => setShowMembershipModal(true)}
+                          disabled={membership.price === 0 ? toggleFollowMutation.isPending : false}
                           variant={membership.price === 0 ? "outline" : "default"}
                           className={`w-full ${
                             membership.price === 0 
@@ -550,7 +554,7 @@ const CreatorProfile = () => {
                           }`}
                         >
                           {membership.price === 0 
-                            ? (isFollowing ? 'Following' : 'Follow for Free')
+                            ? (toggleFollowMutation.isPending ? 'Loading...' : (isFollowing ? 'Following' : 'Follow for Free'))
                             : 'Subscribe Now'
                           }
                         </Button>
