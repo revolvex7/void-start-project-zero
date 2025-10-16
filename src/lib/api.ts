@@ -147,6 +147,39 @@ class ApiService {
       method: 'GET',
     });
   }
+
+  // Post endpoints
+  async createPost(postData: CreatePostData) {
+    return await this.request('/user/posts', {
+      method: 'POST',
+      body: JSON.stringify(postData),
+    });
+  }
+
+  async getAllPosts() {
+    return await this.request('/user/posts', {
+      method: 'GET',
+    });
+  }
+
+  async getPostById(postId: string) {
+    return await this.request(`/user/posts/${postId}`, {
+      method: 'GET',
+    });
+  }
+
+  async updatePost(postId: string, postData: UpdatePostData) {
+    return await this.request(`/user/posts/${postId}`, {
+      method: 'PUT',
+      body: JSON.stringify(postData),
+    });
+  }
+
+  async deletePost(postId: string) {
+    return await this.request(`/user/posts/${postId}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Create API instances
@@ -200,6 +233,14 @@ export const commonAPI = {
   getCategories: () => apiService.getCategories(),
 };
 
+export const postAPI = {
+  create: (postData: CreatePostData) => apiService.createPost(postData),
+  getAll: () => apiService.getAllPosts(),
+  getById: (postId: string) => apiService.getPostById(postId),
+  update: (postId: string, postData: UpdatePostData) => apiService.updatePost(postId, postData),
+  delete: (postId: string) => apiService.deletePost(postId),
+};
+
 // Types
 export interface UserRegistrationData {
   name: string;
@@ -224,6 +265,51 @@ export interface UpdateUserData {
 export interface Category {
   id: string;
   name: string;
+}
+
+export interface MediaFile {
+  id?: string;
+  type: string;
+  url: string;
+  name?: string;
+  size?: number;
+}
+
+export interface CreatePostData {
+  title: string;
+  content: string;
+  accessType?: string;
+  tags?: string[];
+  mediaFiles?: MediaFile[];
+}
+
+export interface UpdatePostData {
+  title?: string;
+  content?: string;
+  accessType?: string;
+  tags?: string[];
+  mediaFiles?: MediaFile[];
+}
+
+export interface PostDetail {
+  id: string;
+  creatorId: string;
+  title: string;
+  content: string;
+  accessType: string;
+  tags?: string[];
+  totalLikes: number;
+  mediaFiles: Array<{
+    id: string;
+    type: string;
+    url: string;
+    name?: string;
+    size?: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Membership {

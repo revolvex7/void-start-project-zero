@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useUserRole } from '@/contexts/UserRoleContext';
+import { postAPI, CreatePostData, MediaFile as APIMediaFile } from '@/lib/api';
 
 interface MediaFile {
   id: string;
@@ -71,6 +72,7 @@ export default function CreatePost() {
   const [showInlineImageUpload, setShowInlineImageUpload] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Mock post data for editing
   const mockPostData = {
@@ -194,15 +196,44 @@ export default function CreatePost() {
     event.target.value = '';
   };
 
-  const handlePublish = () => {
-    console.log('Publishing post:', {
-      title,
-      content: contentRef.current?.innerHTML || content,
-      accessType,
-      mediaFiles,
-      tags
-    });
-    goBack();
+  const handlePublish = async () => {
+    if (!title.trim() || !content.trim()) {
+      alert('Please fill in both title and content before publishing.');
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      // Convert MediaFile to APIMediaFile format
+      const apiMediaFiles: APIMediaFile[] = mediaFiles.map(media => ({
+        id: media.id,
+        type: media.type,
+        url: media.url,
+        name: media.name,
+        size: media.size
+      }));
+
+      const postData: CreatePostData = {
+        title: title.trim(),
+        content: contentRef.current?.innerHTML || content,
+        accessType: accessType,
+        tags: tags.length > 0 ? tags : undefined,
+        mediaFiles: apiMediaFiles.length > 0 ? apiMediaFiles : undefined
+      };
+
+      console.log('Publishing post:', postData);
+      const response = await postAPI.create(postData);
+      console.log('Post created successfully:', response);
+      
+      // Show success message
+      alert(isEditing ? 'Post updated successfully!' : 'Post published successfully!');
+      goBack();
+    } catch (error) {
+      console.error('Failed to publish post:', error);
+      alert('Failed to publish post. Please try again.');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const handlePreview = () => {
@@ -234,8 +265,12 @@ export default function CreatePost() {
             <Eye className="w-4 h-4 mr-2" />
             Preview
           </Button>
-          <Button onClick={handlePublish} className="bg-white text-black hover:bg-gray-100">
-            {isEditing ? 'Update' : 'Publish'}
+          <Button 
+            onClick={handlePublish} 
+            disabled={isPublishing}
+            className="bg-white text-black hover:bg-gray-100 disabled:opacity-50"
+          >
+            {isPublishing ? 'Publishing...' : (isEditing ? 'Update' : 'Publish')}
           </Button>
         </div>
       </div>
@@ -784,9 +819,10 @@ export default function CreatePost() {
                   setShowPreview(false);
                   handlePublish();
                 }}
-                className="bg-white text-black hover:bg-gray-100"
+                disabled={isPublishing}
+                className="bg-white text-black hover:bg-gray-100 disabled:opacity-50"
               >
-                {isEditing ? 'Update' : 'Publish'}
+                {isPublishing ? 'Publishing...' : (isEditing ? 'Update' : 'Publish')}
               </Button>
             </div>
           </div>
