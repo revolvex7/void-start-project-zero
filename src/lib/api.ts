@@ -148,6 +148,40 @@ class ApiService {
     });
   }
 
+  async uploadFile(file: File, path?: string) {
+    const formData = new FormData();
+    formData.append('fileToUpload', file);
+    if (path) {
+      formData.append('path', path);
+    }
+
+    const url = `${this.baseURL}/common/upload-file`;
+    const token = localStorage.getItem('accessToken');
+    
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        ...(token && { 'access-token': `${token}` }),
+      },
+      body: formData,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      return result.data; // Returns the S3 URL string
+    } catch (error) {
+      console.error('File upload failed:', error);
+      throw error;
+    }
+  }
+
   // Post endpoints
   async createPost(postData: CreatePostData) {
     return await this.request('/user/posts', {
@@ -231,6 +265,7 @@ export const creatorAPI = {
 
 export const commonAPI = {
   getCategories: () => apiService.getCategories(),
+  uploadFile: (file: File, path?: string) => apiService.uploadFile(file, path),
 };
 
 export const postAPI = {

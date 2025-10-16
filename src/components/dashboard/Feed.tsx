@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { usePosts } from '@/hooks/useApi';
 import { 
   Bell, 
   Heart, 
@@ -14,26 +15,23 @@ import {
   Image as ImageIcon,
   FileText,
   Calendar,
-  User
+  User,
+  Loader2
 } from 'lucide-react';
 
 interface Post {
-  id: string;
-  title: string;
-  description: string;
-  creator: {
-    name: string;
-    avatar: string;
-    category: string;
-    isVerified?: boolean;
-  };
-  publishedAt: string;
-  readTime?: string;
-  type: 'article' | 'video' | 'audio' | 'image';
-  thumbnail: string;
-  likes: number;
-  comments: number;
-  isLiked: boolean;
+  postId: string;
+  postTitle: string;
+  content: string;
+  createdAt: string;
+  tags: string[];
+  attachedMedia: string[];
+  creatorId: string;
+  creatorImage: string | null;
+  pageName: string;
+  totalLikes: number;
+  totalComments: number;
+  isLiked?: boolean;
 }
 
 interface Creator {
@@ -47,9 +45,18 @@ interface Creator {
 
 export default function Feed() {
   const navigate = useNavigate();
+  const { data: posts = [], isLoading: loading, error, refetch } = usePosts();
+  
+  // Local state for like functionality (will be replaced with mutation later)
+  const [localPosts, setLocalPosts] = useState<Post[]>([]);
+  
+  // Update local posts when API data changes
+  React.useEffect(() => {
+    setLocalPosts(posts);
+  }, [posts]);
 
-  // Mock feed data - showing posts from subscribed creators
-  const [posts, setPosts] = useState<Post[]>([
+  // Keep mock data for fallback/development
+  const mockPosts = [
     {
       id: '1',
       title: '10 Productivity Tips for Developers',
@@ -137,7 +144,7 @@ export default function Feed() {
       comments: 17,
       isLiked: true
     }
-  ]);
+  ];
 
   // Mock suggested creators
   const suggestedCreators: Creator[] = [
@@ -167,40 +174,88 @@ export default function Feed() {
   ];
 
 
-  const getPostIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <Play className="w-4 h-4" />;
-      case 'audio': return <Headphones className="w-4 h-4" />;
-      case 'image': return <ImageIcon className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
+  const getPostIcon = (attachedMedia: string[]) => {
+    if (!attachedMedia || attachedMedia.length === 0) {
+      return <FileText className="w-4 h-4" />;
     }
+    
+    const firstMedia = attachedMedia[0];
+    if (firstMedia.includes('.mp4') || firstMedia.includes('.webm')) {
+      return <Play className="w-4 h-4" />;
+    }
+    if (firstMedia.includes('.mp3') || firstMedia.includes('.wav')) {
+      return <Headphones className="w-4 h-4" />;
+    }
+    if (firstMedia.includes('.jpg') || firstMedia.includes('.png') || firstMedia.includes('.jpeg')) {
+      return <ImageIcon className="w-4 h-4" />;
+    }
+    return <FileText className="w-4 h-4" />;
   };
 
-  const getPostTypeColor = (type: string) => {
-    switch (type) {
-      case 'video': return 'text-red-400';
-      case 'audio': return 'text-purple-400';
-      case 'image': return 'text-green-400';
-      default: return 'text-blue-400';
+  const getPostTypeColor = (attachedMedia: string[]) => {
+    if (!attachedMedia || attachedMedia.length === 0) {
+      return 'text-blue-400';
     }
+    
+    const firstMedia = attachedMedia[0];
+    if (firstMedia.includes('.mp4') || firstMedia.includes('.webm')) {
+      return 'text-red-400';
+    }
+    if (firstMedia.includes('.mp3') || firstMedia.includes('.wav')) {
+      return 'text-purple-400';
+    }
+    if (firstMedia.includes('.jpg') || firstMedia.includes('.png') || firstMedia.includes('.jpeg')) {
+      return 'text-green-400';
+    }
+    return 'text-blue-400';
+  };
+
+  const getPostType = (attachedMedia: string[]) => {
+    if (!attachedMedia || attachedMedia.length === 0) {
+      return 'article';
+    }
+    
+    const firstMedia = attachedMedia[0];
+    if (firstMedia.includes('.mp4') || firstMedia.includes('.webm')) {
+      return 'video';
+    }
+    if (firstMedia.includes('.mp3') || firstMedia.includes('.wav')) {
+      return 'audio';
+    }
+    if (firstMedia.includes('.jpg') || firstMedia.includes('.png') || firstMedia.includes('.jpeg')) {
+      return 'image';
+    }
+    return 'article';
+  };
+
+  const getCreatorInitials = (creatorId: string) => {
+    // Generate initials from creatorId for now
+    return creatorId.substring(0, 2).toUpperCase();
+  };
+
+  const truncateContent = (content: string, maxLength: number = 150) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
   };
 
   const handlePostClick = (postId: string) => {
     navigate(`/post/${postId}`);
   };
 
-  const handleCreatorClick = (creatorName: string) => {
-    navigate(`/${creatorName.toLowerCase().replace(' ', '-')}`);
+  const handleCreatorClick = (pageName: string, creatorId?: string) => {
+    // Navigate to creator profile using the pageName from API
+    // Pass creatorId in state for efficient API calls when available
+    navigate(`/${pageName}`, { state: { creatorId } });
   };
 
   const handleLike = (postId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setPosts(posts.map(post => 
-      post.id === postId 
+    setLocalPosts(localPosts.map(post => 
+      post.postId === postId 
         ? { 
             ...post, 
             isLiked: !post.isLiked,
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1
+            totalLikes: post.isLiked ? post.totalLikes - 1 : post.totalLikes + 1
           }
         : post
     ));
@@ -223,118 +278,184 @@ export default function Feed() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Feed */}
         <div className="lg:col-span-2 space-y-6">
-          {posts.map((post) => (
-            <div 
-              key={post.id}
-              onClick={() => handlePostClick(post.id)}
-              className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors cursor-pointer"
-            >
-              {/* Post Header */}
-              <div className="flex items-center space-x-3 mb-4">
-                <div 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCreatorClick(post.creator.name);
-                  }}
-                  className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all"
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+              <span className="ml-2 text-gray-400">Loading posts...</span>
+            </div>
+          ) : error ? (
+            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
+              <p className="text-red-400 mb-4">
+                {error instanceof Error ? error.message : 'Failed to load posts. Please try again later.'}
+              </p>
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline" 
+                className="border-red-500 text-red-400 hover:bg-red-900/30"
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : localPosts.length === 0 ? (
+            <div className="bg-gray-800 rounded-lg p-12 text-center">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-6" />
+              <h3 className="text-xl font-medium text-gray-300 mb-3">No posts yet</h3>
+              <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                Follow some creators to see their posts in your feed, or check out the explore page to discover new content.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button 
+                  onClick={() => navigate('/explore')} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  <span className="text-sm font-semibold">{post.creator.avatar}</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <h3 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCreatorClick(post.creator.name);
-                      }}
-                      className="font-medium hover:text-blue-400 cursor-pointer transition-colors"
-                    >
-                      {post.creator.name}
-                    </h3>
-                    {post.creator.isVerified && (
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    )}
-                    <span className="text-sm text-gray-400">•</span>
-                    <span className="text-sm text-gray-400">{post.creator.category}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                    <span className="flex items-center">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      {new Date(post.publishedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                <div className={`flex items-center space-x-1 text-xs ${getPostTypeColor(post.type)}`}>
-                  {getPostIcon(post.type)}
-                  <span className="capitalize">{post.type}</span>
-                </div>
-              </div>
-
-              {/* Post Thumbnail */}
-              {post.thumbnail && (
-                <div className="mb-4 rounded-lg overflow-hidden">
-                  <img 
-                    src={post.thumbnail} 
-                    alt={post.title}
-                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              )}
-
-              {/* Post Content */}
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-2 hover:text-blue-400 transition-colors">
-                  {post.title}
-                </h2>
-                <p className="text-gray-400 line-clamp-2">{post.description}</p>
-              </div>
-
-              {/* Post Footer */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  {post.readTime && (
-                    <span className="flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {post.readTime}
-                    </span>
-                  )}
-                  <span className="text-blue-400 hover:text-blue-300 transition-colors">
-                    Read more →
-                  </span>
-                </div>
-                
-                {/* Like and Comment Actions */}
-                <div className="flex items-center space-x-6 pt-3 border-t border-gray-700">
-                  <button
-                    onClick={(e) => handleLike(post.id, e)}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                      post.isLiked 
-                        ? 'text-red-400 bg-red-900/20 hover:bg-red-900/30' 
-                        : 'text-gray-400 hover:text-red-400 hover:bg-red-900/10'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
-                    <span className="text-sm font-medium">{post.likes}</span>
-                  </button>
-                  
-                  <button
-                    onClick={(e) => handleComment(post.id, e)}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/10 transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="text-sm font-medium">{post.comments}</span>
-                  </button>
-                </div>
+                  Explore Creators
+                </Button>
+                <Button 
+                  onClick={() => navigate('/create-post')} 
+                  variant="outline" 
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Create Post
+                </Button>
               </div>
             </div>
-          ))}
+          ) : (
+            localPosts.map((post) => (
+              <div 
+                key={post.postId}
+                onClick={() => handlePostClick(post.postId)}
+                className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors cursor-pointer"
+              >
+                {/* Post Header */}
+                <div className="flex items-center space-x-3 mb-4">
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCreatorClick(post.pageName, post.creatorId);
+                    }}
+                    className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all"
+                  >
+                    {post.creatorImage ? (
+                      <img 
+                        src={post.creatorImage} 
+                        alt="Creator" 
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold">{getCreatorInitials(post.creatorId)}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h3 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCreatorClick(post.pageName, post.creatorId);
+                        }}
+                        className="font-medium hover:text-blue-400 cursor-pointer transition-colors"
+                      >
+                        Creator {getCreatorInitials(post.creatorId)}
+                      </h3>
+                      <span className="text-sm text-gray-400">•</span>
+                      <span className="text-sm text-gray-400">Creator</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                      <span className="flex items-center">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`flex items-center space-x-1 text-xs ${getPostTypeColor(post.attachedMedia)}`}>
+                    {getPostIcon(post.attachedMedia)}
+                    <span className="capitalize">{getPostType(post.attachedMedia)}</span>
+                  </div>
+                </div>
 
-          {/* Load More */}
-          <div className="text-center py-8">
-            <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-              Load More Posts
-            </Button>
-          </div>
+                {/* Post Media */}
+                {post.attachedMedia && post.attachedMedia.length > 0 && (
+                  <div className="mb-4 rounded-lg overflow-hidden">
+                    <img 
+                      src={post.attachedMedia[0]} 
+                      alt={post.postTitle}
+                      className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Post Content */}
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold mb-2 hover:text-blue-400 transition-colors">
+                    {post.postTitle}
+                  </h2>
+                  <p className="text-gray-400 line-clamp-3">{truncateContent(post.content)}</p>
+                  
+                  {/* Tags */}
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {post.tags.slice(0, 3).map((tag, index) => (
+                        <span 
+                          key={index}
+                          className="px-2 py-1 bg-blue-900/30 text-blue-300 text-xs rounded-full"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                      {post.tags.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
+                          +{post.tags.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Post Footer */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span className="text-blue-400 hover:text-blue-300 transition-colors">
+                      Read more →
+                    </span>
+                  </div>
+                  
+                  {/* Like and Comment Actions */}
+                  <div className="flex items-center space-x-6 pt-3 border-t border-gray-700">
+                    <button
+                      onClick={(e) => handleLike(post.postId, e)}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        post.isLiked 
+                          ? 'text-red-400 bg-red-900/20 hover:bg-red-900/30' 
+                          : 'text-gray-400 hover:text-red-400 hover:bg-red-900/10'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
+                      <span className="text-sm font-medium">{post.totalLikes}</span>
+                    </button>
+                    
+                    <button
+                      onClick={(e) => handleComment(post.postId, e)}
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/10 transition-colors"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span className="text-sm font-medium">{post.totalComments}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+
+          {/* Load More - Only show if there are posts */}
+          {localPosts.length > 0 && (
+            <div className="text-center py-8">
+              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+                Load More Posts
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -363,7 +484,9 @@ export default function Feed() {
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleCreatorClick(creator.name);
+                      // For mock creators, use a fallback slug since they don't have pageName
+                      const fallbackPageName = creator.name.toLowerCase().replace(/\s+/g, '-');
+                      handleCreatorClick(fallbackPageName, creator.id);
                     }}
                     className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs px-3 py-1"
                   >

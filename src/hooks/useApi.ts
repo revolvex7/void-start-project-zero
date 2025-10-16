@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authAPI, userAPI, creatorAPI, commonAPI } from '@/lib/api';
+import { authAPI, userAPI, creatorAPI, commonAPI, postAPI } from '@/lib/api';
 
 // Query Keys
 export const queryKeys = {
@@ -12,6 +12,10 @@ export const queryKeys = {
   },
   categories: {
     all: ['categories'] as const,
+  },
+  posts: {
+    all: ['posts'] as const,
+    byId: (id: string) => ['posts', id] as const,
   },
 } as const;
 
@@ -112,6 +116,32 @@ export const useCategories = () => {
     },
     staleTime: 30 * 60 * 1000, // 30 minutes (categories don't change often)
     gcTime: 60 * 60 * 1000, // 1 hour
+  });
+};
+
+// Posts Queries
+export const usePosts = () => {
+  return useQuery({
+    queryKey: queryKeys.posts.all,
+    queryFn: async () => {
+      const response = await postAPI.getAll();
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+export const usePostById = (postId: string) => {
+  return useQuery({
+    queryKey: queryKeys.posts.byId(postId),
+    queryFn: async () => {
+      const response = await postAPI.getById(postId);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    enabled: !!postId, // Only run if postId is provided
   });
 };
 

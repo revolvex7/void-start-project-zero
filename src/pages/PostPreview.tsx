@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usePostById } from '@/hooks/useApi';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -12,7 +13,9 @@ import {
   MessageSquare,
   Send,
   Menu,
-  X
+  X,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 interface Comment {
@@ -25,14 +28,51 @@ interface Comment {
   isLiked: boolean;
 }
 
+interface MediaFile {
+  id: string;
+  type: string;
+  url: string;
+  name: string;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PostData {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  creatorId: string;
+  title: string;
+  content: string;
+  accessType: string;
+  tags: string[];
+  totalLikes: number;
+  creatorName: string;
+  creatorImage: string | null;
+  categoryName: string | null;
+  mediaFiles: MediaFile[];
+  comments: any[];
+}
+
 export default function PostPreview() {
   const { postId } = useParams();
   const navigate = useNavigate();
   
+  // Fetch post data using React Query
+  const { data: post, isLoading, error, refetch } = usePostById(postId || '');
+  
   const [isLiked, setIsLiked] = useState(false);
-  const [likes, setLikes] = useState(42);
+  const [likes, setLikes] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  
+  // Update likes when post data loads
+  useEffect(() => {
+    if (post) {
+      setLikes(post.totalLikes);
+    }
+  }, [post]);
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
@@ -77,39 +117,20 @@ export default function PostPreview() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMobileSidebar]);
 
-  // Mock post data - in real app, fetch based on postId
-  const post = {
-    id: postId,
-    title: "10 Productivity Tips for Developers",
-    description: "Learn the essential productivity techniques that will help you become a more efficient developer. From time management to code organization, these tips will transform your workflow.",
-    content: `
-      <h2>Introduction</h2>
-      <p>As developers, we're constantly looking for ways to improve our productivity and write better code. In this comprehensive guide, I'll share 10 proven techniques that have helped me and thousands of other developers become more efficient.</p>
-      
-      <h3>1. Use the Pomodoro Technique</h3>
-      <p>Break your work into 25-minute focused sessions followed by 5-minute breaks. This helps maintain concentration and prevents burnout.</p>
-      
-      <h3>2. Master Your IDE</h3>
-      <p>Learn keyboard shortcuts, customize your environment, and use extensions that automate repetitive tasks.</p>
-      
-      <h3>3. Write Clean, Readable Code</h3>
-      <p>Code is read more often than it's written. Focus on clarity and maintainability over cleverness.</p>
-      
-      <h3>4. Use Version Control Effectively</h3>
-      <p>Make small, frequent commits with descriptive messages. Use branching strategies that work for your team.</p>
-      
-      <h3>5. Automate Repetitive Tasks</h3>
-      <p>Whether it's testing, deployment, or code formatting, automation saves time and reduces errors.</p>
-    `,
-    creator: {
-      name: "Alex Johnson",
-      avatar: "AJ",
-      category: "Tech & Programming"
-    },
-    publishedAt: "2024-01-20",
-    readTime: "8 min read",
-    type: "article",
-    thumbnail: null
+  // Helper functions
+  const getCreatorInitials = (creatorName: string) => {
+    return creatorName.split(' ').map(name => name[0]).join('').toUpperCase() || 'CR';
+  };
+  
+  const getReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min read`;
+  };
+  
+  const stripHtmlTags = (html: string) => {
+    return html.replace(/<[^>]*>/g, '').substring(0, 200) + '...';
   };
 
   const handleGoBack = () => {
@@ -206,128 +227,233 @@ export default function PostPreview() {
 
         {/* Post Content */}
         <div className="max-w-4xl mx-auto p-6">
-          {/* Post Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-            <p className="text-xl text-gray-400 mb-6">{post.description}</p>
-            
-            {/* Creator Info */}
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold">{post.creator.avatar}</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <h3 className="font-medium">{post.creator.name}</h3>
-                  <span className="text-sm text-gray-400">•</span>
-                  <span className="text-sm text-gray-400">{post.creator.category}</span>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                  <span className="flex items-center">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {new Date(post.publishedAt).toLocaleDateString()}
-                  </span>
-                  <span className="flex items-center">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {post.readTime}
-                  </span>
-                </div>
-              </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+              <span className="ml-2 text-gray-400">Loading post...</span>
             </div>
-          </div>
-
-          {/* Post Content */}
-          <div className="prose prose-invert prose-lg max-w-none">
-            <div 
-              className="text-gray-300 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-          </div>
-
-          {/* Like and Comment Actions */}
-          <div className="mt-8 pt-6 border-t border-gray-700">
-            <div className="flex items-center space-x-6 mb-6">
-              <button
-                onClick={handleLike}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  isLiked 
-                    ? 'text-red-400 bg-red-900/20 hover:bg-red-900/30' 
-                    : 'text-gray-400 hover:text-red-400 hover:bg-red-900/10'
-                }`}
+          ) : error ? (
+            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-red-400 mb-2">Failed to load post</h3>
+              <p className="text-gray-400 mb-4">
+                {error instanceof Error ? error.message : 'Something went wrong. Please try again.'}
+              </p>
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline" 
+                className="border-red-500 text-red-400 hover:bg-red-900/30"
               >
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="font-medium">{likes} likes</span>
-              </button>
-              
-              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/10 transition-colors">
-                <MessageSquare className="w-5 h-5" />
-                <span className="font-medium">{comments.length} comments</span>
-              </button>
+                Try Again
+              </Button>
             </div>
-
-            {/* Add Comment */}
-            <div className="mb-6">
-              <div className="flex space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-semibold">YU</span>
-                </div>
-                <div className="flex-1">
-                  <Input
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    className="bg-gray-800 border-gray-600 text-white placeholder-gray-400"
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-                  />
-                </div>
-                <Button 
-                  onClick={handleAddComment}
-                  disabled={!newComment.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
+          ) : !post ? (
+            <div className="bg-gray-800 rounded-lg p-12 text-center">
+              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-300 mb-2">Post not found</h3>
+              <p className="text-gray-400 mb-4">The post you're looking for doesn't exist or has been removed.</p>
+              <Button 
+                onClick={handleGoBack}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Back to Feed
+              </Button>
             </div>
+          ) : (
+            <>
+              {/* Post Header */}
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+                <p className="text-xl text-gray-400 mb-6">{stripHtmlTags(post.content)}</p>
 
-            {/* Comments List */}
-            <div className="space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold">{comment.avatar}</span>
+                {/* Creator Info */}
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    {post.creatorImage ? (
+                      <img 
+                        src={post.creatorImage} 
+                        alt="Creator" 
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold">{getCreatorInitials(post.creatorName)}</span>
+                    )}
                   </div>
                   <div className="flex-1">
-                    <div className="bg-gray-800 rounded-lg p-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-medium text-sm">{comment.author}</h4>
-                        <span className="text-xs text-gray-500">{comment.timestamp}</span>
-                      </div>
-                      <p className="text-gray-300 text-sm">{comment.content}</p>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-medium">{post.creatorName}</h3>
+                      <span className="text-sm text-gray-400">•</span>
+                      <span className="text-sm text-gray-400">{post.categoryName || 'Creator'}</span>
                     </div>
-                    <div className="flex items-center space-x-4 mt-2 ml-4">
-                      <button
-                        onClick={() => handleCommentLike(comment.id)}
-                        className={`flex items-center space-x-1 text-xs transition-colors ${
-                          comment.isLiked 
-                            ? 'text-red-400' 
-                            : 'text-gray-500 hover:text-red-400'
-                        }`}
-                      >
-                        <Heart className={`w-3 h-3 ${comment.isLiked ? 'fill-current' : ''}`} />
-                        <span>{comment.likes}</span>
-                      </button>
-                      <button className="text-xs text-gray-500 hover:text-blue-400 transition-colors">
-                        Reply
-                      </button>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                      <span className="flex items-center">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {getReadTime(post.content)}
+                      </span>
+                      <span className="flex items-center">
+                        <Eye className="w-3 h-3 mr-1" />
+                        {post.accessType === 'free' ? 'Free' : 'Premium'}
+                      </span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-        
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {post.tags.map((tag, index) => (
+                      <span 
+                        key={index}
+                        className="px-3 py-1 bg-blue-900/30 text-blue-300 text-sm rounded-full"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Bar */}
+                <div className="flex items-center justify-between py-4 border-t border-b border-gray-700">
+                  <div className="flex items-center space-x-6">
+                    <button
+                      onClick={handleLike}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        isLiked 
+                          ? 'text-red-400 bg-red-900/20 hover:bg-red-900/30' 
+                          : 'text-gray-400 hover:text-red-400 hover:bg-red-900/10'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                      <span className="font-medium">{likes}</span>
+                    </button>
+                    
+                    <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/10 transition-colors">
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="font-medium">{comments.length}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Media Files */}
+              {post.mediaFiles && post.mediaFiles.length > 0 && (
+                <div className="mb-8">
+                  <div className="grid gap-4">
+                    {post.mediaFiles.map((media) => (
+                      <div key={media.id} className="rounded-lg overflow-hidden">
+                        {media.type === 'image' ? (
+                          <img 
+                            src={media.url} 
+                            alt={media.name}
+                            className="w-full h-auto object-cover"
+                          />
+                        ) : media.type === 'video' ? (
+                          <video 
+                            src={media.url} 
+                            controls
+                            className="w-full h-auto"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <div className="bg-gray-800 p-4 rounded-lg">
+                            <p className="text-gray-400">File: {media.name}</p>
+                            <a 
+                              href={media.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300"
+                            >
+                              Download
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Article Content */}
+              <div className="prose prose-invert prose-lg max-w-none mb-12">
+                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+              </div>
+
+              {/* Comments Section */}
+              <div className="border-t border-gray-700 pt-8">
+                <h3 className="text-2xl font-bold mb-6">Comments ({comments.length})</h3>
+
+                {/* Add Comment */}
+                <div className="mb-8">
+                  <div className="flex space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold">YU</span>
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Add a comment..."
+                        className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 mb-3"
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
+                      />
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={handleAddComment}
+                          disabled={!newComment.trim()}
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Post Comment
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comments List */}
+                <div className="space-y-6">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-semibold">{comment.avatar}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-gray-800 rounded-lg p-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h4 className="font-medium">{comment.author}</h4>
+                            <span className="text-sm text-gray-400">{comment.timestamp}</span>
+                          </div>
+                          <p className="text-gray-300 mb-3">{comment.content}</p>
+                          <div className="flex items-center space-x-4">
+                            <button
+                              onClick={() => handleCommentLike(comment.id)}
+                              className={`flex items-center space-x-1 text-sm transition-colors ${
+                                comment.isLiked 
+                                  ? 'text-red-400' 
+                                  : 'text-gray-400 hover:text-red-400'
+                              }`}
+                            >
+                              <Heart className={`w-4 h-4 ${comment.isLiked ? 'fill-current' : ''}`} />
+                              <span>{comment.likes}</span>
+                            </button>
+                            <button className="text-sm text-gray-400 hover:text-blue-400 transition-colors">
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

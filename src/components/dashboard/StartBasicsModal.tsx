@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { UpdateUserData } from '@/lib/api';
+import { UpdateUserData, commonAPI } from '@/lib/api';
 import { useUpdateUser } from '@/hooks/useApi';
 
 interface StartBasicsModalProps {
@@ -25,6 +25,7 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
   const [patreonUrl, setPatreonUrl] = useState('');
   const [description, setDescription] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // React Query hook
   const updateUserMutation = useUpdateUser();
@@ -79,16 +80,20 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
     }
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        // Generate unique image URL like in EditCreatorPage
-        const imageUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}?w=400&h=400&fit=crop&crop=face`;
-        setProfileImage(imageUrl);
-      };
-      reader.readAsDataURL(file);
+      setIsUploadingImage(true);
+      try {
+        // Upload to S3
+        const s3Url = await commonAPI.uploadFile(file, 'profiles');
+        setProfileImage(s3Url);
+      } catch (error) {
+        console.error('Failed to upload profile image:', error);
+        alert('Failed to upload image. Please try again.');
+      } finally {
+        setIsUploadingImage(false);
+      }
     }
   };
 
@@ -107,7 +112,12 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
           <div className="flex justify-center">
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
-                {profileImage ? (
+                {isUploadingImage ? (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-1"></div>
+                    <p className="text-xs">Uploading...</p>
+                  </div>
+                ) : profileImage ? (
                   <img 
                     src={profileImage} 
                     alt="Profile" 
@@ -117,12 +127,15 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
                   user?.name?.charAt(0).toUpperCase() || 'U'
                 )}
               </div>
-              <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-black rounded-full flex items-center justify-center cursor-pointer border-2 border-gray-700 hover:bg-gray-800 transition-colors">
+              <label className={`absolute -bottom-1 -right-1 w-8 h-8 bg-black rounded-full flex items-center justify-center border-2 border-gray-700 transition-colors ${
+                isUploadingImage ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-800'
+              }`}>
                 <Camera className="w-4 h-4 text-gray-400" />
                 <input 
                   type="file" 
                   accept="image/*" 
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                  disabled={isUploadingImage}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
                   onChange={handleImageUpload}
                 />
               </label>

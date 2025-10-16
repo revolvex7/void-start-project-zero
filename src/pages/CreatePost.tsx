@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useUserRole } from '@/contexts/UserRoleContext';
-import { postAPI, CreatePostData, MediaFile as APIMediaFile } from '@/lib/api';
+import { postAPI, CreatePostData, MediaFile as APIMediaFile, commonAPI } from '@/lib/api';
 
 interface MediaFile {
   id: string;
@@ -103,24 +103,43 @@ export default function CreatePost() {
   };
 
   // File upload handlers
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' | 'audio' | 'file') => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' | 'audio' | 'file') => {
     const files = event.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const newMedia: MediaFile = {
-          id: Math.random().toString(36).substr(2, 9),
+    // Process files one by one
+    for (const file of Array.from(files)) {
+      try {
+        // Show loading state by adding a temporary media item
+        const tempId = Math.random().toString(36).substr(2, 9);
+        const tempMedia: MediaFile = {
+          id: tempId,
           type,
-          url: e.target?.result as string,
+          url: '', // Empty URL indicates loading
           name: file.name,
           size: file.size,
         };
-        setMediaFiles(prev => [...prev, newMedia]);
-      };
-      reader.readAsDataURL(file);
-    });
+        setMediaFiles(prev => [...prev, tempMedia]);
+
+        // Upload to S3
+        const s3Url = await commonAPI.uploadFile(file, 'posts');
+        
+        // Update the media item with the S3 URL
+        setMediaFiles(prev => prev.map(media => 
+          media.id === tempId 
+            ? { ...media, url: s3Url }
+            : media
+        ));
+      } catch (error) {
+        console.error('Failed to upload file:', error);
+        alert(`Failed to upload ${file.name}. Please try again.`);
+        // Remove the failed upload from the list
+        setMediaFiles(prev => prev.filter(media => media.name !== file.name));
+      }
+    }
+
+    // Clear the input
+    event.target.value = '';
   };
 
   const removeMedia = (id: string) => {
@@ -178,21 +197,46 @@ export default function CreatePost() {
   const handleCode = () => applyFormatting('formatBlock', 'pre');
 
   // Inline image upload
-  const handleInlineImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInlineImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target?.result as string;
-      const img = `<img src="${imageUrl}" alt="inline" style="max-width: 600px; height: auto; margin: 16px 0; border-radius: 8px; display: block;" />`;
+    try {
+      // Show loading indicator
+      const loadingImg = `<div style="padding: 20px; text-align: center; background: #1f2937; border-radius: 8px; margin: 16px 0;">Uploading image...</div>`;
+      document.execCommand('insertHTML', false, loadingImg);
       
-      // Insert at cursor position
-      document.execCommand('insertHTML', false, img);
+      // Upload to S3
+      const s3Url = await commonAPI.uploadFile(file, 'posts');
+      
+      // Replace loading indicator with actual image
+      const img = `<img src="${s3Url}" alt="inline" style="max-width: 600px; height: auto; margin: 16px 0; border-radius: 8px; display: block;" />`;
+      
+      // Remove the loading div and insert the image
+      if (contentRef.current) {
+        const loadingDiv = contentRef.current.querySelector('div[style*="Uploading image"]');
+        if (loadingDiv) {
+          loadingDiv.outerHTML = img;
+        } else {
+          document.execCommand('insertHTML', false, img);
+        }
+      }
+      
       setShowInlineImageUpload(false);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Failed to upload inline image:', error);
+      alert('Failed to upload image. Please try again.');
+      
+      // Remove loading indicator on error
+      if (contentRef.current) {
+        const loadingDiv = contentRef.current.querySelector('div[style*="Uploading image"]');
+        if (loadingDiv) {
+          loadingDiv.remove();
+        }
+      }
+    }
+    
     event.target.value = '';
   };
 
@@ -434,12 +478,30 @@ export default function CreatePost() {
                       <X className="w-4 h-4 text-white" />
                     </button>
                     {media.type === 'image' && (
-                      <img src={media.url} alt={media.name} className="w-full h-40 object-cover rounded" />
+                      media.url ? (
+                        <img src={media.url} alt={media.name} className="w-full h-40 object-cover rounded" />
+                      ) : (
+                        <div className="w-full h-40 bg-gray-800 rounded flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-400">Uploading...</p>
+                          </div>
+                        </div>
+                      )
                     )}
                     {media.type === 'video' && (
-                      <div className="w-full h-40 bg-gray-800 rounded flex items-center justify-center">
-                        <Play className="w-12 h-12 text-gray-400" />
-                      </div>
+                      media.url ? (
+                        <div className="w-full h-40 bg-gray-800 rounded flex items-center justify-center">
+                          <Play className="w-12 h-12 text-gray-400" />
+                        </div>
+                      ) : (
+                        <div className="w-full h-40 bg-gray-800 rounded flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-400">Uploading...</p>
+                          </div>
+                        </div>
+                      )
                     )}
                     {(media.type === 'audio' || media.type === 'file') && (
                       <div className="flex items-center space-x-3">

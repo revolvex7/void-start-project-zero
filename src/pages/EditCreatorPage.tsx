@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye, Tag } from 'lucide-react';
-import { Category, UpdateUserData } from '@/lib/api';
+import { Category, UpdateUserData, commonAPI } from '@/lib/api';
 import { useCategories, useUpdateUser } from '@/hooks/useApi';
 
 export default function EditCreatorPage() {
@@ -44,6 +44,8 @@ export default function EditCreatorPage() {
   const [newSocialPlatform, setNewSocialPlatform] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
   const [tagInput, setTagInput] = useState('');
+  const [isUploadingProfile, setIsUploadingProfile] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   // React Query hooks
   const { 
@@ -135,29 +137,39 @@ export default function EditCreatorPage() {
     navigate('/dashboard');
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}?w=400&h=400&fit=crop&crop=face`;
-        setProfileImageUrl(imageUrl);
-      };
-      reader.readAsDataURL(file);
-      setPageData({ ...pageData, profilePhoto: file });
+      setIsUploadingProfile(true);
+      try {
+        // Upload to S3
+        const s3Url = await commonAPI.uploadFile(file, 'profiles');
+        setProfileImageUrl(s3Url);
+        setPageData({ ...pageData, profilePhoto: file });
+      } catch (error) {
+        console.error('Failed to upload profile image:', error);
+        alert('Failed to upload profile image. Please try again.');
+      } finally {
+        setIsUploadingProfile(false);
+      }
     }
   };
 
-  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}?w=1920&h=400&fit=crop`;
-        setCoverImageUrl(imageUrl);
-      };
-      reader.readAsDataURL(file);
-      setPageData({ ...pageData, coverPhoto: file });
+      setIsUploadingCover(true);
+      try {
+        // Upload to S3
+        const s3Url = await commonAPI.uploadFile(file, 'covers');
+        setCoverImageUrl(s3Url);
+        setPageData({ ...pageData, coverPhoto: file });
+      } catch (error) {
+        console.error('Failed to upload cover image:', error);
+        alert('Failed to upload cover image. Please try again.');
+      } finally {
+        setIsUploadingCover(false);
+      }
     }
   };
 
@@ -271,8 +283,13 @@ export default function EditCreatorPage() {
                   id="cover-upload"
                 />
                 <label htmlFor="cover-upload">
-                  <Button variant="outline" className="bg-gray-700 border-gray-600 cursor-pointer" asChild>
-                    <span>Upload cover image</span>
+                  <Button 
+                    variant="outline" 
+                    className={`bg-gray-700 border-gray-600 ${isUploadingCover ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`} 
+                    disabled={isUploadingCover}
+                    asChild
+                  >
+                    <span>{isUploadingCover ? 'Uploading...' : 'Upload cover image'}</span>
                   </Button>
                 </label>
               </div>
@@ -285,7 +302,9 @@ export default function EditCreatorPage() {
             <p className="text-sm text-gray-400 mb-3">We recommend a square image at least 1024 by 1024px</p>
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden" style={{ backgroundColor: selectedColor }}>
-                {profileImageUrl ? (
+                {isUploadingProfile ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                ) : profileImageUrl ? (
                   <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-white font-bold text-xl">
@@ -302,8 +321,13 @@ export default function EditCreatorPage() {
                   id="profile-upload"
                 />
                 <label htmlFor="profile-upload">
-                  <Button variant="outline" className="bg-gray-700 border-gray-600 cursor-pointer" asChild>
-                    <span>Upload image</span>
+                  <Button 
+                    variant="outline" 
+                    className={`bg-gray-700 border-gray-600 ${isUploadingProfile ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`} 
+                    disabled={isUploadingProfile}
+                    asChild
+                  >
+                    <span>{isUploadingProfile ? 'Uploading...' : 'Upload image'}</span>
                   </Button>
                 </label>
               </div>
@@ -472,7 +496,12 @@ export default function EditCreatorPage() {
             <div className="bg-gray-800 rounded-lg overflow-hidden">
               {/* Cover Image Preview - Always show placeholder or uploaded image */}
               <div className="w-full h-48 overflow-hidden bg-gray-700 flex items-center justify-center">
-                {coverImageUrl ? (
+                {isUploadingCover ? (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    <p className="text-gray-500 text-sm">Uploading cover image...</p>
+                  </div>
+                ) : coverImageUrl ? (
                   <img src={coverImageUrl} alt="Cover" className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center">
@@ -484,11 +513,13 @@ export default function EditCreatorPage() {
               
               <div className="p-8">
                 <div className="text-center mb-8">
-                  <div 
+                  <div
                     className="w-24 h-24 rounded-lg mx-auto mb-4 flex items-center justify-center overflow-hidden -mt-16 border-4 border-gray-800"
                     style={{ backgroundColor: selectedColor }}
                   >
-                    {profileImageUrl ? (
+                    {isUploadingProfile ? (
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    ) : profileImageUrl ? (
                       <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-white font-bold text-2xl">

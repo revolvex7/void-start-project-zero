@@ -128,13 +128,13 @@ const CreatorProfile = () => {
     }
   };
 
-  const handleFreePostClick = () => {
-    navigate('/post/1');
+  const handleFreePostClick = (postId: string) => {
+    navigate(`/post/${postId}`);
   };
 
-  const handlePaidPostClick = () => {
+  const handlePaidPostClick = (postId: string) => {
     if (isSubscribed) {
-      navigate('/post/1');
+      navigate(`/post/${postId}`);
     } else {
       setShowSubscriptionModal(true);
     }
@@ -370,7 +370,7 @@ const CreatorProfile = () => {
                       creator.recentPosts.map((post, index) => (
                         <div 
                           key={post.id} 
-                          onClick={post.public ? handleFreePostClick : handlePaidPostClick}
+                          onClick={() => post.public ? handleFreePostClick(post.id) : handlePaidPostClick(post.id)}
                           className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
@@ -442,7 +442,7 @@ const CreatorProfile = () => {
                       creator.exploreOthers.map((post, index) => (
                         <div 
                           key={post.id} 
-                          onClick={post.public ? handleFreePostClick : handlePaidPostClick}
+                          onClick={() => post.public ? handleFreePostClick(post.id) : handlePaidPostClick(post.id)}
                           className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
