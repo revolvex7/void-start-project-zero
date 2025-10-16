@@ -1,79 +1,74 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import AnimatedHeroText from './AnimatedHeroText';
 import CreatorSpotlight from './CreatorSpotlight';
-import heroBg1 from '@/assets/hero-bg-1.jpg';
-import heroBg2 from '@/assets/hero-bg-2.jpg';
-import heroBg3 from '@/assets/hero-bg-3.jpg';
-import heroBg4 from '@/assets/hero-bg-4.jpg';
-import heroBg5 from '@/assets/hero-bg-5.jpg';
-import heroBg6 from '@/assets/hero-bg-6.jpg';
 import { useEffect, useRef, useState } from 'react';
 
+// Using images from public folder - reference with / prefix
 const backgroundImages = [
-  heroBg1,
-  heroBg2,
-  heroBg3,
-  heroBg4,
-  heroBg5,
-  heroBg6
+  '/man-singing.jpg',
+  '/giving-interview.jpg',
+  '/studio.jpg',
+  '/orange-girl.jpg',
+  '/cooking.jpg',
+  '/playing-game.png'
 ];
 
 const heroSlides = [
   {
-    title: "Your wildest",
+    title: "Closer than followers",
     subtitle: "creative reality",
-    description: "True Fans powers creative independence. Our platform makes it easy for creators to get paid for making the things they're already making.",
-    background: heroBg1,
+    description: "Your inner circle, your true fans",
+    background: backgroundImages[0], // man-singing.jpg
     creator: {
       name: "Jade Novah",
       description: "is fusing her loves of music, writing, and comedy"
     }
   },
   {
-    title: "Where podcasts",
+    title: "Nurturing the next great podcast",
     subtitle: "grow",
-    description: "Join thousands of podcasters building their audience and earning from their passion.",
-    background: heroBg2,
+    description: "We're here to help you build, grow, and enjoy making the podcast you've always dreamed of.",
+    background: backgroundImages[1], // giving-interview.jpg
     creator: {
       name: "Elliott Wilson",
       description: "is building community around hip-hop journalism"
     }
   },
   {
-    title: "Make it making",
+    title: "Build your own community of fans",
     subtitle: "art",
-    description: "Turn your artistic vision into a sustainable creative business.",
-    background: heroBg3,
+    description: "Own your content, control your earnings",
+    background: backgroundImages[2], // studio.jpg
     creator: {
       name: "RossDraws",
       description: "is creating, sharing and teaching the art of worldbuilding"
     }
   },
   {
-    title: "From you to your",
+    title: "From you to your people",
     subtitle: "crew",
-    description: "Build a direct connection with your most dedicated fans.",
-    background: heroBg4,
+    description: "Build a direct connection with your most loyal fans",
+    background: backgroundImages[3], // orange-girl.jpg
     creator: {
       name: "Rachel Maksy",
       description: "is creating a space for vlogs, makeup transformations and whimsy"
     }
   },
   {
-    title: "Your house Your",
+    title: "You're in charge here",
     subtitle: "rules",
-    description: "Create on your own terms with complete creative freedom.",
-    background: heroBg5,
+    description: "Host online and real life events for your fans",
+    background: backgroundImages[4], // cooking.jpg
     creator: {
       name: "Tim Chantarangsu",
       description: "is dropping podcast episodes and spitting fire"
     }
   },
   {
-    title: "Creator is now a",
+    title: "Content creator is now a career",
     subtitle: "career",
-    description: "Turn your passion into a professional creative career.",
-    background: heroBg6,
+    description: "Get paid for doing what you love the most",
+    background: backgroundImages[5], // playing-game.png
     creator: {
       name: "Jon Bernthal",
       description: "Real Ones is diving deep into the biggest issues of our time"
@@ -90,6 +85,17 @@ const HeroSection = () => {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+  const [isTouchDevice, setIsTouchDevice] = useState(true); // Default to true to prevent flash
+
+  // Detect touch device on mount
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      // Check if device supports hover (desktop)
+      const hasHoverSupport = window.matchMedia('(hover: hover)').matches;
+      setIsTouchDevice(!hasHoverSupport);
+    };
+    checkTouchDevice();
+  }, []);
 
   useEffect(() => {
     console.log('currentSlideIndex changed to:', currentSlideIndex);
@@ -135,7 +141,9 @@ const HeroSection = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    // Disable hover preview on touch devices or small screens
+    if (isTouchDevice || !containerRef.current || window.innerWidth < 768) return;
+    
     const rect = containerRef.current.getBoundingClientRect();
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
@@ -165,31 +173,39 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden" 
       ref={containerRef}
       onMouseEnter={() => {
-        if (containerRef.current) {
-          const rect = containerRef.current.getBoundingClientRect();
-          if (cursorPos.y > navbarHeight) {
-            setIsHovering(true);
-          }
+        // Only enable hover on non-touch devices and desktop screens
+        if (!isTouchDevice && window.innerWidth >= 768) {
+          setIsHovering(true);
         }
       }}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseLeave={() => {
+        // Only on non-touch devices and desktop screens
+        if (!isTouchDevice && window.innerWidth >= 768) {
+          setIsHovering(false);
+        }
+      }}
       onMouseMove={handleMouseMove}
     >
       {/* Background Images with Transition */}
       {heroSlides.map((slide, index) => (
         <div 
           key={index}
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ${
+          className={`absolute inset-0 transition-opacity duration-1000 ${
             index === currentSlideIndex ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ backgroundImage: `url(${slide.background})` }}
+          style={{ 
+            backgroundImage: `url(${slide.background})`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat'
+          }}
         />
       ))}
 
-      {/* Cursor-following amoeba preview of next slide */}
-      {isHovering && cursorPos.y > navbarHeight && !isHoveringButton && (
+      {/* Cursor-following amoeba preview of next slide - Desktop only */}
+      {!isTouchDevice && isHovering && cursorPos.y > navbarHeight && !isHoveringButton && (
         <div
-          className="absolute z-50 pointer-events-auto cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200"
+          className="absolute z-50 pointer-events-auto cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200 max-md:hidden"
           style={{
             left: `${cursorPos.x - half}px`,
             top: `${cursorPos.y - half}px`,
@@ -213,13 +229,6 @@ const HeroSection = () => {
           onMouseDown={(e) => { e.stopPropagation(); }}
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCurrentSlideIndex(nextIndex); setWasManuallyClicked(true); } }}
-          onTouchStart={(e) => { e.stopPropagation(); }}
-          onTouchEnd={(e) => { 
-            console.log('Amoeba touched! Going to slide:', nextIndex); 
-            e.stopPropagation(); 
-            e.preventDefault();
-            setCurrentSlideIndex(nextIndex);
-          }}
         >
           <div className="w-full h-full flex items-center justify-center pointer-events-none">
             <ChevronRight className="w-7 h-7 text-white/90 drop-shadow" />
@@ -262,14 +271,7 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* Right Column - Creator Spotlight */}
-          <div className="flex flex-col justify-center space-y-6 animate-fade-up delay-700 relative">
-            <CreatorSpotlight
-              name={currentSlide.creator.name}
-              description={currentSlide.creator.description}
-              className="mx-auto lg:ml-auto max-w-md"
-            />
-          </div>
+        
         </div>
       </div>
       
