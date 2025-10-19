@@ -218,6 +218,33 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  // Comment endpoints
+  async addComment(postId: string, comment: string) {
+    return await this.request(`/user/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  async deleteComment(commentId: string) {
+    return await this.request(`/user/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Like endpoints
+  async likePost(postId: string) {
+    return await this.request(`/user/posts/${postId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async unlikePost(postId: string) {
+    return await this.request(`/user/posts/${postId}/like`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Create API instances
@@ -278,6 +305,10 @@ export const postAPI = {
   getById: (postId: string) => apiService.getPostById(postId),
   update: (postId: string, postData: UpdatePostData) => apiService.updatePost(postId, postData),
   delete: (postId: string) => apiService.deletePost(postId),
+  addComment: (postId: string, comment: string) => apiService.addComment(postId, comment),
+  deleteComment: (commentId: string) => apiService.deleteComment(commentId),
+  like: (postId: string) => apiService.likePost(postId),
+  unlike: (postId: string) => apiService.unlikePost(postId),
 };
 
 // Types
@@ -349,6 +380,17 @@ export interface PostDetail {
   }>;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  postId: string;
+  userName?: string;
+  userImage?: string;
 }
 
 export interface Membership {
