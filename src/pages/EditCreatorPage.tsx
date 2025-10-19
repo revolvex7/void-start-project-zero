@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye, Tag, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye, Tag, ChevronRight, Loader2 } from 'lucide-react';
 import { Category, UpdateUserData, commonAPI } from '@/lib/api';
 import { useCategories, useUpdateUser } from '@/hooks/useApi';
 import { ErrorModal } from '@/components/ui/error-modal';
@@ -326,7 +326,7 @@ export default function EditCreatorPage() {
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden" style={{ backgroundColor: selectedColor }}>
                 {isUploadingProfile ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
                 ) : profileImageUrl ? (
                   <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -522,9 +522,9 @@ export default function EditCreatorPage() {
               {/* Cover Image Preview - Always show placeholder or uploaded image */}
               <div className="w-full h-48 overflow-hidden bg-gray-700 flex items-center justify-center">
                 {isUploadingCover ? (
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                    <p className="text-gray-500 text-sm">Uploading cover image...</p>
+                  <div className="flex flex-col items-center">
+                    <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-2" />
+                    <p className="text-gray-400 text-sm">Uploading cover image...</p>
                   </div>
                 ) : coverImageUrl ? (
                   <img src={coverImageUrl} alt="Cover" className="w-full h-full object-cover" />
@@ -543,7 +543,7 @@ export default function EditCreatorPage() {
                     style={{ backgroundColor: selectedColor }}
                   >
                     {isUploadingProfile ? (
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
                     ) : profileImageUrl ? (
                       <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : (

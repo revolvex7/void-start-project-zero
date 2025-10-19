@@ -48,13 +48,14 @@ import Pricing from '@/pages/Pricing';
 
 // Protected Route Component
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Public Route Component (redirects if already authenticated)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading...</div>;
+    return <LoadingSpinner fullScreen size="lg" text="Loading..." />;
   }
 
   if (isAuthenticated) {

@@ -10,6 +10,7 @@ import { useMembership } from '@/contexts/MembershipContext';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { creatorAPI, Creator } from '@/lib/api';
 import { useToggleFollow } from '@/hooks/useApi';
+import { ProfileSkeleton } from '@/components/ui/content-skeletons';
 import { 
   MoreHorizontal, 
   Share2, 
@@ -161,14 +162,7 @@ const CreatorProfile = () => {
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading creator profile...</p>
-        </div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   // Show error state
@@ -404,11 +398,19 @@ const CreatorProfile = () => {
                           onClick={() => post.public ? handleFreePostClick(post.id) : handlePaidPostClick(post.id)}
                           className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
                         >
-                          <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
-                            {post.public ? (
-                              <Play className="w-8 h-8 text-white" />
+                          <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
+                            {post.mediaFiles && post.mediaFiles.length > 0 ? (
+                              <img 
+                                src={post.mediaFiles[0]} 
+                                alt={post.title}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
-                              <Lock className="w-6 h-6 text-gray-400" />
+                              post.public ? (
+                                <Play className="w-8 h-8 text-white" />
+                              ) : (
+                                <Lock className="w-6 h-6 text-gray-400" />
+                              )
                             )}
                             <div 
                               className="absolute top-2 right-2 text-white text-xs px-2 py-1 rounded"
@@ -455,11 +457,19 @@ const CreatorProfile = () => {
                           onClick={() => post.public ? handleFreePostClick(post.id) : handlePaidPostClick(post.id)}
                           className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
                         >
-                          <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
-                            {post.public ? (
-                              <Play className="w-6 h-6 text-white" />
+                          <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
+                            {post.mediaFiles && post.mediaFiles.length > 0 ? (
+                              <img 
+                                src={post.mediaFiles[0]} 
+                                alt={post.title}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
-                              <Lock className="w-6 h-6 text-gray-400" />
+                              post.public ? (
+                                <Play className="w-6 h-6 text-white" />
+                              ) : (
+                                <Lock className="w-6 h-6 text-gray-400" />
+                              )
                             )}
                             <div 
                               className="absolute top-2 right-2 text-white text-xs px-2 py-1 rounded"

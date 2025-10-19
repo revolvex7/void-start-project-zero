@@ -4,6 +4,9 @@ import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePostById } from '@/hooks/useApi';
+import { postAPI, Comment } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -15,17 +18,28 @@ import {
   Menu,
   X,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
-interface Comment {
+interface ApiComment {
+  id: string;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  userName: string;
+  userImage: string | null;
+  parentId: string | null;
+}
+
+interface LocalComment {
   id: string;
   author: string;
   avatar: string;
   content: string;
   timestamp: string;
-  likes: number;
-  isLiked: boolean;
+  isOwn?: boolean; // To identify user's own comments
 }
 
 interface MediaFile {
@@ -48,16 +62,18 @@ interface PostData {
   accessType: string;
   tags: string[];
   totalLikes: number;
+  isLiked: boolean;
   creatorName: string;
   creatorImage: string | null;
   categoryName: string | null;
   mediaFiles: MediaFile[];
-  comments: any[];
+  comments: ApiComment[];
 }
 
 export default function PostPreview() {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Fetch post data using React Query
   const { data: post, isLoading, error, refetch } = usePostById(postId || '');
@@ -66,42 +82,47 @@ export default function PostPreview() {
   const [likes, setLikes] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [isAddingComment, setIsAddingComment] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState<string | null>(null);
+  const [comments, setComments] = useState<LocalComment[]>([]);
   
-  // Update likes when post data loads
+  // Helper function to convert API comments to local comments
+  const convertApiCommentsToLocal = (apiComments: ApiComment[]): LocalComment[] => {
+    return apiComments.map(apiComment => ({
+      id: apiComment.id,
+      author: apiComment.userName,
+      avatar: getCreatorInitials(apiComment.userName),
+      content: apiComment.comment,
+      timestamp: formatTimestamp(apiComment.createdAt),
+      isOwn: user?.id === apiComment.userId
+    }));
+  };
+
+  // Helper function to format timestamp
+  const formatTimestamp = (timestamp: string) => {
+    const now = new Date();
+    const commentDate = new Date(timestamp);
+    const diffInMs = now.getTime() - commentDate.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    if (diffInDays > 0) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      return 'Just now';
+    }
+  };
+  
+  // Update likes and comments when post data loads
   useEffect(() => {
     if (post) {
       setLikes(post.totalLikes);
+      setIsLiked(post.isLiked);
+      setComments(convertApiCommentsToLocal(post.comments));
     }
-  }, [post]);
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: '1',
-      author: 'Sarah Chen',
-      avatar: 'SC',
-      content: 'Great tips! The Pomodoro technique has really helped me stay focused during long coding sessions.',
-      timestamp: '2 hours ago',
-      likes: 5,
-      isLiked: false
-    },
-    {
-      id: '2',
-      author: 'Mike Rodriguez',
-      avatar: 'MR',
-      content: 'I especially love the part about automating repetitive tasks. It\'s a game changer!',
-      timestamp: '4 hours ago',
-      likes: 3,
-      isLiked: true
-    },
-    {
-      id: '3',
-      author: 'Emma Wilson',
-      avatar: 'EW',
-      content: 'Thanks for sharing! Will definitely try implementing these in my workflow.',
-      timestamp: '6 hours ago',
-      likes: 2,
-      isLiked: false
-    }
-  ]);
+  }, [post, user]);
 
   // Close mobile sidebar when clicking outside
   useEffect(() => {
@@ -137,36 +158,73 @@ export default function PostPreview() {
     navigate('/dashboard?view=fan');
   };
 
-  const handleLike = () => {
+  const handleLike = async () => {
+    if (!postId) return;
+    
+    // Optimistic update
     setIsLiked(!isLiked);
     setLikes(isLiked ? likes - 1 : likes + 1);
+    
+    try {
+      let response;
+      if (isLiked) {
+        response = await postAPI.unlike(postId);
+      } else {
+        response = await postAPI.like(postId);
+      }
+      
+      // Update with real data from API response
+      if (response?.data) {
+        setIsLiked(response.data.isLiked);
+        setLikes(response.data.totalLikes);
+      }
+    } catch (error) {
+      console.error('Failed to update like status:', error);
+      // Silently continue - UI already updated optimistically
+    }
   };
 
-  const handleCommentLike = (commentId: string) => {
-    setComments(comments.map(comment => 
-      comment.id === commentId 
-        ? { 
-            ...comment, 
-            isLiked: !comment.isLiked,
-            likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
-          }
-        : comment
-    ));
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !postId) return;
+    
+    setIsAddingComment(true);
+    
+    // Add comment optimistically to UI
+    const comment: LocalComment = {
+      id: Date.now().toString(),
+      author: user?.name || 'You',
+      avatar: getCreatorInitials(user?.name || 'You'),
+      content: newComment,
+      timestamp: 'Just now',
+      isOwn: true
+    };
+    setComments([comment, ...comments]);
+    setNewComment('');
+    
+    try {
+      await postAPI.addComment(postId, newComment.trim());
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      // Silently continue - UI already updated optimistically
+    } finally {
+      setIsAddingComment(false);
+    }
   };
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      const comment: Comment = {
-        id: Date.now().toString(),
-        author: 'You',
-        avatar: 'YU',
-        content: newComment,
-        timestamp: 'Just now',
-        likes: 0,
-        isLiked: false
-      };
-      setComments([comment, ...comments]);
-      setNewComment('');
+  const handleDeleteComment = async (commentId: string) => {
+    setIsDeletingComment(commentId);
+    
+    // Remove comment from UI optimistically
+    setComments(comments.filter(comment => comment.id !== commentId));
+    
+    try {
+      await postAPI.deleteComment(commentId);
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      // Silently continue - UI already updated optimistically
+    } finally {
+      setIsDeletingComment(null);
     }
   };
 
@@ -228,9 +286,8 @@ export default function PostPreview() {
         {/* Post Content */}
         <div className="max-w-4xl mx-auto p-6">
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-              <span className="ml-2 text-gray-400">Loading post...</span>
+            <div className="py-12">
+              <LoadingSpinner size="lg" text="Loading post..." />
             </div>
           ) : error ? (
             <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
@@ -316,59 +373,46 @@ export default function PostPreview() {
                   </div>
                 )}
 
-                {/* Action Bar */}
-                <div className="flex items-center justify-between py-4 border-t border-b border-gray-700">
-                  <div className="flex items-center space-x-6">
-                    <button
-                      onClick={handleLike}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                        isLiked 
-                          ? 'text-red-400 bg-red-900/20 hover:bg-red-900/30' 
-                          : 'text-gray-400 hover:text-red-400 hover:bg-red-900/10'
-                      }`}
-                    >
-                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                      <span className="font-medium">{likes}</span>
-                    </button>
-                    
-                    <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/10 transition-colors">
-                      <MessageSquare className="w-5 h-5" />
-                      <span className="font-medium">{comments.length}</span>
-                    </button>
-                  </div>
-                </div>
+              </div>
+
+              {/* Post Content */}
+              <div className="prose prose-invert max-w-none mb-8">
+                <div dangerouslySetInnerHTML={{ __html: post.content }} />
               </div>
 
               {/* Media Files */}
               {post.mediaFiles && post.mediaFiles.length > 0 && (
                 <div className="mb-8">
-                  <div className="grid gap-4">
-                    {post.mediaFiles.map((media) => (
-                      <div key={media.id} className="rounded-lg overflow-hidden">
-                        {media.type === 'image' ? (
+                  <div className={`grid gap-4 ${
+                    post.mediaFiles.length === 1 ? 'grid-cols-1' : 
+                    post.mediaFiles.length === 2 ? 'grid-cols-2' : 
+                    'grid-cols-2 md:grid-cols-3'
+                  }`}>
+                    {post.mediaFiles.map((file) => (
+                      <div key={file.id} className="rounded-lg overflow-hidden">
+                        {file.type === 'image' ? (
                           <img 
-                            src={media.url} 
-                            alt={media.name}
+                            src={file.url} 
+                            alt={file.name}
                             className="w-full h-auto object-cover"
                           />
-                        ) : media.type === 'video' ? (
+                        ) : file.type === 'video' ? (
                           <video 
-                            src={media.url} 
+                            src={file.url} 
                             controls
                             className="w-full h-auto"
                           >
                             Your browser does not support the video tag.
                           </video>
                         ) : (
-                          <div className="bg-gray-800 p-4 rounded-lg">
-                            <p className="text-gray-400">File: {media.name}</p>
+                          <div className="bg-gray-700 p-4 rounded-lg">
+                            <p className="text-sm text-gray-300 mb-2">{file.name}</p>
                             <a 
-                              href={media.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300"
+                              href={file.url} 
+                              download={file.name}
+                              className="text-blue-400 hover:text-blue-300 text-sm"
                             >
-                              Download
+                              Download File
                             </a>
                           </div>
                         )}
@@ -378,41 +422,55 @@ export default function PostPreview() {
                 </div>
               )}
 
-              {/* Article Content */}
-              <div className="prose prose-invert prose-lg max-w-none mb-12">
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+              {/* Like and Comment Buttons */}
+              <div className="flex items-center gap-6 py-4 border-t border-b border-gray-700 mb-8">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                    isLiked 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                  <span>{likes}</span>
+                </button>
+                
+                <div className="flex items-center gap-2 text-gray-400">
+                  <MessageSquare className="w-5 h-5" />
+                  <span>{comments.length}</span>
+                </div>
               </div>
 
               {/* Comments Section */}
-              <div className="border-t border-gray-700 pt-8">
-                <h3 className="text-2xl font-bold mb-6">Comments ({comments.length})</h3>
-
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-white mb-6">Comments ({comments.length})</h3>
+                
                 {/* Add Comment */}
-                <div className="mb-8">
-                  <div className="flex space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold">YU</span>
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Add a comment..."
-                        className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 mb-3"
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-                      />
-                      <div className="flex justify-end">
-                        <Button 
-                          onClick={handleAddComment}
-                          disabled={!newComment.trim()}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                        >
-                          <Send className="w-4 h-4 mr-2" />
-                          Post Comment
-                        </Button>
-                      </div>
-                    </div>
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                    {getCreatorInitials(user?.name || 'You')}
+                  </div>
+                  <div className="flex-1 flex gap-3">
+                    <Input
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Add a comment..."
+                      className="flex-1 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      onKeyPress={(e) => e.key === 'Enter' && !isAddingComment && handleAddComment()}
+                      disabled={isAddingComment}
+                    />
+                    <Button 
+                      onClick={handleAddComment}
+                      disabled={isAddingComment || !newComment.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isAddingComment ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </Button>
                   </div>
                 </div>
 
@@ -430,21 +488,21 @@ export default function PostPreview() {
                             <span className="text-sm text-gray-400">{comment.timestamp}</span>
                           </div>
                           <p className="text-gray-300 mb-3">{comment.content}</p>
-                          <div className="flex items-center space-x-4">
-                            <button
-                              onClick={() => handleCommentLike(comment.id)}
-                              className={`flex items-center space-x-1 text-sm transition-colors ${
-                                comment.isLiked 
-                                  ? 'text-red-400' 
-                                  : 'text-gray-400 hover:text-red-400'
-                              }`}
-                            >
-                              <Heart className={`w-4 h-4 ${comment.isLiked ? 'fill-current' : ''}`} />
-                              <span>{comment.likes}</span>
-                            </button>
-                            <button className="text-sm text-gray-400 hover:text-blue-400 transition-colors">
-                              Reply
-                            </button>
+                          {/* Delete button - only show for user's own comments */}
+                          <div className="flex justify-end">
+                            {comment.isOwn && (
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                disabled={isDeletingComment === comment.id}
+                                className="flex items-center space-x-1 text-sm text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isDeletingComment === comment.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

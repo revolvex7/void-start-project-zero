@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Filter, TrendingUp, Star, Users, Play, Heart, MessageCircle } from 'lucide-react';
+import { Search, Filter, TrendingUp, Star, Users, Play, Heart, MessageCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Creator } from '@/lib/api';
 import { useCreators, useToggleFollow, useCategories } from '@/hooks/useApi';
+import { GridSkeleton } from '@/components/ui/content-skeletons';
 
 
 const featuredContent = [
@@ -196,28 +197,7 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-800 rounded-xl p-6 animate-pulse">
-                <div className="flex items-start space-x-4 mb-4">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded mb-2 w-3/4"></div>
-                    <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                  </div>
-                </div>
-                <div className="flex gap-2 mb-4">
-                  <div className="h-6 bg-gray-700 rounded-full w-16"></div>
-                  <div className="h-6 bg-gray-700 rounded-full w-20"></div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="h-6 bg-gray-700 rounded w-16"></div>
-                  <div className="h-8 bg-gray-700 rounded w-20"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <GridSkeleton count={6} />
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-gray-400 mb-4">{error instanceof Error ? error.message : 'Failed to load creators'}</p>
@@ -305,7 +285,14 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
                     onClick={(e) => handleFollowClick(creator.id, e)}
                     disabled={loadingCreatorId === creator.id}
                   >
-                    {loadingCreatorId === creator.id ? 'Loading...' : (creator.isFollowing ? 'Following' : 'Follow')}
+                    {loadingCreatorId === creator.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                        Loading...
+                      </>
+                    ) : (
+                      creator.isFollowing ? 'Following' : 'Follow'
+                    )}
                   </Button>
                 </div>
               </div>
