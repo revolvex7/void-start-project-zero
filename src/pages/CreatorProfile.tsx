@@ -55,6 +55,25 @@ const CreatorProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const toggleFollowMutation = useToggleFollow();
 
+  // Helper function to darken color for hover state
+  const darkenColor = (color: string, percent: number = 15) => {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) - amt;
+    const G = (num >> 8 & 0x00FF) - amt;
+    const B = (num & 0x0000FF) - amt;
+    return '#' + (
+      0x1000000 +
+      (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+      (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+      (B < 255 ? (B < 1 ? 0 : B) : 255)
+    ).toString(16).slice(1);
+  };
+
+  // Get theme color with fallback
+  const themeColor = creator?.themeColor || '#3b82f6'; // default blue
+  const themeColorHover = darkenColor(themeColor, 15);
+
   // Fetch creator data
   useEffect(() => {
     const fetchCreatorData = async () => {
@@ -159,7 +178,12 @@ const CreatorProfile = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Creator Not Found</h2>
           <p className="text-gray-400 mb-6">{error || 'This creator profile could not be loaded.'}</p>
-          <Button onClick={() => navigate('/')} className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            onClick={() => navigate('/')} 
+            style={{ backgroundColor: themeColor }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = themeColorHover}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = themeColor}
+          >
             Go Home
           </Button>
         </div>
@@ -197,7 +221,10 @@ const CreatorProfile = () => {
           <span className="font-semibold text-sm">TRUE FANS</span>
         </div>
 
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: themeColor }}
+        >
           <span className="text-white font-bold text-sm">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </span>
@@ -292,7 +319,10 @@ const CreatorProfile = () => {
                   </Button>
                   <Button 
                     onClick={() => setShowMembershipModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg"
+                    className="text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg transition-colors"
+                    style={{ backgroundColor: themeColor }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = themeColorHover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = themeColor}
                   >
                     Subscribe
                   </Button>
@@ -346,11 +376,12 @@ const CreatorProfile = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap transition-colors ${
+                  className={`px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium border-b-2 transition-colors ${
                     tab.active
-                      ? 'border-blue-500 text-blue-400'
+                      ? 'text-white'
                       : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                   }`}
+                  style={tab.active ? { borderBottomColor: themeColor, color: themeColor } : {}}
                 >
                   {tab.label}
                 </button>
@@ -379,9 +410,10 @@ const CreatorProfile = () => {
                             ) : (
                               <Lock className="w-6 h-6 text-gray-400" />
                             )}
-                            <div className={`absolute top-2 right-2 text-white text-xs px-2 py-1 rounded ${
-                              post.public ? 'bg-green-600' : 'bg-blue-600'
-                            }`}>
+                            <div 
+                              className="absolute top-2 right-2 text-white text-xs px-2 py-1 rounded"
+                              style={{ backgroundColor: post.public ? '#16a34a' : themeColor }}
+                            >
                               {post.public ? 'Free' : 'Members only'}
                             </div>
                           </div>
@@ -429,9 +461,10 @@ const CreatorProfile = () => {
                             ) : (
                               <Lock className="w-6 h-6 text-gray-400" />
                             )}
-                            <div className={`absolute top-2 right-2 text-white text-xs px-2 py-1 rounded ${
-                              post.public ? 'bg-green-600' : 'bg-blue-600'
-                            }`}>
+                            <div 
+                              className="absolute top-2 right-2 text-white text-xs px-2 py-1 rounded"
+                              style={{ backgroundColor: post.public ? '#16a34a' : themeColor }}
+                            >
                               {post.public ? 'Free' : 'Members only'}
                             </div>
                           </div>
@@ -523,13 +556,16 @@ const CreatorProfile = () => {
                           onClick={membership.price === 0 ? handleFollow : () => setShowMembershipModal(true)}
                           disabled={membership.price === 0 ? toggleFollowMutation.isPending : false}
                           variant={membership.price === 0 ? "outline" : "default"}
-                          className={`w-full ${
+                          className={`w-full transition-colors ${
                             membership.price === 0 
                               ? (isFollowing 
                                   ? 'bg-gray-600 border-gray-500 text-white' 
                                   : 'bg-transparent border-green-500 text-green-400 hover:bg-green-900/20')
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                              : 'text-white'
                           }`}
+                          style={membership.price === 0 ? {} : { backgroundColor: themeColor }}
+                          onMouseEnter={membership.price === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColorHover}
+                          onMouseLeave={membership.price === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColor}
                         >
                           {membership.price === 0 
                             ? (toggleFollowMutation.isPending ? 'Loading...' : (isFollowing ? 'Following' : 'Follow for Free'))
@@ -585,7 +621,11 @@ const CreatorProfile = () => {
                         {creator.tags.map((tag, index) => (
                           <span
                             key={index}
-                            className="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-full text-sm"
+                            className="px-3 py-1 rounded-full text-sm"
+                            style={{ 
+                              backgroundColor: `${themeColor}33`, 
+                              color: themeColor 
+                            }}
                           >
                             #{tag}
                           </span>

@@ -372,7 +372,7 @@ export default function Feed() {
                         }}
                         className="font-medium hover:text-blue-400 cursor-pointer transition-colors"
                       >
-                        Creator {getCreatorInitials(post.creatorId)}
+                        {post.pageName}
                       </h3>
                       <span className="text-sm text-gray-400">•</span>
                       <span className="text-sm text-gray-400">Creator</span>

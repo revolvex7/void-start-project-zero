@@ -7,6 +7,7 @@ import { Camera, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UpdateUserData, commonAPI } from '@/lib/api';
 import { useUpdateUser } from '@/hooks/useApi';
+import { ErrorModal } from '@/components/ui/error-modal';
 
 interface StartBasicsModalProps {
   open: boolean;
@@ -29,6 +30,18 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
   
   // React Query hook
   const updateUserMutation = useUpdateUser();
+  
+  // Modal state
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    title?: string;
+    message: string;
+    type: 'error' | 'success' | 'info';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'error'
+  });
 
   // Pre-populate fields with user data when modal opens (only once)
   useEffect(() => {
@@ -74,9 +87,14 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
       }
       
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update user profile:', error);
-      alert('Failed to save changes. Please try again.');
+      setModalState({
+        isOpen: true,
+        title: 'Save Failed',
+        message: error.message || 'Failed to save changes. Please try again.',
+        type: 'error'
+      });
     }
   };
 
@@ -88,9 +106,14 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
         // Upload to S3
         const s3Url = await commonAPI.uploadFile(file, 'profiles');
         setProfileImage(s3Url);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to upload profile image:', error);
-        alert('Failed to upload image. Please try again.');
+        setModalState({
+          isOpen: true,
+          title: 'Upload Failed',
+          message: error.message || 'Failed to upload image. Please try again.',
+          type: 'error'
+        });
       } finally {
         setIsUploadingImage(false);
       }
@@ -208,6 +231,15 @@ export function StartBasicsModal({ open, onOpenChange, onSave }: StartBasicsModa
           </div>
         </div>
       </DialogContent>
+      
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </Dialog>
   );
 }
