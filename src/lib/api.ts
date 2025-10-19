@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const BASE_URL = 'https://tf-backend-toc9.onrender.com/api/v_1/internal';
-const BASE_URL = 'http://localhost:8000/api/v_1/internal';
+// Get BASE_URL from environment variables
+const BASE_URL = import.meta.env.VITE_API_BASE_URL 
 
 const api = axios.create({
   baseURL: BASE_URL,
