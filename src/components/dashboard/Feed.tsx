@@ -45,15 +45,34 @@ interface Creator {
 
 export default function Feed() {
   const navigate = useNavigate();
-  const { data: posts = [], isLoading: loading, error, refetch } = usePosts();
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data: postsData, isLoading: loading, error, refetch } = usePosts(currentPage, 10);
+  
+  // Extract posts and pagination from response
+  const posts = postsData?.posts || [];
+  const pagination = postsData?.pagination;
   
   // Local state for like functionality (will be replaced with mutation later)
   const [localPosts, setLocalPosts] = useState<Post[]>([]);
   
   // Update local posts when API data changes
   React.useEffect(() => {
-    setLocalPosts(posts);
-  }, [posts]);
+    if (posts && Array.isArray(posts) && posts.length > 0) {
+      if (currentPage === 1) {
+        // First page - replace all posts
+        setLocalPosts(posts);
+      } else {
+        // Subsequent pages - append new posts
+        setLocalPosts(prev => {
+          // Filter out duplicates by postId
+          const newPosts = posts.filter(post => !prev.some(p => p.postId === post.postId));
+          return [...prev, ...newPosts];
+        });
+      }
+    } else if (Array.isArray(posts) && posts.length === 0 && currentPage === 1) {
+      setLocalPosts([]);
+    }
+  }, [posts, currentPage]); // Depend on posts and currentPage
 
   // Keep mock data for fallback/development
   const mockPosts = [
@@ -267,6 +286,12 @@ export default function Feed() {
     navigate(`/post/${postId}`);
   };
 
+  const handleLoadMore = () => {
+    if (pagination?.hasNextPage) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Feed Header */}
@@ -305,17 +330,10 @@ export default function Feed() {
               </p>
               <div className="flex gap-3 justify-center">
                 <Button 
-                  onClick={() => navigate('/explore')} 
+                  onClick={() => navigate('/dashboard/explore')} 
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Explore Creators
-                </Button>
-                <Button 
-                  onClick={() => navigate('/create-post')} 
-                  variant="outline" 
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  Create Post
                 </Button>
               </div>
             </div>
@@ -354,7 +372,7 @@ export default function Feed() {
                         }}
                         className="font-medium hover:text-blue-400 cursor-pointer transition-colors"
                       >
-                        Creator {getCreatorInitials(post.creatorId)}
+                        {post.pageName}
                       </h3>
                       <span className="text-sm text-gray-400">•</span>
                       <span className="text-sm text-gray-400">Creator</span>
@@ -448,11 +466,16 @@ export default function Feed() {
             ))
           )}
 
-          {/* Load More - Only show if there are posts */}
-          {localPosts.length > 0 && (
+          {/* Load More - Only show if there are more posts */}
+          {localPosts.length > 0 && pagination?.hasNextPage && (
             <div className="text-center py-8">
-              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                Load More Posts
+              <Button 
+                variant="outline" 
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                onClick={handleLoadMore}
+                disabled={loading}
+              >
+                {loading ? 'Loading...' : 'Load More Posts'}
               </Button>
             </div>
           )}

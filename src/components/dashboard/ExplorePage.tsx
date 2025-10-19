@@ -1,83 +1,11 @@
 import React, { useState } from 'react';
-import { Search, Filter, TrendingUp, Star, Users, Play, Heart, MessageCircle } from 'lucide-react';
+import { Search, Filter, TrendingUp, Star, Users, Play, Heart, MessageCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Creator } from '@/lib/api';
-import { useCreators, useToggleFollow } from '@/hooks/useApi';
+import { useCreators, useToggleFollow, useCategories } from '@/hooks/useApi';
+import { GridSkeleton } from '@/components/ui/content-skeletons';
 
-const categories = [
-  'All', 'Trending', 'New creators', 'Art & Design', 'Music', 'Gaming', 
-  'Podcasts', 'Comedy', 'Education', 'Lifestyle', 'Technology', 'Sports'
-];
-
-const trendingCreators = [
-  {
-    id: 1,
-    name: 'Digital Dreams Studio',
-    description: 'Creating stunning digital art tutorials and speedpaints',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b977?w=400&h=400&fit=crop&crop=face',
-    category: 'Art & Design',
-    subscribers: '12.5K',
-    monthlyEarnings: '₦2,400,000',
-    isVerified: true,
-    tags: ['Digital Art', 'Tutorials', 'Speedpaint']
-  },
-  {
-    id: 2,
-    name: 'Tech Talk Daily',
-    description: 'Breaking down the latest in tech and innovation',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-    category: 'Technology',
-    subscribers: '8.9K',
-    monthlyEarnings: '₦1,800,000',
-    isVerified: true,
-    tags: ['Tech News', 'Reviews', 'Innovation']
-  },
-  {
-    id: 3,
-    name: 'Melody Makers',
-    description: 'Original music production and behind-the-scenes content',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
-    category: 'Music',
-    subscribers: '15.2K',
-    monthlyEarnings: '₦3,200,000',
-    isVerified: true,
-    tags: ['Music Production', 'Original Songs', 'BTS']
-  },
-  {
-    id: 4,
-    name: 'Game Dev Chronicles',
-    description: 'Indie game development journey and tutorials',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-    category: 'Gaming',
-    subscribers: '6.7K',
-    monthlyEarnings: '₦1,400,000',
-    isVerified: false,
-    tags: ['Game Dev', 'Indie Games', 'Tutorials']
-  },
-  {
-    id: 5,
-    name: 'Comedy Central Hub',
-    description: 'Stand-up comedy and sketch content',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-    category: 'Comedy',
-    subscribers: '22.1K',
-    monthlyEarnings: '₦4,800,000',
-    isVerified: true,
-    tags: ['Stand-up', 'Sketches', 'Comedy']
-  },
-  {
-    id: 6,
-    name: 'Fitness Journey',
-    description: 'Personal training and wellness content',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b977?w=400&h=400&fit=crop&crop=face',
-    category: 'Lifestyle',
-    subscribers: '18.3K',
-    monthlyEarnings: '₦3,600,000',
-    isVerified: true,
-    tags: ['Fitness', 'Wellness', 'Training']
-  }
-];
 
 const featuredContent = [
   {
@@ -116,6 +44,7 @@ interface ExplorePageProps {
 export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadingCreatorId, setLoadingCreatorId] = useState<string | null>(null);
 
   // Use React Query hooks
   const { 
@@ -125,14 +54,32 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
     refetch 
   } = useCreators();
   
+  const { 
+    data: apiCategories = [], 
+    isLoading: categoriesLoading 
+  } = useCategories();
+  
   const toggleFollowMutation = useToggleFollow();
+  
+  // Build categories list: Add 'All', 'Trending', 'New creators' + API categories
+  const categories = [
+    'All', 
+    'Trending', 
+    'New creators',
+    ...apiCategories.map(cat => cat.name)
+  ];
 
   const handleFollowClick = async (creatorId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setLoadingCreatorId(creatorId);
     try {
-      await toggleFollowMutation.mutateAsync(creatorId);
+      const result = await toggleFollowMutation.mutateAsync(creatorId);
+      console.log('Follow toggle result:', result);
     } catch (error) {
       console.error('Failed to toggle follow:', error);
+    } finally {
+      // Small delay to ensure cache update completes
+      setTimeout(() => setLoadingCreatorId(null), 100);
     }
   };
 
@@ -143,7 +90,7 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
                            creator.category?.toLowerCase() === selectedCategory.toLowerCase();
     const matchesSearch = creator.creatorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          creator.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         creator.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+                         (creator.tags && creator.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     return matchesCategory && matchesSearch;
   });
 
@@ -170,21 +117,30 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
 
       {/* Category Filters */}
       <div className="flex space-x-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            variant={selectedCategory === category ? "default" : "outline"}
-            size="sm"
-            className={`whitespace-nowrap ${
-              selectedCategory === category
-                ? "bg-white text-black hover:bg-gray-100"
-                : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
-            }`}
-          >
-            {category}
-          </Button>
-        ))}
+        {categoriesLoading ? (
+          // Loading skeleton for categories
+          <>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-9 w-24 bg-gray-800 rounded-md animate-pulse" />
+            ))}
+          </>
+        ) : (
+          categories.map((category) => (
+            <Button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              variant={selectedCategory === category ? "default" : "outline"}
+              size="sm"
+              className={`whitespace-nowrap ${
+                selectedCategory === category
+                  ? "bg-white text-black hover:bg-gray-100"
+                  : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
+              }`}
+            >
+              {category}
+            </Button>
+          ))
+        )}
       </div>
 
       {/* Featured Content Section */}
@@ -241,28 +197,7 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-800 rounded-xl p-6 animate-pulse">
-                <div className="flex items-start space-x-4 mb-4">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded mb-2 w-3/4"></div>
-                    <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                  </div>
-                </div>
-                <div className="flex gap-2 mb-4">
-                  <div className="h-6 bg-gray-700 rounded-full w-16"></div>
-                  <div className="h-6 bg-gray-700 rounded-full w-20"></div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="h-6 bg-gray-700 rounded w-16"></div>
-                  <div className="h-8 bg-gray-700 rounded w-20"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <GridSkeleton count={6} />
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-gray-400 mb-4">{error instanceof Error ? error.message : 'Failed to load creators'}</p>
@@ -348,9 +283,16 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
                     size="sm" 
                     className={creator.isFollowing ? "bg-gray-600 hover:bg-gray-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}
                     onClick={(e) => handleFollowClick(creator.id, e)}
-                    disabled={toggleFollowMutation.isPending}
+                    disabled={loadingCreatorId === creator.id}
                   >
-                    {toggleFollowMutation.isPending ? 'Loading...' : (creator.isFollowing ? 'Following' : 'Follow')}
+                    {loadingCreatorId === creator.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                        Loading...
+                      </>
+                    ) : (
+                      creator.isFollowing ? 'Following' : 'Follow'
+                    )}
                   </Button>
                 </div>
               </div>

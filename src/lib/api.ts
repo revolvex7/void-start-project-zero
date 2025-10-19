@@ -37,7 +37,9 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // API returns error in 'error' field, not 'message'
+        const errorMessage = errorData.error || errorData.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
       return await response.json();
@@ -171,7 +173,9 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // API returns error in 'error' field, not 'message'
+        const errorMessage = errorData.error || errorData.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
       const result = await response.json();
@@ -190,8 +194,8 @@ class ApiService {
     });
   }
 
-  async getAllPosts() {
-    return await this.request('/user/posts', {
+  async getAllPosts(page: number = 1, limit: number = 10) {
+    return await this.request(`/user/posts?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
@@ -211,6 +215,33 @@ class ApiService {
 
   async deletePost(postId: string) {
     return await this.request(`/user/posts/${postId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Comment endpoints
+  async addComment(postId: string, comment: string) {
+    return await this.request(`/user/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  async deleteComment(commentId: string) {
+    return await this.request(`/user/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Like endpoints
+  async likePost(postId: string) {
+    return await this.request(`/user/posts/${postId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async unlikePost(postId: string) {
+    return await this.request(`/user/posts/${postId}/like`, {
       method: 'DELETE',
     });
   }
@@ -270,10 +301,14 @@ export const commonAPI = {
 
 export const postAPI = {
   create: (postData: CreatePostData) => apiService.createPost(postData),
-  getAll: () => apiService.getAllPosts(),
+  getAll: (page?: number, limit?: number) => apiService.getAllPosts(page, limit),
   getById: (postId: string) => apiService.getPostById(postId),
   update: (postId: string, postData: UpdatePostData) => apiService.updatePost(postId, postData),
   delete: (postId: string) => apiService.deletePost(postId),
+  addComment: (postId: string, comment: string) => apiService.addComment(postId, comment),
+  deleteComment: (commentId: string) => apiService.deleteComment(commentId),
+  like: (postId: string) => apiService.likePost(postId),
+  unlike: (postId: string) => apiService.unlikePost(postId),
 };
 
 // Types
@@ -347,6 +382,17 @@ export interface PostDetail {
   updatedAt: string;
 }
 
+export interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  postId: string;
+  userName?: string;
+  userImage?: string;
+}
+
 export interface Membership {
   id: string;
   name: string;
@@ -361,6 +407,7 @@ export interface Post {
   public: boolean;
   totalLikes: number;
   totalComments: number;
+  mediaFiles?: string[];
 }
 
 export interface SocialLink {

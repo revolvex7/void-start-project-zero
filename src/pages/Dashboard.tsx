@@ -4,7 +4,7 @@ import { useUserRole } from '@/contexts/UserRoleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import FanDashboard from '@/pages/FanDashboard';
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const { user, completeCreatorProfile, updateUser, isCreator, fetchUserProfile } = useAuth();
   const { currentRole, switchRole } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   
@@ -30,12 +31,15 @@ const Dashboard = () => {
 
   // Ensure new users without creator profile start in member view
   useEffect(() => {
-    if (user && currentRole === 'creator' && !user.creatorName && !user.pageName) {
+    if (user && currentRole === 'creator' && !user.creatorName && !user.pageName && !user.creator?.pageName) {
       // User doesn't have creator profile, force member role
-      switchRole('member');
-      navigate('/dashboard?view=fan', { replace: true });
+      // But only if we're not in the middle of creator setup
+      if (!showCreatorSetup) {
+        switchRole('member');
+        navigate('/dashboard?view=fan', { replace: true });
+      }
     }
-  }, [user, currentRole, switchRole, navigate]);
+  }, [user?.creatorName, user?.pageName, user?.creator?.pageName, currentRole, switchRole, navigate, showCreatorSetup]);
 
   // Handle creator setup from URL params
   useEffect(() => {
@@ -44,6 +48,20 @@ const Dashboard = () => {
       setShowCreatorSetup(true);
     }
   }, [searchParams]);
+
+  // Set current page based on URL path
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/explore')) {
+      setCurrentPage('explore');
+    } else if (path.includes('/notifications')) {
+      setCurrentPage('notifications');
+    } else if (path.includes('/settings')) {
+      setCurrentPage('settings');
+    } else {
+      setCurrentPage('home');
+    }
+  }, [location.pathname]);
 
   // Fetch user profile on component mount only if user data is incomplete
   useEffect(() => {
@@ -65,26 +83,27 @@ const Dashboard = () => {
     
     setIsLoading(true);
     try {
+      // Complete the creator profile - this updates user state and fetches fresh data
       await completeCreatorProfile({
         creatorName: creatorData.creatorName,
         pageName: creatorData.pageName,
         is18Plus: creatorData.is18Plus
       });
       
-      updateUser({
-        creatorName: creatorData.creatorName,
-        pageName: creatorData.pageName,
-        is18Plus: creatorData.is18Plus
-      });
-      
+      // Close the setup modal
       setShowCreatorSetup(false);
       
+      // Switch to creator role
+      switchRole('creator');
+      
+      // Show success message
       toast({
         title: "Creator profile completed!",
         description: "Welcome to your creator dashboard.",
       });
       
-      navigate('/dashboard?view=creator');
+      // Navigate to creator dashboard
+      navigate('/dashboard?view=creator', { replace: true });
     } catch (error: any) {
       console.error('Error completing creator profile:', error);
       toast({

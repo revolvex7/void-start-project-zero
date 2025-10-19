@@ -25,6 +25,7 @@ import {
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useUserRole } from '@/contexts/UserRoleContext';
 import { postAPI, CreatePostData, MediaFile as APIMediaFile, commonAPI } from '@/lib/api';
+import { ErrorModal } from '@/components/ui/error-modal';
 
 interface MediaFile {
   id: string;
@@ -73,6 +74,18 @@ export default function CreatePost() {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Modal state
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    title?: string;
+    message: string;
+    type: 'error' | 'success' | 'info';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'error'
+  });
 
   // Mock post data for editing
   const mockPostData = {
@@ -130,9 +143,14 @@ export default function CreatePost() {
             ? { ...media, url: s3Url }
             : media
         ));
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to upload file:', error);
-        alert(`Failed to upload ${file.name}. Please try again.`);
+        setModalState({
+          isOpen: true,
+          title: 'Upload Failed',
+          message: error.message || `Failed to upload ${file.name}. Please try again.`,
+          type: 'error'
+        });
         // Remove the failed upload from the list
         setMediaFiles(prev => prev.filter(media => media.name !== file.name));
       }
@@ -224,9 +242,14 @@ export default function CreatePost() {
       }
       
       setShowInlineImageUpload(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to upload inline image:', error);
-      alert('Failed to upload image. Please try again.');
+      setModalState({
+        isOpen: true,
+        title: 'Upload Failed',
+        message: error.message || 'Failed to upload image. Please try again.',
+        type: 'error'
+      });
       
       // Remove loading indicator on error
       if (contentRef.current) {
@@ -242,7 +265,12 @@ export default function CreatePost() {
 
   const handlePublish = async () => {
     if (!title.trim() || !content.trim()) {
-      alert('Please fill in both title and content before publishing.');
+      setModalState({
+        isOpen: true,
+        title: 'Validation Error',
+        message: 'Please fill in both title and content before publishing.',
+        type: 'error'
+      });
       return;
     }
 
@@ -270,11 +298,23 @@ export default function CreatePost() {
       console.log('Post created successfully:', response);
       
       // Show success message
-      alert(isEditing ? 'Post updated successfully!' : 'Post published successfully!');
-      goBack();
-    } catch (error) {
+      setModalState({
+        isOpen: true,
+        title: 'Success!',
+        message: isEditing ? 'Post updated successfully!' : 'Post published successfully!',
+        type: 'success'
+      });
+      
+      // Navigate after showing success modal
+      setTimeout(() => goBack(), 1500);
+    } catch (error: any) {
       console.error('Failed to publish post:', error);
-      alert('Failed to publish post. Please try again.');
+      setModalState({
+        isOpen: true,
+        title: 'Publish Failed',
+        message: error.message || 'Failed to publish post. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -890,6 +930,15 @@ export default function CreatePost() {
           </div>
         </div>
       )}
+
+      {/* Success/Error Modal */}
+      <ErrorModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

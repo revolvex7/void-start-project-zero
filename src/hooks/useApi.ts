@@ -20,13 +20,14 @@ export const queryKeys = {
 } as const;
 
 // User Queries
-export const useUserProfile = () => {
+export const useUserProfile = (enabled: boolean = false) => {
   return useQuery({
     queryKey: queryKeys.user.profile,
     queryFn: async () => {
       const response = await authAPI.getUserProfile();
       return response.user;
     },
+    enabled, // Only fetch when explicitly enabled
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
@@ -120,11 +121,12 @@ export const useCategories = () => {
 };
 
 // Posts Queries
-export const usePosts = () => {
+export const usePosts = (page: number = 1, limit: number = 10) => {
   return useQuery({
-    queryKey: queryKeys.posts.all,
+    queryKey: [...queryKeys.posts.all, page, limit],
     queryFn: async () => {
-      const response = await postAPI.getAll();
+      const response = await postAPI.getAll(page, limit);
+      // Return the full response with posts and pagination
       return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes

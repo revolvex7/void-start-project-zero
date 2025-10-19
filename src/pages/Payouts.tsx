@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ErrorModal } from '@/components/ui/error-modal';
 import { 
   Wallet, 
   CreditCard, 
@@ -44,6 +45,18 @@ export default function Payouts() {
   const [showBalance, setShowBalance] = useState(true);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
+  
+  // Modal state
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    title?: string;
+    message: string;
+    type: 'error' | 'success' | 'info';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -164,7 +177,12 @@ export default function Payouts() {
     if (withdrawAmount && selectedBank) {
       // In a real app, this would process the withdrawal
       console.log('Processing withdrawal:', { amount: withdrawAmount, bank: selectedBank });
-      alert(`Withdrawal of ₦${parseFloat(withdrawAmount).toLocaleString()} initiated successfully!`);
+      setModalState({
+        isOpen: true,
+        title: 'Success!',
+        message: `Withdrawal of ₦${parseFloat(withdrawAmount).toLocaleString()} initiated successfully!`,
+        type: 'success'
+      });
       setWithdrawAmount('');
     }
   };
@@ -522,6 +540,15 @@ export default function Payouts() {
           )}
         </div>
       </div>
+      
+      {/* Success/Error Modal */}
+      <ErrorModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

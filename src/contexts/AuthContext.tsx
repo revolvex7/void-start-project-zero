@@ -84,12 +84,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const forgotPasswordMutation = useForgotPassword();
   const resetPasswordMutation = useResetPassword();
 
-  // User profile query - only enabled if we have a token and no temp user
+  // User profile query - disabled by default, only fetch manually when needed
   const { 
     data: userProfileData, 
     isLoading: isProfileLoading, 
     refetch: refetchProfile 
-  } = useUserProfile();
+  } = useUserProfile(false); // Disabled automatic fetching
 
   useEffect(() => {
     // Check if user is logged in on app start
@@ -187,14 +187,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const completeCreatorProfile = async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const userData = await completeCreatorProfileMutation.mutateAsync(profileData);
     
-    // The API returns the user object directly with creator fields at the top level
+    // The API might return user data with nested creator object or flat structure
+    // Handle both cases for backward compatibility
     const transformedUser: User = {
       ...userData,
-      isCreatorProfileComplete: !!userData.pageName
+      // Add backward-compatible flat fields
+      creatorName: userData.creator?.creatorName || userData.creatorName,
+      pageName: userData.creator?.pageName || userData.pageName,
+      profilePhoto: userData.creator?.profilePhoto || userData.profilePhoto,
+      is18Plus: userData.creator?.is18Plus || userData.is18Plus,
+      description: userData.creator?.bio || userData.description,
+      isCreatorProfileComplete: !!(userData.creator?.pageName || userData.pageName)
     };
     
     setUser(transformedUser);
     localStorage.setItem('user', JSON.stringify(transformedUser));
+    
+    // Fetch fresh profile data to ensure everything is in sync
+    await refetchProfile();
   };
 
   const fetchUserProfile = async () => {
