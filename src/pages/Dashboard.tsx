@@ -4,7 +4,7 @@ import { useUserRole } from '@/contexts/UserRoleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import FanDashboard from '@/pages/FanDashboard';
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const { user, completeCreatorProfile, updateUser, isCreator, fetchUserProfile } = useAuth();
   const { currentRole, switchRole } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   
@@ -44,6 +45,20 @@ const Dashboard = () => {
       setShowCreatorSetup(true);
     }
   }, [searchParams]);
+
+  // Set current page based on URL path
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/explore')) {
+      setCurrentPage('explore');
+    } else if (path.includes('/notifications')) {
+      setCurrentPage('notifications');
+    } else if (path.includes('/settings')) {
+      setCurrentPage('settings');
+    } else {
+      setCurrentPage('home');
+    }
+  }, [location.pathname]);
 
   // Fetch user profile on component mount only if user data is incomplete
   useEffect(() => {

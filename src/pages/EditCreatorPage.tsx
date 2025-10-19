@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye, Tag } from 'lucide-react';
+import { ArrowLeft, Save, X, Upload, Plus, Trash2, ExternalLink, Eye, Tag, ChevronRight } from 'lucide-react';
 import { Category, UpdateUserData, commonAPI } from '@/lib/api';
 import { useCategories, useUpdateUser } from '@/hooks/useApi';
+import { ErrorModal } from '@/components/ui/error-modal';
 
 export default function EditCreatorPage() {
   const { user } = useAuth();
@@ -46,6 +47,18 @@ export default function EditCreatorPage() {
   const [tagInput, setTagInput] = useState('');
   const [isUploadingProfile, setIsUploadingProfile] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  
+  // Modal state
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    title?: string;
+    message: string;
+    type: 'error' | 'success' | 'info';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'error'
+  });
 
   // React Query hooks
   const { 
@@ -127,9 +140,14 @@ export default function EditCreatorPage() {
       
       // Navigate back to dashboard on success
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update user profile:', error);
-      alert('Failed to save changes. Please try again.');
+      setModalState({
+        isOpen: true,
+        title: 'Update Failed',
+        message: error.message || 'Failed to save changes. Please try again.',
+        type: 'error'
+      });
     }
   };
 
@@ -146,9 +164,14 @@ export default function EditCreatorPage() {
         const s3Url = await commonAPI.uploadFile(file, 'profiles');
         setProfileImageUrl(s3Url);
         setPageData({ ...pageData, profilePhoto: file });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to upload profile image:', error);
-        alert('Failed to upload profile image. Please try again.');
+        setModalState({
+          isOpen: true,
+          title: 'Upload Failed',
+          message: error.message || 'Failed to upload profile image. Please try again.',
+          type: 'error'
+        });
       } finally {
         setIsUploadingProfile(false);
       }
@@ -164,10 +187,15 @@ export default function EditCreatorPage() {
         const s3Url = await commonAPI.uploadFile(file, 'covers');
         setCoverImageUrl(s3Url);
         setPageData({ ...pageData, coverPhoto: file });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to upload cover image:', error);
-        alert('Failed to upload cover image. Please try again.');
-      } finally {
+        setModalState({
+          isOpen: true,
+          title: 'Upload Failed',
+          message: error.message || 'Failed to upload cover image. Please try again.',
+          type: 'error'
+        });
+      } finally{
         setIsUploadingCover(false);
       }
     }
@@ -206,8 +234,8 @@ export default function EditCreatorPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+      {/* Header - Fixed */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2 sm:space-x-4">
           <button 
             onClick={handleCancel}
@@ -219,15 +247,7 @@ export default function EditCreatorPage() {
         </div>
         
         <div className="flex items-center space-x-2">
-          <select 
-            value={pageData.visibility}
-            onChange={(e) => setPageData({ ...pageData, visibility: e.target.value as 'public' | 'free' | 'paid' })}
-            className="bg-gray-700 border border-gray-600 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm"
-          >
-            <option value="public">Public</option>
-            <option value="free">Free member</option>
-            <option value="paid">Paid member</option>
-          </select>
+         
           <Button variant="outline" onClick={handleCancel} className="bg-transparent border-gray-600 hidden sm:inline-flex">
             Cancel
           </Button>
@@ -241,9 +261,12 @@ export default function EditCreatorPage() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row">
-        {/* Left Sidebar - Settings */}
-        <div className={`w-full lg:w-80 bg-gray-800 border-r border-gray-700 p-4 lg:p-6 max-h-screen overflow-y-auto ${showPreview ? 'hidden lg:block' : 'block'}`}>
+      {/* Add padding top to account for fixed header */}
+      <div className="pt-16 flex flex-col lg:flex-row">
+        {/* Left Sidebar - Settings (Fixed on desktop) */}
+        <div className={`w-full lg:w-80 bg-gray-800 border-r border-gray-700 p-4 lg:p-6 
+          lg:fixed lg:left-0 lg:top-16 lg:bottom-0 lg:overflow-y-auto
+          ${showPreview ? 'hidden lg:block' : 'block'}`}>
           {/* Details Section */}
           <div className="mb-8">
             <button className="flex items-center justify-between w-full text-left py-2">
@@ -453,14 +476,16 @@ export default function EditCreatorPage() {
 
           {/* About Section */}
           <div className="mb-8">
+            <label className="block text-sm font-medium mb-2">About</label>
             <button 
               onClick={() => setShowAboutModal(true)}
-              className="flex items-center justify-between w-full text-left py-2 hover:text-white"
+              className="flex items-center justify-between w-full text-left p-4 rounded-lg bg-gray-700/50 border border-gray-600 hover:bg-gray-700 hover:border-gray-500 transition-all group"
             >
               <div>
-                <div className="font-medium">About</div>
-                <div className="text-sm text-gray-400">Introduce yourself and your Patreon</div>
+                <div className="text-sm text-gray-300 group-hover:text-white">Introduce yourself and your Patreon</div>
+                <div className="text-xs text-gray-500 mt-1">Click to edit</div>
               </div>
+              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
             </button>
           </div>
 
@@ -476,8 +501,8 @@ export default function EditCreatorPage() {
           </div>
         </div>
 
-        {/* Right Side - Preview */}
-        <div className={`flex-1 bg-gray-900 p-4 lg:p-6 ${showPreview ? 'block' : 'hidden lg:block'}`}>
+        {/* Right Side - Preview (Scrollable, offset for fixed sidebar on desktop) */}
+        <div className={`flex-1 bg-gray-900 p-4 lg:p-6 lg:ml-80 min-h-screen ${showPreview ? 'block' : 'hidden lg:block'}`}>
           {/* Mobile Preview Header */}
           <div className="lg:hidden mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">Preview</h2>
@@ -545,13 +570,7 @@ export default function EditCreatorPage() {
                   <div className="text-gray-400">•••</div>
                 </div>
 
-              {/* Latest post section */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Latest post</h2>
-                <div className="bg-gray-700 rounded-lg p-6 text-center">
-                  <p className="text-gray-400">This section will be shown when you add more posts.</p>
-                </div>
-              </div>
+            
 
               {/* Recent posts section */}
               <div className="mb-8">
@@ -564,16 +583,7 @@ export default function EditCreatorPage() {
                 </div>
               </div>
 
-              {/* Popular products section */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4 flex items-center">
-                  Popular products
-                  <span className="ml-2 text-gray-400">›</span>
-                </h2>
-                <div className="bg-gray-700 rounded-lg p-6 text-center">
-                  <p className="text-gray-400">This section will be shown when you add items for sale</p>
-                </div>
-              </div>
+            
 
               {/* Explore more section */}
               <div>
@@ -719,6 +729,15 @@ export default function EditCreatorPage() {
           </div>
         </div>
       )}
+
+      {/* Error/Success Modal */}
+      <ErrorModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

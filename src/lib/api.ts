@@ -37,7 +37,9 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // API returns error in 'error' field, not 'message'
+        const errorMessage = errorData.error || errorData.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
       return await response.json();
@@ -171,7 +173,9 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // API returns error in 'error' field, not 'message'
+        const errorMessage = errorData.error || errorData.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
       const result = await response.json();
@@ -190,8 +194,8 @@ class ApiService {
     });
   }
 
-  async getAllPosts() {
-    return await this.request('/user/posts', {
+  async getAllPosts(page: number = 1, limit: number = 10) {
+    return await this.request(`/user/posts?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
@@ -270,7 +274,7 @@ export const commonAPI = {
 
 export const postAPI = {
   create: (postData: CreatePostData) => apiService.createPost(postData),
-  getAll: () => apiService.getAllPosts(),
+  getAll: (page?: number, limit?: number) => apiService.getAllPosts(page, limit),
   getById: (postId: string) => apiService.getPostById(postId),
   update: (postId: string, postData: UpdatePostData) => apiService.updatePost(postId, postData),
   delete: (postId: string) => apiService.deletePost(postId),

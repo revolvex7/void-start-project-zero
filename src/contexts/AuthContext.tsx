@@ -84,12 +84,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const forgotPasswordMutation = useForgotPassword();
   const resetPasswordMutation = useResetPassword();
 
-  // User profile query - only enabled if we have a token and no temp user
+  // User profile query - disabled by default, only fetch manually when needed
   const { 
     data: userProfileData, 
     isLoading: isProfileLoading, 
     refetch: refetchProfile 
-  } = useUserProfile();
+  } = useUserProfile(false); // Disabled automatic fetching
 
   useEffect(() => {
     // Check if user is logged in on app start

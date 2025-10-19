@@ -87,7 +87,6 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
               className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base rounded-lg focus:outline-none focus:border-gray-600"
-              disabled={showPasswordField}
             />
           </div>
 

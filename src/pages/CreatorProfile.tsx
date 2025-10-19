@@ -411,29 +411,7 @@ const CreatorProfile = () => {
                   </div>
                 </div>
 
-                {/* Popular Products Section */}
-                <div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Popular products</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                      <div key={index} className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer">
-                        <div className="aspect-square bg-gray-700 flex items-center justify-center">
-                          <div className="text-center p-4">
-                            <div className="w-16 h-16 bg-gray-600 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                              📦
-                            </div>
-                            <p className="text-gray-400 text-sm">Product {index + 1}</p>
-                          </div>
-                        </div>
-                        <div className="p-3 sm:p-4">
-                          <h4 className="font-medium text-sm sm:text-base mb-1">Digital Product {index + 1}</h4>
-                          <p className="text-blue-400 text-sm font-semibold">${(index + 1) * 9.99}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+                
                 {/* Explore Other Section */}
                 <div>
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">Explore other</h3>

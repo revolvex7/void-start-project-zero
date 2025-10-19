@@ -116,6 +116,7 @@ interface ExplorePageProps {
 export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadingCreatorId, setLoadingCreatorId] = useState<string | null>(null);
 
   // Use React Query hooks
   const { 
@@ -129,10 +130,15 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
 
   const handleFollowClick = async (creatorId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setLoadingCreatorId(creatorId);
     try {
-      await toggleFollowMutation.mutateAsync(creatorId);
+      const result = await toggleFollowMutation.mutateAsync(creatorId);
+      console.log('Follow toggle result:', result);
     } catch (error) {
       console.error('Failed to toggle follow:', error);
+    } finally {
+      // Small delay to ensure cache update completes
+      setTimeout(() => setLoadingCreatorId(null), 100);
     }
   };
 
@@ -348,9 +354,9 @@ export function ExplorePage({ onCreatorClick }: ExplorePageProps) {
                     size="sm" 
                     className={creator.isFollowing ? "bg-gray-600 hover:bg-gray-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}
                     onClick={(e) => handleFollowClick(creator.id, e)}
-                    disabled={toggleFollowMutation.isPending}
+                    disabled={loadingCreatorId === creator.id}
                   >
-                    {toggleFollowMutation.isPending ? 'Loading...' : (creator.isFollowing ? 'Following' : 'Follow')}
+                    {loadingCreatorId === creator.id ? 'Loading...' : (creator.isFollowing ? 'Following' : 'Follow')}
                   </Button>
                 </div>
               </div>
