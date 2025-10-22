@@ -60,6 +60,7 @@ export const useCompleteCreatorProfile = () => {
       console.log('Complete creator profile response:', response);
       return response.user;
     },
+    retry: false, // Don't retry - show error immediately for profile completion
     onSuccess: (userData) => {
       console.log('User data received in onSuccess:', userData);
       
@@ -153,6 +154,7 @@ export const useLogin = () => {
   
   return useMutation({
     mutationFn: (credentials: { email: string; password: string }) => authAPI.login(credentials),
+    retry: false, // Don't retry login attempts - show error immediately
     onSuccess: () => {
       // Clear all queries on login
       queryClient.clear();
@@ -165,6 +167,7 @@ export const useRegister = () => {
   
   return useMutation({
     mutationFn: (userData: { name: string; email: string; password: string }) => authAPI.register(userData),
+    retry: false, // Don't retry register attempts - show error immediately
     onSuccess: () => {
       // Clear all queries on register
       queryClient.clear();
@@ -187,6 +190,7 @@ export const useLogout = () => {
 export const useForgotPassword = () => {
   return useMutation({
     mutationFn: (email: string) => authAPI.forgotPassword(email),
+    retry: false, // Don't retry - show error immediately
   });
 };
 
@@ -194,6 +198,7 @@ export const useResetPassword = () => {
   return useMutation({
     mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) => 
       authAPI.resetPassword(token, newPassword),
+    retry: false, // Don't retry - show error immediately
   });
 };
 

@@ -55,7 +55,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
   const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [newTier, setNewTier] = useState({
     name: '',
-    price: 0,
+    price: '',
     description: ''
   });
 
@@ -86,7 +86,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
   };
 
   const handleAddTier = () => {
-    if (!newTier.name || newTier.price <= 0) return;
+    if (!newTier.name || !newTier.price || parseFloat(newTier.price) <= 0) return;
     
     if (editingTierId) {
       // Update existing tier (in a real app, this would call an API)
@@ -99,10 +99,11 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
         price: newTier.price,
         description: newTier.description,
         memberCount: 0,
+        currency: 'NGN'
       });
     }
     
-    setNewTier({ name: '', price: 0, description: '' });
+    setNewTier({ name: '', price: '', description: '' });
     setEditingTierId(null);
     setShowNewTierModal(false);
   };
@@ -473,12 +474,12 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                       <div>
                         <label className="block text-sm font-medium mb-2">Monthly Price</label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">₦</span>
                           <Input
                             type="number"
                             placeholder="9.99"
-                            value={newTier.price || ''}
-                            onChange={(e) => setNewTier({ ...newTier, price: parseFloat(e.target.value) || 0 })}
+                            value={newTier.price}
+                            onChange={(e) => setNewTier({ ...newTier, price: e.target.value })}
                             className="bg-gray-700 border-gray-600 text-white pl-8"
                             min="0"
                             step="0.01"
@@ -509,7 +510,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                     </Button>
                     <Button 
                       onClick={handleAddTier}
-                      disabled={!newTier.name || newTier.price <= 0}
+                      disabled={!newTier.name || !newTier.price || parseFloat(newTier.price) <= 0}
                       className="bg-white text-black hover:bg-gray-100"
                     >
                       {editingTierId ? 'Update Tier' : 'Create Tier'}

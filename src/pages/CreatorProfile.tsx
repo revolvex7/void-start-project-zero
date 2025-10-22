@@ -518,18 +518,18 @@ const CreatorProfile = () => {
                       <div 
                         key={membership.id} 
                         className={`bg-gray-700 rounded-lg p-6 border ${
-                          membership.price === 0 ? 'border-green-500' : 'border-blue-500'
+                          Number(membership.price) === 0 ? 'border-green-500' : 'border-blue-500'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <h3 className={`text-xl font-semibold ${
-                              membership.price === 0 ? 'text-green-400' : 'text-blue-400'
+                              Number(membership.price) === 0 ? 'text-green-400' : 'text-blue-400'
                             }`}>
                               {membership.name}
                             </h3>
                             <p className="text-gray-400 mt-1">
-                              {membership.price === 0 
+                              {Number(membership.price) === 0 
                                 ? 'Follow to access free content' 
                                 : 'Get access to all exclusive content'
                               }
@@ -537,15 +537,15 @@ const CreatorProfile = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold">
-                              {membership.price === 0 ? 'Free' : `${membership.currency} ${membership.price}`}
+                              {Number(membership.price) === 0 ? 'Free' : `${membership.currency} ${membership.price}`}
                             </div>
                             <div className="text-sm text-gray-400">
-                              {membership.price === 0 ? 'forever' : 'per month'}
+                              {Number(membership.price) === 0 ? 'forever' : 'per month'}
                             </div>
                           </div>
                         </div>
                         <ul className="space-y-2 text-sm text-gray-300 mb-4">
-                          {membership.price === 0 ? (
+                          {Number(membership.price) === 0 ? (
                             <>
                               <li>• Access to all free posts</li>
                               <li>• Public updates and announcements</li>
@@ -563,21 +563,21 @@ const CreatorProfile = () => {
                           )}
                         </ul>
                         <Button 
-                          onClick={membership.price === 0 ? handleFollow : () => setShowMembershipModal(true)}
-                          disabled={membership.price === 0 ? toggleFollowMutation.isPending : false}
-                          variant={membership.price === 0 ? "outline" : "default"}
+                          onClick={Number(membership.price) === 0 ? handleFollow : () => setShowMembershipModal(true)}
+                          disabled={Number(membership.price) === 0 ? toggleFollowMutation.isPending : false}
+                          variant={Number(membership.price) === 0 ? "outline" : "default"}
                           className={`w-full transition-colors ${
-                            membership.price === 0 
+                            Number(membership.price) === 0 
                               ? (isFollowing 
                                   ? 'bg-gray-600 border-gray-500 text-white' 
                                   : 'bg-transparent border-green-500 text-green-400 hover:bg-green-900/20')
                               : 'text-white'
                           }`}
-                          style={membership.price === 0 ? {} : { backgroundColor: themeColor }}
-                          onMouseEnter={membership.price === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColorHover}
-                          onMouseLeave={membership.price === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColor}
+                          style={Number(membership.price) === 0 ? {} : { backgroundColor: themeColor }}
+                          onMouseEnter={Number(membership.price) === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColorHover}
+                          onMouseLeave={Number(membership.price) === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColor}
                         >
-                          {membership.price === 0 
+                          {Number(membership.price) === 0 
                             ? (toggleFollowMutation.isPending ? 'Loading...' : (isFollowing ? 'Following' : 'Follow for Free'))
                             : 'Subscribe Now'
                           }

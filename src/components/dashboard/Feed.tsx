@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { usePosts } from '@/hooks/useApi';
+import { creatorAPI } from '@/lib/api';
 import { 
   Bell, 
   Heart, 
@@ -41,12 +42,19 @@ interface Creator {
   category: string;
   subscribers: number;
   isVerified?: boolean;
+  pageName?: string;
+  creatorName?: string;
+  profilePhoto?: string;
+  followersCount?: number;
 }
 
 export default function Feed() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const { data: postsData, isLoading: loading, error, refetch } = usePosts(currentPage, 10);
+  const [suggestedCreators, setSuggestedCreators] = useState<Creator[]>([]);
+  const [loadingSuggested, setLoadingSuggested] = useState(false);
+  const [suggestedError, setSuggestedError] = useState<string | null>(null);
   
   // Extract posts and pagination from response
   const posts = postsData?.posts || [];
@@ -165,32 +173,42 @@ export default function Feed() {
     }
   ];
 
-  // Mock suggested creators
-  const suggestedCreators: Creator[] = [
-    {
-      id: '1',
-      name: 'Lisa Thompson',
-      avatar: 'LT',
-      category: 'Photography',
-      subscribers: 15400,
-      isVerified: true
-    },
-    {
-      id: '2',
-      name: 'James Wilson',
-      avatar: 'JW',
-      category: 'Music Production',
-      subscribers: 8900
-    },
-    {
-      id: '3',
-      name: 'Maria Garcia',
-      avatar: 'MG',
-      category: 'Cooking',
-      subscribers: 23100,
-      isVerified: true
-    }
-  ];
+  // Fetch suggested creators from API
+  useEffect(() => {
+    const fetchSuggestedCreators = async () => {
+      try {
+        setLoadingSuggested(true);
+        setSuggestedError(null);
+        const response = await creatorAPI.getSuggested();
+        const creators = response.data || [];
+        
+        // Transform API response to match Creator interface
+        const transformedCreators: Creator[] = creators.map((creator: any) => ({
+          id: creator.id,
+          name: creator.creatorName || creator.name,
+          avatar: getCreatorInitials(creator.creatorName || creator.name),
+          category: creator.category || 'Creator',
+          subscribers: creator.followersCount || 0,
+          isVerified: creator.isVerified || false,
+          pageName: creator.pageName,
+          creatorName: creator.creatorName,
+          profilePhoto: creator.profilePhoto,
+          followersCount: creator.followersCount
+        }));
+        
+        setSuggestedCreators(transformedCreators);
+      } catch (err) {
+        console.error('Failed to fetch suggested creators:', err);
+        setSuggestedError(err instanceof Error ? err.message : 'Failed to load suggested creators');
+        // Fallback to empty array on error
+        setSuggestedCreators([]);
+      } finally {
+        setLoadingSuggested(false);
+      }
+    };
+
+    fetchSuggestedCreators();
+  }, []);
 
 
   const getPostIcon = (attachedMedia: string[]) => {
@@ -486,39 +504,70 @@ export default function Feed() {
           {/* Suggested Creators */}
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4">Suggested Creators</h3>
-            <div className="space-y-4">
-              {suggestedCreators.map((creator) => (
-                <div key={creator.id} className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold">{creator.avatar}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-1">
-                      <h4 className="font-medium text-sm truncate">{creator.name}</h4>
-                      {creator.isVerified && (
-                        <Star className="w-3 h-3 text-yellow-400 fill-current flex-shrink-0" />
-                      )}
+            
+            {/* Loading State */}
+            {loadingSuggested && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                <span className="ml-2 text-gray-400 text-sm">Loading creators...</span>
+              </div>
+            )}
+            
+            {/* Error State */}
+            {suggestedError && (
+              <div className="text-red-400 text-sm py-2">
+                {suggestedError}
+              </div>
+            )}
+            
+            {/* Creators List */}
+            {!loadingSuggested && !suggestedError && (
+              <div className="space-y-4">
+                {suggestedCreators.length > 0 ? (
+                  suggestedCreators.map((creator) => (
+                    <div key={creator.id} className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                        {creator.profilePhoto ? (
+                          <img 
+                            src={creator.profilePhoto} 
+                            alt={creator.name}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-semibold">{creator.avatar}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-1">
+                          <h4 className="font-medium text-sm truncate">{creator.name}</h4>
+                          {creator.isVerified && (
+                            <Star className="w-3 h-3 text-yellow-400 fill-current flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 truncate">{creator.category}</p>
+                        <p className="text-xs text-gray-500">{creator.subscribers.toLocaleString()} subscribers</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Use real pageName if available, otherwise fallback
+                          const pageNameToUse = creator.pageName || creator.name.toLowerCase().replace(/\s+/g, '-');
+                          handleCreatorClick(pageNameToUse, creator.id);
+                        }}
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs px-3 py-1"
+                      >
+                        <User className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
                     </div>
-                    <p className="text-xs text-gray-400 truncate">{creator.category}</p>
-                    <p className="text-xs text-gray-500">{creator.subscribers.toLocaleString()} subscribers</p>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // For mock creators, use a fallback slug since they don't have pageName
-                      const fallbackPageName = creator.name.toLowerCase().replace(/\s+/g, '-');
-                      handleCreatorClick(fallbackPageName, creator.id);
-                    }}
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs px-3 py-1"
-                  >
-                    <User className="w-3 h-3 mr-1" />
-                    View
-                  </Button>
-                </div>
-              ))}
-            </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400 text-sm py-2">No suggested creators available</p>
+                )}
+              </div>
+            )}
           </div>
 
         </div>

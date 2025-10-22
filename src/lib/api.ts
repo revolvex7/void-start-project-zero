@@ -143,6 +143,12 @@ class ApiService {
     });
   }
 
+  async getSuggestedCreators() {
+    return await this.request('/user/creators/suggested', {
+      method: 'GET',
+    });
+  }
+
   // Common endpoints
   async getCategories() {
     return await this.request('/common/categories', {
@@ -245,6 +251,39 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  // Membership endpoints
+  async createMembership(membershipData: CreateMembershipData) {
+    return await this.request('/user/memberships', {
+      method: 'POST',
+      body: JSON.stringify(membershipData),
+    });
+  }
+
+  async getMemberships() {
+    return await this.request('/user/memberships', {
+      method: 'GET',
+    });
+  }
+
+  async getMembershipById(membershipId: string) {
+    return await this.request(`/user/memberships/${membershipId}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateMembership(membershipId: string, membershipData: UpdateMembershipData) {
+    return await this.request(`/user/memberships/${membershipId}`, {
+      method: 'PUT',
+      body: JSON.stringify(membershipData),
+    });
+  }
+
+  async deleteMembership(membershipId: string) {
+    return await this.request(`/user/memberships/${membershipId}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Create API instances
@@ -292,6 +331,7 @@ export const creatorAPI = {
   getCreatorById: (creatorId: string) => apiService.getCreatorById(creatorId),
   getCreatorByPageName: (pageName: string) => apiService.getCreatorByPageName(pageName),
   toggleFollow: (creatorId: string) => apiService.toggleFollowCreator(creatorId),
+  getSuggested: () => apiService.getSuggestedCreators(),
 };
 
 export const commonAPI = {
@@ -309,6 +349,14 @@ export const postAPI = {
   deleteComment: (commentId: string) => apiService.deleteComment(commentId),
   like: (postId: string) => apiService.likePost(postId),
   unlike: (postId: string) => apiService.unlikePost(postId),
+};
+
+export const membershipAPI = {
+  create: (membershipData: CreateMembershipData) => apiService.createMembership(membershipData),
+  getAll: () => apiService.getMemberships(),
+  getById: (membershipId: string) => apiService.getMembershipById(membershipId),
+  update: (membershipId: string, membershipData: UpdateMembershipData) => apiService.updateMembership(membershipId, membershipData),
+  delete: (membershipId: string) => apiService.deleteMembership(membershipId),
 };
 
 // Types
@@ -396,8 +444,26 @@ export interface Comment {
 export interface Membership {
   id: string;
   name: string;
-  price: number;
+  price: string;
   currency: string;
+  description?: string;
+  memberCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateMembershipData {
+  name: string;
+  price: string;
+  description?: string;
+  currency?: string;
+}
+
+export interface UpdateMembershipData {
+  name?: string;
+  price?: string;
+  description?: string;
+  currency?: string;
 }
 
 export interface Post {
