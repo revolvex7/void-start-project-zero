@@ -413,11 +413,20 @@ const CreatorProfile = () => {
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
                             {post.mediaFiles && post.mediaFiles.length > 0 ? (
-                              <img 
-                                src={post.mediaFiles[0]} 
-                                alt={post.title}
-                                className="w-full h-full object-cover"
-                              />
+                              <>
+                                <img 
+                                  src={post.mediaFiles[0]} 
+                                  alt={post.title}
+                                  className={`w-full h-full object-cover ${
+                                    !post.public && !isSubscribed ? 'blur-md' : ''
+                                  }`}
+                                />
+                                {!post.public && !isSubscribed && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                    <Lock className="w-12 h-12 text-white" />
+                                  </div>
+                                )}
+                              </>
                             ) : (
                               post.public ? (
                                 <Play className="w-8 h-8 text-white" />
@@ -472,11 +481,20 @@ const CreatorProfile = () => {
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
                             {post.mediaFiles && post.mediaFiles.length > 0 ? (
-                              <img 
-                                src={post.mediaFiles[0]} 
-                                alt={post.title}
-                                className="w-full h-full object-cover"
-                              />
+                              <>
+                                <img 
+                                  src={post.mediaFiles[0]} 
+                                  alt={post.title}
+                                  className={`w-full h-full object-cover ${
+                                    !post.public && !isSubscribed ? 'blur-md' : ''
+                                  }`}
+                                />
+                                {!post.public && !isSubscribed && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                    <Lock className="w-12 h-12 text-white" />
+                                  </div>
+                                )}
+                              </>
                             ) : (
                               post.public ? (
                                 <Play className="w-6 h-6 text-white" />

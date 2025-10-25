@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { usePosts } from '@/hooks/useApi';
-import { creatorAPI } from '@/lib/api';
+import { creatorAPI, postAPI } from '@/lib/api';
 import { DashboardSkeleton } from '@/components/ui/content-skeletons';
 import { 
   Bell, 
@@ -286,8 +286,16 @@ export default function Feed() {
     navigate(`/${pageName}`, { state: { creatorId } });
   };
 
-  const handleLike = (postId: string, e: React.MouseEvent) => {
+  const handleLike = async (postId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Find the current post
+    const currentPost = localPosts.find(post => post.postId === postId);
+    if (!currentPost) return;
+    
+    const wasLiked = currentPost.isLiked;
+    
+    // Optimistic update
     setLocalPosts(localPosts.map(post => 
       post.postId === postId 
         ? { 
@@ -297,6 +305,27 @@ export default function Feed() {
           }
         : post
     ));
+    
+    try {
+      // Call API
+      if (wasLiked) {
+        await postAPI.unlike(postId);
+      } else {
+        await postAPI.like(postId);
+      }
+    } catch (error) {
+      console.error('Failed to update like status:', error);
+      // Revert optimistic update on error
+      setLocalPosts(localPosts.map(post => 
+        post.postId === postId 
+          ? { 
+              ...post, 
+              isLiked: wasLiked,
+              totalLikes: wasLiked ? post.totalLikes + 1 : post.totalLikes - 1
+            }
+          : post
+      ));
+    }
   };
 
   const handleComment = (postId: string, e: React.MouseEvent) => {
@@ -543,7 +572,6 @@ export default function Feed() {
                           )}
                         </div>
                         <p className="text-xs text-gray-400 truncate">{creator.category}</p>
-                        <p className="text-xs text-gray-500">{creator.subscribers.toLocaleString()} subscribers</p>
                       </div>
                       <Button 
                         size="sm" 
