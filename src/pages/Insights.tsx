@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
+import { useInsights } from '@/hooks/useApi';
+import { CreatorDashboardSkeleton } from '@/components/ui/content-skeletons';
+import { Button } from '@/components/ui/button';
 import { 
   Users, 
   DollarSign, 
@@ -9,11 +12,13 @@ import {
   Lock,
   UserCheck,
   Menu,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 
 export default function Insights() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const { data: insights, isLoading, error, refetch } = useInsights();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -26,24 +31,6 @@ export default function Insights() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMobileSidebar]);
-
-  // Mock data
-  const stats = {
-    totalSubscribers: 1247,
-    activeSubscribers: 1089,
-    totalRevenue: 4250,
-    postsThisMonth: 24,
-    freePosts: 16,
-    paidPosts: 8,
-    recentTransactions: [
-      { subscriber: 'Alex Johnson', amount: 25, date: '2 hours ago', type: 'Premium Subscription' },
-      { subscriber: 'Sarah Chen', amount: 10, date: '5 hours ago', type: 'Basic Subscription' },
-      { subscriber: 'Mike Rodriguez', amount: 50, date: '1 day ago', type: 'VIP Subscription' },
-      { subscriber: 'Emma Wilson', amount: 25, date: '2 days ago', type: 'Premium Subscription' },
-      { subscriber: 'David Kim', amount: 10, date: '3 days ago', type: 'Basic Subscription' },
-      { subscriber: 'Lisa Park', amount: 25, date: '4 days ago', type: 'Premium Subscription' }
-    ]
-  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex">
@@ -66,101 +53,98 @@ export default function Insights() {
             <p className="text-gray-400">Track your performance and growth</p>
           </div>
 
-          {/* Main Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Total Subscribers */}
-            <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Total Subscribers</h3>
-                <Users className="w-6 h-6 text-blue-400" />
-              </div>
-              <div className="text-3xl font-bold mb-2">{stats.totalSubscribers.toLocaleString()}</div>
-              <div className="text-sm text-gray-400">All-time subscribers</div>
+          {isLoading ? (
+            <CreatorDashboardSkeleton />
+          ) : error ? (
+            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-red-400 mb-2">Failed to load insights</h3>
+              <p className="text-gray-400 mb-4">
+                {error instanceof Error ? error.message : 'Something went wrong. Please try again.'}
+              </p>
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline" 
+                className="border-red-500 text-red-400 hover:bg-red-900/30"
+              >
+                Try Again
+              </Button>
             </div>
-
-            {/* Active Subscribers */}
-            <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Active Subscribers</h3>
-                <UserCheck className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="text-3xl font-bold mb-2">{stats.activeSubscribers.toLocaleString()}</div>
-              <div className="text-sm text-gray-400">
-                {((stats.activeSubscribers / stats.totalSubscribers) * 100).toFixed(1)}% active rate
-              </div>
-            </div>
-
-            {/* Total Revenue */}
-            <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Total Revenue</h3>
-                <DollarSign className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="text-3xl font-bold mb-2">${stats.totalRevenue.toLocaleString()}</div>
-              <div className="text-sm text-green-400 flex items-center">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                All-time earnings
-              </div>
-            </div>
-
-            {/* Posts This Month */}
-            <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Posts This Month</h3>
-                <FileText className="w-6 h-6 text-purple-400" />
-              </div>
-              <div className="text-3xl font-bold mb-2">{stats.postsThisMonth}</div>
-              <div className="text-sm text-gray-400">Content published</div>
-            </div>
-
-            {/* Free Posts */}
-            <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Free Posts</h3>
-                <Globe className="w-6 h-6 text-blue-400" />
-              </div>
-              <div className="text-3xl font-bold mb-2">{stats.freePosts}</div>
-              <div className="text-sm text-gray-400">
-                {((stats.freePosts / stats.postsThisMonth) * 100).toFixed(0)}% of total
-              </div>
-            </div>
-
-            {/* Paid Posts */}
-            <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Paid Posts</h3>
-                <Lock className="w-6 h-6 text-yellow-400" />
-              </div>
-              <div className="text-3xl font-bold mb-2">{stats.paidPosts}</div>
-              <div className="text-sm text-gray-400">
-                {((stats.paidPosts / stats.postsThisMonth) * 100).toFixed(0)}% of total
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Transactions */}
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-6">Recent Transactions</h3>
-            <div className="space-y-4">
-              {stats.recentTransactions.map((transaction, index) => (
-                <div key={index} className="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-750 transition-colors rounded px-2">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                      <DollarSign className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-medium">{transaction.subscriber}</div>
-                      <div className="text-sm text-gray-400">{transaction.type}</div>
-                    </div>
+          ) : insights ? (
+            <>
+              {/* Main Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {/* Total Subscribers */}
+                <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-300">Total Subscribers</h3>
+                    <Users className="w-6 h-6 text-blue-400" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-semibold text-green-400">+${transaction.amount}</div>
-                    <div className="text-sm text-gray-400">{transaction.date}</div>
+                  <div className="text-3xl font-bold mb-2">{insights.totalSubscribers.toLocaleString()}</div>
+                  <div className="text-sm text-gray-400">All-time subscribers</div>
+                </div>
+
+                {/* Active Subscribers */}
+                <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-300">Active Subscribers</h3>
+                    <UserCheck className="w-6 h-6 text-green-400" />
+                  </div>
+                  <div className="text-3xl font-bold mb-2">{insights.activeSubscribers.toLocaleString()}</div>
+                  <div className="text-sm text-gray-400">
+                    {insights.totalSubscribers > 0 ? ((insights.activeSubscribers / insights.totalSubscribers) * 100).toFixed(1) : 0}% active rate
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+
+                {/* Total Revenue */}
+                <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-300">Total Revenue</h3>
+                    <DollarSign className="w-6 h-6 text-green-400" />
+                  </div>
+                  <div className="text-3xl font-bold mb-2">NGN {insights.totalRevenue.toLocaleString()}</div>
+                  <div className="text-sm text-green-400 flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    All-time earnings
+                  </div>
+                </div>
+
+                {/* Posts This Month */}
+                <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-300">Posts This Month</h3>
+                    <FileText className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div className="text-3xl font-bold mb-2">{insights.postsThisMonth}</div>
+                  <div className="text-sm text-gray-400">Content published</div>
+                </div>
+
+                {/* Free Posts */}
+                <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-300">Free Posts</h3>
+                    <Globe className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div className="text-3xl font-bold mb-2">{insights.freePosts}</div>
+                  <div className="text-sm text-gray-400">
+                    {insights.postsThisMonth > 0 ? ((insights.freePosts / insights.postsThisMonth) * 100).toFixed(0) : 0}% of total
+                  </div>
+                </div>
+
+                {/* Paid Posts */}
+                <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-300">Paid Posts</h3>
+                    <Lock className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <div className="text-3xl font-bold mb-2">{insights.paidPosts}</div>
+                  <div className="text-sm text-gray-400">
+                    {insights.postsThisMonth > 0 ? ((insights.paidPosts / insights.postsThisMonth) * 100).toFixed(0) : 0}% of total
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
     </div>

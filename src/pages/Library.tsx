@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { useMyPosts, useDeletePost } from '@/hooks/useApi';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { LibrarySkeleton } from '@/components/ui/content-skeletons';
 import { 
   Search, 
   MoreHorizontal,
@@ -167,9 +167,7 @@ const Library = () => {
 
           {/* Loading State */}
           {isLoading ? (
-            <div className="py-16">
-              <LoadingSpinner size="lg" text="Loading your posts..." />
-            </div>
+            <LibrarySkeleton />
           ) : error ? (
             <div className="text-center py-16">
               <p className="text-red-400 mb-4">

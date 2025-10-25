@@ -297,6 +297,29 @@ class ApiService {
       method: 'GET',
     });
   }
+
+  // Subscribe to membership
+  async subscribeMembership(membershipId: string) {
+    return await this.request('/user/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ membershipId }),
+    });
+  }
+
+  // Unsubscribe from membership
+  async unsubscribeMembership(creatorId: string) {
+    return await this.request('/user/un-subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ creatorId }),
+    });
+  }
+
+  // Get insights/analytics
+  async getInsights() {
+    return await this.request('/user/insights', {
+      method: 'GET',
+    });
+  }
 }
 
 // Create API instances
@@ -337,6 +360,7 @@ export const authAPI = {
 export const userAPI = {
   getCurrentUser: () => apiService.getCurrentUser(),
   update: (userData: any) => apiService.updateUser(userData),
+  getInsights: () => apiService.getInsights(),
 };
 
 export const creatorAPI = {
@@ -372,6 +396,8 @@ export const membershipAPI = {
   update: (membershipId: string, membershipData: UpdateMembershipData) => apiService.updateMembership(membershipId, membershipData),
   delete: (membershipId: string) => apiService.deleteMembership(membershipId),
   getByCreator: (creatorId: string) => apiService.getCreatorMemberships(creatorId),
+  subscribe: (membershipId: string) => apiService.subscribeMembership(membershipId),
+  unsubscribe: (creatorId: string) => apiService.unsubscribeMembership(creatorId),
 };
 
 // Types
@@ -465,6 +491,7 @@ export interface Membership {
   memberCount?: number;
   createdAt?: string;
   updatedAt?: string;
+  isSubscribed?: boolean;
 }
 
 export interface CreateMembershipData {
@@ -520,6 +547,7 @@ export interface Creator {
   recentPosts: Post[];
   exploreOthers: Post[];
   isFollowing?: boolean;
+  isSubscribed?: boolean;
 }
 
 export interface CreatorProfileResponse {

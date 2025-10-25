@@ -166,6 +166,54 @@ export const useCreatorMemberships = (creatorId: string, enabled: boolean = true
   });
 };
 
+// Subscribe to Membership
+export const useSubscribeMembership = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (membershipId: string) => membershipAPI.subscribe(membershipId),
+    onSuccess: (data, membershipId) => {
+      // Invalidate creator queries to refetch with updated subscription status
+      queryClient.invalidateQueries({ queryKey: queryKeys.creators.all });
+      // Also invalidate specific creator if we have the ID
+      queryClient.invalidateQueries({ queryKey: ['creators'] });
+    },
+    onError: (error) => {
+      console.error('Failed to subscribe to membership:', error);
+    },
+  });
+};
+
+// Unsubscribe from Membership
+export const useUnsubscribeMembership = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (creatorId: string) => membershipAPI.unsubscribe(creatorId),
+    onSuccess: (data, creatorId) => {
+      // Invalidate creator queries to refetch with updated subscription status
+      queryClient.invalidateQueries({ queryKey: queryKeys.creators.all });
+      // Also invalidate specific creator if we have the ID
+      queryClient.invalidateQueries({ queryKey: ['creators'] });
+    },
+    onError: (error) => {
+      console.error('Failed to unsubscribe from membership:', error);
+    },
+  });
+};
+
+// Get Insights
+export const useInsights = () => {
+  return useQuery({
+    queryKey: ['insights'],
+    queryFn: async () => {
+      const response = await userAPI.getInsights();
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
 export const useMyPosts = (page: number = 1, limit: number = 10) => {
   return useQuery({
     queryKey: [...queryKeys.posts.all, 'my-posts', page, limit],

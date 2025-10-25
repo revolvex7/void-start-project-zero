@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { usePosts } from '@/hooks/useApi';
 import { creatorAPI } from '@/lib/api';
+import { DashboardSkeleton } from '@/components/ui/content-skeletons';
 import { 
   Bell, 
   Heart, 
@@ -322,10 +323,7 @@ export default function Feed() {
         {/* Main Feed */}
         <div className="lg:col-span-2 space-y-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-              <span className="ml-2 text-gray-400">Loading posts...</span>
-            </div>
+            <DashboardSkeleton />
           ) : error ? (
             <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
               <p className="text-red-400 mb-4">

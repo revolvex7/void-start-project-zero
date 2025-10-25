@@ -9,7 +9,7 @@ import { useUserRole } from '@/contexts/UserRoleContext';
 import { useMembership } from '@/contexts/MembershipContext';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { creatorAPI, Creator } from '@/lib/api';
-import { useToggleFollow } from '@/hooks/useApi';
+import { useToggleFollow, useSubscribeMembership, useUnsubscribeMembership } from '@/hooks/useApi';
 import { ProfileSkeleton } from '@/components/ui/content-skeletons';
 import { 
   MoreHorizontal, 
@@ -55,6 +55,8 @@ const CreatorProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const toggleFollowMutation = useToggleFollow();
+  const subscribeMutation = useSubscribeMembership();
+  const unsubscribeMutation = useUnsubscribeMembership();
 
   // Helper function to darken color for hover state
   const darkenColor = (color: string, percent: number = 15) => {
@@ -76,36 +78,37 @@ const CreatorProfile = () => {
   const themeColorHover = darkenColor(themeColor, 15);
 
   // Fetch creator data
-  useEffect(() => {
-    const fetchCreatorData = async () => {
-      if (!creatorUrl) return;
+  const fetchCreatorData = async () => {
+    if (!creatorUrl) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
       
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Get creator ID from navigation state
-        const creatorId = location.state?.creatorId;
-        
-        let response;
-        if (creatorId && !creatorId.startsWith('mock-')) {
-          // Use creator ID directly for efficient single API call
-          response = await creatorAPI.getCreatorById(creatorId);
-        } else {
-          // Fallback to pageName lookup (for direct URL access or mock data)
-          response = await creatorAPI.getCreatorByPageName(creatorUrl);
-        }
-        
-        setCreator(response.data);
-        setIsFollowing(response.data.isFollowing || false);
-      } catch (err) {
-        console.error('Error fetching creator data:', err);
-        setError('Failed to load creator profile');
-      } finally {
-        setLoading(false);
+      // Get creator ID from navigation state
+      const creatorId = location.state?.creatorId;
+      
+      let response;
+      if (creatorId && !creatorId.startsWith('mock-')) {
+        // Use creator ID directly for efficient single API call
+        response = await creatorAPI.getCreatorById(creatorId);
+      } else {
+        // Fallback to pageName lookup (for direct URL access or mock data)
+        response = await creatorAPI.getCreatorByPageName(creatorUrl);
       }
-    };
+      
+      setCreator(response.data);
+      setIsFollowing(response.data.isFollowing || false);
+      setIsSubscribed(response.data.isSubscribed || false);
+    } catch (err) {
+      console.error('Error fetching creator data:', err);
+      setError('Failed to load creator profile');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCreatorData();
   }, [creatorUrl, location.state?.creatorId]);
 
@@ -313,12 +316,22 @@ const CreatorProfile = () => {
                   </Button>
                   <Button 
                     onClick={() => setShowMembershipModal(true)}
-                    className="text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg transition-colors"
+                    disabled={isSubscribed}
+                    className={`text-white px-4 sm:px-6 py-2 text-sm sm:text-base font-medium shadow-lg transition-colors ${
+                      isSubscribed ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
                     style={{ backgroundColor: themeColor }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = themeColorHover}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = themeColor}
+                    onMouseEnter={(e) => !isSubscribed && (e.currentTarget.style.backgroundColor = themeColorHover)}
+                    onMouseLeave={(e) => !isSubscribed && (e.currentTarget.style.backgroundColor = themeColor)}
                   >
-                    Subscribe
+                    {isSubscribed ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Subscribed
+                      </>
+                    ) : (
+                      'Subscribe'
+                    )}
                   </Button>
                   <Button
                     onClick={() => setShowTipModal(true)}
@@ -514,76 +527,120 @@ const CreatorProfile = () => {
                 {/* Dynamic membership tiers */}
                 <div className="space-y-4">
                   {creator.memberships && creator.memberships.length > 0 ? (
-                    creator.memberships.map((membership, index) => (
-                      <div 
-                        key={membership.id} 
-                        className={`bg-gray-700 rounded-lg p-6 border ${
-                          Number(membership.price) === 0 ? 'border-green-500' : 'border-blue-500'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className={`text-xl font-semibold ${
-                              Number(membership.price) === 0 ? 'text-green-400' : 'text-blue-400'
-                            }`}>
-                              {membership.name}
-                            </h3>
-                            <p className="text-gray-400 mt-1">
-                              {Number(membership.price) === 0 
-                                ? 'Follow to access free content' 
-                                : 'Get access to all exclusive content'
-                              }
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold">
-                              {Number(membership.price) === 0 ? 'Free' : `${membership.currency} ${membership.price}`}
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              {Number(membership.price) === 0 ? 'forever' : 'per month'}
-                            </div>
-                          </div>
-                        </div>
-                        <ul className="space-y-2 text-sm text-gray-300 mb-4">
-                          {Number(membership.price) === 0 ? (
-                            <>
-                              <li>• Access to all free posts</li>
-                              <li>• Public updates and announcements</li>
-                              <li>• Community discussions</li>
-                            </>
-                          ) : (
-                            <>
-                              <li>• Everything in Free</li>
-                              <li>• Access to all exclusive posts</li>
-                              <li>• Member-only content</li>
-                              <li>• Early access to new releases</li>
-                              <li>• Behind-the-scenes content</li>
-                              <li>• Direct messaging with creator</li>
-                            </>
-                          )}
-                        </ul>
-                        <Button 
-                          onClick={Number(membership.price) === 0 ? handleFollow : () => setShowMembershipModal(true)}
-                          disabled={Number(membership.price) === 0 ? toggleFollowMutation.isPending : false}
-                          variant={Number(membership.price) === 0 ? "outline" : "default"}
-                          className={`w-full transition-colors ${
-                            Number(membership.price) === 0 
-                              ? (isFollowing 
-                                  ? 'bg-gray-600 border-gray-500 text-white' 
-                                  : 'bg-transparent border-green-500 text-green-400 hover:bg-green-900/20')
-                              : 'text-white'
-                          }`}
-                          style={Number(membership.price) === 0 ? {} : { backgroundColor: themeColor }}
-                          onMouseEnter={Number(membership.price) === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColorHover}
-                          onMouseLeave={Number(membership.price) === 0 ? undefined : (e) => e.currentTarget.style.backgroundColor = themeColor}
-                        >
-                          {Number(membership.price) === 0 
-                            ? (toggleFollowMutation.isPending ? 'Loading...' : (isFollowing ? 'Following' : 'Follow for Free'))
-                            : 'Subscribe Now'
+                    creator.memberships.map((membership) => {
+                      const isFree = Number(membership.price) === 0;
+                      const isUserSubscribed = membership.isSubscribed || false;
+                      
+                      const handleMembershipAction = async () => {
+                        if (isFree) {
+                          await handleFollow();
+                        } else {
+                          if (isUserSubscribed) {
+                            // Unsubscribe - send creatorId
+                            try {
+                              await unsubscribeMutation.mutateAsync(creator.id);
+                              await fetchCreatorData();
+                            } catch (error) {
+                              console.error('Unsubscribe failed:', error);
+                            }
+                          } else {
+                            // Subscribe - send membershipId
+                            try {
+                              await subscribeMutation.mutateAsync(membership.id);
+                              await fetchCreatorData();
+                            } catch (error) {
+                              console.error('Subscribe failed:', error);
+                            }
                           }
-                        </Button>
-                      </div>
-                    ))
+                        }
+                      };
+                      
+                      return (
+                        <div 
+                          key={membership.id} 
+                          className={`bg-gray-700 rounded-lg p-6 border-2 transition-all ${
+                            isFree 
+                              ? 'border-green-500' 
+                              : isUserSubscribed 
+                                ? 'border-purple-500 bg-gradient-to-br from-gray-700 to-purple-900/20'
+                                : 'border-blue-500'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className={`text-xl font-semibold ${
+                                  isFree ? 'text-green-400' : isUserSubscribed ? 'text-purple-400' : 'text-blue-400'
+                                }`}>
+                                  {membership.name}
+                                </h3>
+                                {isUserSubscribed && !isFree && (
+                                  <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                    <Check size={12} />
+                                    Active
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-gray-400 text-sm">
+                                {membership.description || (isFree 
+                                  ? 'Follow to access free content' 
+                                  : 'Get access to all exclusive content')}
+                              </p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="text-2xl font-bold">
+                                {isFree ? 'Free' : `${membership.currency} ${membership.price}`}
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                {isFree ? 'forever' : 'per month'}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            onClick={handleMembershipAction}
+                            disabled={isFree ? toggleFollowMutation.isPending : (subscribeMutation.isPending || unsubscribeMutation.isPending)}
+                            variant={isFree ? "outline" : "default"}
+                            className={`w-full transition-colors font-semibold ${
+                              isFree 
+                                ? (isFollowing 
+                                    ? 'bg-gray-600 border-gray-500 text-white' 
+                                    : 'bg-transparent border-green-500 text-green-400 hover:bg-green-900/20')
+                                : isUserSubscribed
+                                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                                  : 'text-white'
+                            }`}
+                            style={!isFree && !isUserSubscribed ? { backgroundColor: themeColor } : {}}
+                            onMouseEnter={!isFree && !isUserSubscribed ? (e) => e.currentTarget.style.backgroundColor = themeColorHover : undefined}
+                            onMouseLeave={!isFree && !isUserSubscribed ? (e) => e.currentTarget.style.backgroundColor = themeColor : undefined}
+                          >
+                            {isFree 
+                              ? (toggleFollowMutation.isPending ? 'Loading...' : (isFollowing ? (
+                                  <>
+                                    <Check className="w-4 h-4 mr-2 inline" />
+                                    Following
+                                  </>
+                                ) : 'Follow for Free'))
+                              : (subscribeMutation.isPending || unsubscribeMutation.isPending)
+                                ? (
+                                  <span className="flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    {isUserSubscribed ? 'Unsubscribing...' : 'Subscribing...'}
+                                  </span>
+                                )
+                                : isUserSubscribed
+                                  ? (
+                                    <>
+                                      <Check className="w-4 h-4 mr-2 inline" />
+                                      Subscribed - Click to Unsubscribe
+                                    </>
+                                  )
+                                  : 'Subscribe Now'
+                            }
+                          </Button>
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-gray-400">No membership options available</p>
@@ -666,6 +723,8 @@ const CreatorProfile = () => {
           onOpenChange={setShowMembershipModal}
           creatorName={creator.creatorName}
           creatorId={creator.id}
+          memberships={creator.memberships || []}
+          onSubscribeSuccess={fetchCreatorData}
         />
 
         {/* Tip Modal */}

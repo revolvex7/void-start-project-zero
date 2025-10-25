@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMembership } from '@/contexts/MembershipContext';
 import { CreatorDashboardContent } from '@/components/dashboard/CreatorDashboardContent';
+import { CreatorDashboardSkeleton } from '@/components/ui/content-skeletons';
 import { Plus, Eye, Edit, X, Info, Loader2 } from 'lucide-react';
 
 interface CreatorDashboardPageProps {

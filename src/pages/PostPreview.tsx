@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { usePostById } from '@/hooks/useApi';
 import { postAPI, Comment } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PostPreviewSkeleton } from '@/components/ui/content-skeletons';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -286,9 +286,7 @@ export default function PostPreview() {
         {/* Post Content */}
         <div className="max-w-4xl mx-auto p-6">
           {isLoading ? (
-            <div className="py-12">
-              <LoadingSpinner size="lg" text="Loading post..." />
-            </div>
+            <PostPreviewSkeleton />
           ) : error ? (
             <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
               <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
