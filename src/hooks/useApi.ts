@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authAPI, userAPI, creatorAPI, commonAPI, postAPI } from '@/lib/api';
+import { authAPI, userAPI, creatorAPI, commonAPI, postAPI, membershipAPI } from '@/lib/api';
 
 // Query Keys
 export const queryKeys = {
@@ -16,6 +16,9 @@ export const queryKeys = {
   posts: {
     all: ['posts'] as const,
     byId: (id: string) => ['posts', id] as const,
+  },
+  memberships: {
+    byCreator: (creatorId: string) => ['memberships', 'creator', creatorId] as const,
   },
 } as const;
 
@@ -148,6 +151,34 @@ export const usePostById = (postId: string) => {
   });
 };
 
+// Memberships by Creator
+export const useCreatorMemberships = (creatorId: string, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: queryKeys.memberships.byCreator(creatorId),
+    queryFn: async () => {
+      const response = await membershipAPI.getByCreator(creatorId);
+      // Expecting response.data to be an array of memberships
+      return response.data;
+    },
+    enabled: !!creatorId && enabled,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+export const useMyPosts = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: [...queryKeys.posts.all, 'my-posts', page, limit],
+    queryFn: async () => {
+      const response = await postAPI.getMyPosts(page, limit);
+      // Return the full response with posts and pagination
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
 // Auth Mutations
 export const useLogin = () => {
   const queryClient = useQueryClient();
@@ -199,6 +230,33 @@ export const useResetPassword = () => {
     mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) => 
       authAPI.resetPassword(token, newPassword),
     retry: false, // Don't retry - show error immediately
+  });
+};
+
+// Post Mutations
+export const useUpdatePost = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ postId, postData }: { postId: string; postData: any }) => 
+      postAPI.update(postId, postData),
+    onSuccess: (data, variables) => {
+      // Invalidate posts queries to refetch
+      queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.posts.byId(variables.postId) });
+    },
+  });
+};
+
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (postId: string) => postAPI.delete(postId),
+    onSuccess: () => {
+      // Invalidate posts queries to refetch
+      queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
+    },
   });
 };
 

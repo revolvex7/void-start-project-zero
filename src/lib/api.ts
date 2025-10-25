@@ -206,6 +206,12 @@ class ApiService {
     });
   }
 
+  async getMyPosts(page: number = 1, limit: number = 10) {
+    return await this.request(`/user/my-posts?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
   async getPostById(postId: string) {
     return await this.request(`/user/posts/${postId}`, {
       method: 'GET',
@@ -284,6 +290,13 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  // Creator-specific memberships
+  async getCreatorMemberships(creatorId: string) {
+    return await this.request(`/user/creators/${creatorId}/memberships`, {
+      method: 'GET',
+    });
+  }
 }
 
 // Create API instances
@@ -342,6 +355,7 @@ export const commonAPI = {
 export const postAPI = {
   create: (postData: CreatePostData) => apiService.createPost(postData),
   getAll: (page?: number, limit?: number) => apiService.getAllPosts(page, limit),
+  getMyPosts: (page?: number, limit?: number) => apiService.getMyPosts(page, limit),
   getById: (postId: string) => apiService.getPostById(postId),
   update: (postId: string, postData: UpdatePostData) => apiService.updatePost(postId, postData),
   delete: (postId: string) => apiService.deletePost(postId),
@@ -357,6 +371,7 @@ export const membershipAPI = {
   getById: (membershipId: string) => apiService.getMembershipById(membershipId),
   update: (membershipId: string, membershipData: UpdateMembershipData) => apiService.updateMembership(membershipId, membershipData),
   delete: (membershipId: string) => apiService.deleteMembership(membershipId),
+  getByCreator: (creatorId: string) => apiService.getCreatorMemberships(creatorId),
 };
 
 // Types

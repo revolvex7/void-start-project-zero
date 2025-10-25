@@ -43,7 +43,7 @@ const setupTasks = [
 
 export function CreatorDashboardContent({ creatorName }: CreatorDashboardContentProps) {
   const { user, updateUser } = useAuth();
-  const { tiers, addTier, hasTiers } = useMembership();
+  const { tiers, addTier, updateTier, hasTiers, refetch } = useMembership();
   const navigate = useNavigate();
   const { creatorUrl } = useParams();
   const [showBasicsModal, setShowBasicsModal] = useState(false);
@@ -58,6 +58,11 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
     price: '',
     description: ''
   });
+
+  // Fetch memberships when component mounts
+  React.useEffect(() => {
+    refetch();
+  }, []);
 
   const handleTaskClick = (task: any) => {
     if (!task.enabled) return;
@@ -85,27 +90,36 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
     navigate('/customize');
   };
 
-  const handleAddTier = () => {
+  const handleAddTier = async () => {
     if (!newTier.name || !newTier.price || parseFloat(newTier.price) <= 0) return;
     
-    if (editingTierId) {
-      // Update existing tier (in a real app, this would call an API)
-      console.log('Updating tier:', editingTierId, newTier);
-      // For now, just close the modal
-    } else {
-      // Add new tier
-      addTier({
-        name: newTier.name,
-        price: newTier.price,
-        description: newTier.description,
-        memberCount: 0,
-        currency: 'NGN'
-      });
+    try {
+      if (editingTierId) {
+        // Update existing tier
+        await updateTier(editingTierId, {
+          name: newTier.name,
+          price: newTier.price,
+          description: newTier.description,
+          currency: 'NGN'
+        });
+      } else {
+        // Add new tier
+        await addTier({
+          name: newTier.name,
+          price: newTier.price,
+          description: newTier.description,
+          memberCount: 0,
+          currency: 'NGN'
+        });
+      }
+      
+      setNewTier({ name: '', price: '', description: '' });
+      setEditingTierId(null);
+      setShowNewTierModal(false);
+    } catch (error) {
+      console.error('Failed to save tier:', error);
+      // You can add error handling UI here if needed
     }
-    
-    setNewTier({ name: '', price: '', description: '' });
-    setEditingTierId(null);
-    setShowNewTierModal(false);
   };
 
   const handleEditTier = (tier: any) => {
@@ -386,7 +400,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h3 className="text-xl font-semibold mb-2">{tier.name}</h3>
-                            <p className="text-gray-300 mb-2">${tier.price} / month • {tier.memberCount} members</p>
+                            <p className="text-gray-300 mb-2">₦{tier.price} / month • {tier.memberCount} members</p>
                             <p className="text-gray-400">{tier.description}</p>
                           </div>
                           <Button 

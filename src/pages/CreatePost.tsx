@@ -24,8 +24,10 @@ import {
 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useUserRole } from '@/contexts/UserRoleContext';
-import { postAPI, CreatePostData, MediaFile as APIMediaFile, commonAPI } from '@/lib/api';
+import { postAPI, CreatePostData, MediaFile as APIMediaFile, commonAPI, UpdatePostData } from '@/lib/api';
 import { ErrorModal } from '@/components/ui/error-modal';
+import { usePostById, useUpdatePost } from '@/hooks/useApi';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface MediaFile {
   id: string;
@@ -74,6 +76,10 @@ export default function CreatePost() {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  
+  // Fetch post data if editing
+  const { data: postData, isLoading: isLoadingPost, error: postError } = usePostById(postId || '');
+  const updatePostMutation = useUpdatePost();
 
   // Modal state
   const [modalState, setModalState] = useState<{
@@ -87,25 +93,34 @@ export default function CreatePost() {
     type: 'error'
   });
 
-  // Mock post data for editing
-  const mockPostData = {
-    '1': { title: 'Voluptatem ducimus', content: 'Reiciendis ea exerci.', accessType: 'free' as const },
-    '2': { title: 'Behind the scenes content', content: 'Here\'s what goes on behind the camera...', accessType: 'paid' as const },
-    '3': { title: 'Monthly update video', content: 'This month has been incredible...', accessType: 'free' as const },
-    '4': { title: 'Upcoming project announcement', content: 'I\'m excited to share...', accessType: 'free' as const },
-    '5': { title: 'Q&A session recap', content: 'Thank you for all the great questions...', accessType: 'paid' as const }
-  };
-
-  // Load post data if editing
+  // Load post data from API when editing
   useEffect(() => {
-    if (postId && mockPostData[postId as keyof typeof mockPostData]) {
-      const postData = mockPostData[postId as keyof typeof mockPostData];
-      setTitle(postData.title);
-      setContent(postData.content);
-      setAccessType(postData.accessType);
+    if (postData) {
+      setTitle(postData.title || '');
+      setContent(postData.content || '');
+      setAccessType(postData.accessType as 'free' | 'paid');
+      setTags(postData.tags || []);
+      
+      // Load media files
+      if (postData.mediaFiles && postData.mediaFiles.length > 0) {
+        const loadedMedia: MediaFile[] = postData.mediaFiles.map((file: any) => ({
+          id: file.id,
+          type: file.type as 'image' | 'video' | 'audio' | 'file',
+          url: file.url,
+          name: file.name || 'Uploaded file',
+          size: file.size
+        }));
+        setMediaFiles(loadedMedia);
+      }
+      
+      // Set HTML content in the contentRef
+      if (contentRef.current && postData.content) {
+        contentRef.current.innerHTML = postData.content;
+      }
+      
       setIsEditing(true);
     }
-  }, [postId]);
+  }, [postData]);
 
   const goBack = () => {
     if (currentRole === 'creator') {
@@ -220,27 +235,44 @@ export default function CreatePost() {
     if (!files || files.length === 0) return;
 
     const file = files[0];
+    // Create a minimal inline placeholder we can reliably find and replace
+    const placeholderId = `inline-image-ph-${Date.now()}`;
     try {
-      // Show loading indicator
-      const loadingImg = `<div style="padding: 20px; text-align: center; background: #1f2937; border-radius: 8px; margin: 16px 0;">Uploading image...</div>`;
-      document.execCommand('insertHTML', false, loadingImg);
-      
+      const placeholder = `<span id="${placeholderId}" data-inline-image-placeholder style="color:#9ca3af">Uploading image...</span>`;
+      document.execCommand('insertHTML', false, placeholder);
+
       // Upload to S3
       const s3Url = await commonAPI.uploadFile(file, 'posts');
-      
-      // Replace loading indicator with actual image
-      const img = `<img src="${s3Url}" alt="inline" style="max-width: 600px; height: auto; margin: 16px 0; border-radius: 8px; display: block;" />`;
-      
-      // Remove the loading div and insert the image
+
+      // Replace placeholder with image and a paragraph for typing
       if (contentRef.current) {
-        const loadingDiv = contentRef.current.querySelector('div[style*="Uploading image"]');
-        if (loadingDiv) {
-          loadingDiv.outerHTML = img;
+        const ph = contentRef.current.querySelector(`#${placeholderId}`) as HTMLElement | null;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `<img src="${s3Url}" alt="inline" style="max-width: 600px; height: auto; margin: 16px 0; border-radius: 8px; display: block;" /><p><br></p>`;
+
+        if (ph && ph.parentNode) {
+          // Insert nodes before removing placeholder to keep caret position stable
+          const parent = ph.parentNode;
+          const nodes = Array.from(wrapper.childNodes);
+          nodes.forEach(node => parent.insertBefore(node, ph));
+          parent.removeChild(ph);
+
+          // Place caret inside the new paragraph
+          const paragraph = (parent as HTMLElement).querySelector('p');
+          if (paragraph) {
+            const range = document.createRange();
+            range.selectNodeContents(paragraph);
+            range.collapse(true);
+            const sel = window.getSelection();
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+          }
         } else {
-          document.execCommand('insertHTML', false, img);
+          // Fallback: just insert at caret
+          document.execCommand('insertHTML', false, `<img src="${s3Url}" alt="inline" style="max-width: 600px; height: auto; margin: 16px 0; border-radius: 8px; display: block;" /><p><br></p>`);
         }
       }
-      
+
       setShowInlineImageUpload(false);
     } catch (error: any) {
       console.error('Failed to upload inline image:', error);
@@ -250,16 +282,13 @@ export default function CreatePost() {
         message: error.message || 'Failed to upload image. Please try again.',
         type: 'error'
       });
-      
-      // Remove loading indicator on error
+      // Clean up leftover placeholder on error
       if (contentRef.current) {
-        const loadingDiv = contentRef.current.querySelector('div[style*="Uploading image"]');
-        if (loadingDiv) {
-          loadingDiv.remove();
-        }
+        const ph = contentRef.current.querySelector(`#${placeholderId}`);
+        if (ph) ph.remove();
       }
     }
-    
+
     event.target.value = '';
   };
 
@@ -285,17 +314,33 @@ export default function CreatePost() {
         size: media.size
       }));
 
-      const postData: CreatePostData = {
-        title: title.trim(),
-        content: contentRef.current?.innerHTML || content,
-        accessType: accessType,
-        tags: tags.length > 0 ? tags : undefined,
-        mediaFiles: apiMediaFiles.length > 0 ? apiMediaFiles : undefined
-      };
+      if (isEditing && postId) {
+        // Update existing post
+        const updateData: UpdatePostData = {
+          title: title.trim(),
+          content: contentRef.current?.innerHTML || content,
+          accessType: accessType,
+          tags: tags.length > 0 ? tags : undefined,
+          mediaFiles: apiMediaFiles.length > 0 ? apiMediaFiles : undefined
+        };
 
-      console.log('Publishing post:', postData);
-      const response = await postAPI.create(postData);
-      console.log('Post created successfully:', response);
+        console.log('Updating post:', updateData);
+        await updatePostMutation.mutateAsync({ postId, postData: updateData });
+        console.log('Post updated successfully');
+      } else {
+        // Create new post
+        const createData: CreatePostData = {
+          title: title.trim(),
+          content: contentRef.current?.innerHTML || content,
+          accessType: accessType,
+          tags: tags.length > 0 ? tags : undefined,
+          mediaFiles: apiMediaFiles.length > 0 ? apiMediaFiles : undefined
+        };
+
+        console.log('Publishing post:', createData);
+        await postAPI.create(createData);
+        console.log('Post created successfully');
+      }
       
       // Show success message
       setModalState({
@@ -333,6 +378,27 @@ export default function CreatePost() {
       tags
     };
   };
+
+  // Show loading state while fetching post data
+  if (postId && isLoadingPost) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading post..." />
+      </div>
+    );
+  }
+
+  // Show error state if post fetch failed
+  if (postId && postError) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Failed to load post</p>
+          <Button onClick={goBack} variant="outline">Go Back</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -834,13 +900,32 @@ export default function CreatePost() {
 
               {/* Post Content */}
               {content && (
+                <>
+                  <style>{`
+                    .preview-content ol,
+                    .preview-content ul {
+                      list-style-position: inside;
+                      margin: 1em 0;
+                      padding-left: 1.5em;
+                    }
+                    .preview-content ol {
+                      list-style-type: decimal;
+                    }
+                    .preview-content ul {
+                      list-style-type: disc;
+                    }
+                    .preview-content li {
+                      margin: 0.5em 0;
+                    }
+                  `}</style>
                 <div 
-                  className="text-gray-300 mb-6 prose prose-invert max-w-none"
+                    className="text-gray-300 mb-6 prose prose-invert max-w-none preview-content"
                   dangerouslySetInnerHTML={{ __html: contentRef.current?.innerHTML || content }}
                   style={{
                     wordBreak: 'break-word'
                   }}
                 />
+                </>
               )}
 
               {/* Media Files */}

@@ -665,6 +665,7 @@ const CreatorProfile = () => {
           open={showMembershipModal}
           onOpenChange={setShowMembershipModal}
           creatorName={creator.creatorName}
+          creatorId={creator.id}
         />
 
         {/* Tip Modal */}

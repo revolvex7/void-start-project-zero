@@ -2,48 +2,28 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { TipModal } from '@/components/modals/TipModal';
+import { useCreatorMemberships } from '@/hooks/useApi';
+import type { Membership } from '@/lib/api';
 
 interface MembershipModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   creatorName: string;
+  creatorId: string;
 }
 
-const membershipTiers = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    image: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=400&h=300&fit=crop',
-    badge: 'FREE',
-    benefits: [
-      'Access to all free posts and content',
-      'Public updates and announcements',
-      'Community discussions and interactions',
-      'Follow to stay updated with new releases'
-    ]
-  },
-  {
-    id: 'subscription',
-    name: 'Monthly Subscription',
-    price: 9.99,
-    image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=400&h=300&fit=crop',
-    badge: 'RECOMMENDED',
-    benefits: [
-      'Everything in Free tier',
-      'Access to all exclusive members-only posts',
-      'Early access to new content and releases',
-      'Behind-the-scenes content and updates',
-      'Direct messaging with creator',
-      'Support the creator directly'
-    ]
-  }
-];
-
-export function MembershipModal({ open, onOpenChange, creatorName }: MembershipModalProps) {
+export function MembershipModal({ open, onOpenChange, creatorName, creatorId }: MembershipModalProps) {
   const [isAnnual, setIsAnnual] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showTipModal, setShowTipModal] = useState(false);
+
+  // Fetch creator memberships when modal is open
+  const { data: memberships, isLoading, error } = useCreatorMemberships(creatorId, open);
+
+  // Only paid tiers (exclude free)
+  const paidTiers: Membership[] = Array.isArray(memberships)
+    ? (memberships as Membership[]).filter((m) => Number(m.price) > 0)
+    : [];
 
   const handleDashMe = () => {
     onOpenChange(false); // Close membership modal
@@ -74,7 +54,16 @@ export function MembershipModal({ open, onOpenChange, creatorName }: MembershipM
 
             {/* Membership Tiers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {membershipTiers.map((tier) => (
+              {isLoading && (
+                <div className="col-span-full text-center py-8 text-gray-400">Loading memberships...</div>
+              )}
+              {!isLoading && error && (
+                <div className="col-span-full text-center py-8 text-red-400">Failed to load memberships</div>
+              )}
+              {!isLoading && !error && paidTiers.length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-400">No paid memberships available</div>
+              )}
+              {!isLoading && !error && paidTiers.map((tier) => (
                 <div
                   key={tier.id}
                   className={`relative bg-gray-800 rounded-2xl border-2 transition-all cursor-pointer ${
@@ -83,48 +72,26 @@ export function MembershipModal({ open, onOpenChange, creatorName }: MembershipM
                   onClick={() => setSelectedTier(tier.id)}
                 >
                   <div className="p-6">
-                    {/* Badge */}
-                    {tier.badge && (
-                      <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${
-                        tier.id === 'subscription' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-green-600 text-white'
-                      }`}>
-                        {tier.badge}
-                      </div>
-                    )}
-                    
                     {/* Tier Name & Price */}
                     <div className="mb-4">
                       <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
                       <div className="flex items-baseline space-x-1">
-                        <span className="text-3xl font-bold">${tier.price}</span>
-                        {tier.price > 0 && <span className="text-gray-400">/ month</span>}
-                        {tier.price === 0 && <span className="text-gray-400">forever</span>}
+                        <span className="text-3xl font-bold">{tier.currency} {tier.price}</span>
+                        <span className="text-gray-400">/ month</span>
                       </div>
                     </div>
 
                     {/* Join Button */}
                     <Button 
-                      className={`w-full mb-4 ${
-                        tier.id === 'free'
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : selectedTier === tier.id 
-                            ? 'bg-green-600 hover:bg-green-700' 
-                            : 'bg-blue-600 hover:bg-blue-700'
-                      }`}
+                      className={`w-full mb-4 ${selectedTier === tier.id ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
-                      {tier.id === 'free' ? 'Follow' : 'Subscribe'}
+                      Subscribe
                     </Button>
 
                     {/* Benefits */}
-                    <div className="space-y-3">
-                      {tier.benefits.map((benefit, index) => (
-                        <p key={index} className="text-sm text-gray-300 leading-relaxed">
-                          {benefit}
-                        </p>
-                      ))}
-                    </div>
+                    {tier.description && (
+                      <p className="text-sm text-gray-300 leading-relaxed">{tier.description}</p>
+                    )}
                   </div>
                 </div>
               ))}

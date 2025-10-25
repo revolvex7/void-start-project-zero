@@ -34,9 +34,13 @@ export const MembershipProvider: React.FC<MembershipProviderProps> = ({ children
   const [tiers, setTiers] = useState<MembershipTier[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  // Fetch memberships on component mount
+  // Fetch memberships - only called when explicitly needed
   const fetchMemberships = async () => {
+    // Prevent duplicate fetches
+    if (hasFetched || isLoading) return;
+    
     try {
       setIsLoading(true);
       setError(null);
@@ -56,6 +60,7 @@ export const MembershipProvider: React.FC<MembershipProviderProps> = ({ children
       }));
       
       setTiers(transformedTiers);
+      setHasFetched(true);
     } catch (err) {
       console.error('Failed to fetch memberships:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch memberships');
@@ -64,9 +69,10 @@ export const MembershipProvider: React.FC<MembershipProviderProps> = ({ children
     }
   };
 
-  useEffect(() => {
-    fetchMemberships();
-  }, []);
+  // Don't fetch on mount - let components call fetchMemberships when needed
+  // useEffect(() => {
+  //   fetchMemberships();
+  // }, []);
 
   const addTier = async (tierData: Omit<MembershipTier, 'id'>) => {
     try {
