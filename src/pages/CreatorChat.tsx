@@ -31,8 +31,9 @@ export default function CreatorChat() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null }>>([]);
-  const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string; status?: 'sending' | 'sent' | 'delivered' | 'read' }>>([]);
   const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     socketRef.current = getSocket();
@@ -41,9 +42,12 @@ export default function CreatorChat() {
 
     socket.on('message', ({ conversationId, message }) => {
       if (conversationId === selectedConversationId) {
-        setMessages((prev) => [...prev, message]);
+        // Only add message if it's not from the current user (to avoid duplicates)
+        if (message.senderId !== user?.id) {
+          setMessages((prev) => [...prev, { ...message, status: 'read' }]);
+        }
       }
-      setConversations((prev) => prev.map((c) => c.id === conversationId ? { ...c, lastMessageContent: message.content, lastMessageAt: message.createdAt } : c));
+      // Conversation list updates are now handled by conversationUpdated event
     });
 
     socket.on('conversationCreated', ({ conversation }) => {
@@ -54,9 +58,27 @@ export default function CreatorChat() {
       });
     });
 
+    // Handle message confirmation from server
+    socket.on('messageSent', ({ messageId, status }) => {
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId || msg.id.startsWith('temp-') ? 
+          { ...msg, id: messageId, status: status || 'sent' } : msg
+      ));
+    });
+
+    // Handle conversation list updates
+    socket.on('conversationUpdated', ({ conversationId, lastMessageContent, lastMessageAt }) => {
+      setConversations(prev => prev.map(c => 
+        c.id === conversationId ? 
+          { ...c, lastMessageContent, lastMessageAt } : c
+      ));
+    });
+
     return () => {
       socket.off('message');
       socket.off('conversationCreated');
+      socket.off('messageSent');
+      socket.off('conversationUpdated');
     };
   }, [selectedConversationId]);
 
@@ -78,10 +100,28 @@ export default function CreatorChat() {
     fetchMessages();
   }, [selectedConversationId]);
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversationId || !user) return;
-    socketRef.current?.emit('message', { conversationId: selectedConversationId, content: newMessage.trim() });
+    
+    // Add message optimistically with sending status
+    const tempMessage = {
+      id: `temp-${Date.now()}`,
+      senderId: user.id,
+      content: newMessage.trim(),
+      createdAt: new Date().toISOString(),
+      status: 'sending' as const
+    };
+    
+    setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
+    
+    // Send via socket
+    socketRef.current?.emit('message', { conversationId: selectedConversationId, content: newMessage.trim() });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -212,7 +252,7 @@ export default function CreatorChat() {
                   ← Back
                 </Button>
                 <div>
-                  <h3 className="font-medium">Conversation</h3>
+                  <h3 className="font-medium">{conversations.find(c => c.id === selectedConversationId)?.otherUserCreatorName || conversations.find(c => c.id === selectedConversationId)?.otherUserName || 'Conversation'}</h3>
                 </div>
               </div>
             </div>
@@ -224,13 +264,43 @@ export default function CreatorChat() {
                   key={message.id}
                   className={`flex ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.senderId === user?.id ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'}`}
-                  >
-                    <p className="text-sm">{message.content}</p>
+                  <div className="flex flex-col">
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.senderId === user?.id ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'}`}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                    </div>
+                    <div className={`flex items-center space-x-1 mt-1 ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}>
+                      <span className="text-xs text-gray-400">
+                        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {message.senderId === user?.id && message.status && (
+                        <div className="flex items-center space-x-1">
+                          {message.status === 'sending' && (
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                          )}
+                          {message.status === 'sent' && (
+                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                          )}
+                          {message.status === 'delivered' && (
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                            </div>
+                          )}
+                          {message.status === 'read' && (
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input */}
