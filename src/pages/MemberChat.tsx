@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Search, Menu, X } from 'lucide-react';
+import { chatAPI } from '@/lib/api';
+import { getSocket } from '@/lib/socket';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -20,79 +23,100 @@ interface Creator {
 }
 
 export default function MemberChat() {
-  const [selectedCreator, setSelectedCreator] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string }>>([]);
+  const [subscribedCreators, setSubscribedCreators] = useState<Array<{ id: string; name: string; creatorName?: string; pageName?: string; profilePhoto?: string; bio?: string }>>([]);
+  const [showNewConversation, setShowNewConversation] = useState(false);
+  const [newMessageText, setNewMessageText] = useState('');
+  const [selectedCreatorForNewChat, setSelectedCreatorForNewChat] = useState<string | null>(null);
+  const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
 
-  // Mock creators list
-  const creators: Creator[] = [
-    {
-      id: '1',
-      name: 'Alex Johnson',
-      avatar: 'AJ',
-      category: 'Tech & Programming',
-      isOnline: true
-    },
-    {
-      id: '2',
-      name: 'Sarah Chen',
-      avatar: 'SC',
-      category: 'Art & Design',
-      isOnline: true
-    },
-    {
-      id: '3',
-      name: 'Mike Rodriguez',
-      avatar: 'MR',
-      category: 'Fitness & Health',
-      isOnline: false
-    },
-    {
-      id: '4',
-      name: 'Emma Wilson',
-      avatar: 'EW',
-      category: 'Music & Audio',
-      isOnline: false
-    }
-  ];
+  useEffect(() => {
+    socketRef.current = getSocket();
+    const socket = socketRef.current;
+    if (!socket) return;
 
-  // Filter creators based on search
-  const filteredCreators = creators.filter(creator =>
-    creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    creator.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    socket.on('message', ({ conversationId, message }) => {
+      if (conversationId === selectedConversationId) {
+        setMessages((prev) => [...prev, message]);
+      }
+      // update last message in list
+      setConversations((prev) => prev.map((c) => c.id === conversationId ? { ...c, lastMessageContent: message.content, lastMessageAt: message.createdAt } : c));
+    });
 
-  // Mock messages for selected creator
-  const messages: Message[] = selectedCreator ? [
-    {
-      id: '1',
-      sender: 'creator',
-      content: 'Hey! Thanks for subscribing to my content. How can I help you today?',
-      timestamp: '10:30 AM'
-    },
-    {
-      id: '2',
-      sender: 'member',
-      content: 'Hi! I love your content. When is your next video coming out?',
-      timestamp: '10:32 AM'
-    },
-    {
-      id: '3',
-      sender: 'creator',
-      content: 'Thank you! I\'m working on a new video about productivity tips. It should be out next week!',
-      timestamp: '10:35 AM'
-    }
-  ] : [];
+    socket.on('conversationCreated', ({ conversation }) => {
+      setConversations((prev) => {
+        const exists = prev.some((c) => c.id === conversation.id);
+        if (exists) return prev;
+        return [{ ...conversation, lastMessageContent: null, lastMessageAt: null }, ...prev];
+      });
+      // Auto-open the new conversation
+      setSelectedConversationId(conversation.id);
+    });
 
-  const selectedCreatorData = creators.find(c => c.id === selectedCreator);
+    return () => {
+      socket.off('message');
+      socket.off('conversationCreated');
+    };
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      const res = await chatAPI.getConversations();
+      setConversations(res.data || []);
+    };
+    fetchConversations();
+  }, []);
+
+  useEffect(() => {
+    const fetchSubscribedCreators = async () => {
+      const res = await chatAPI.getSubscribedCreators();
+      setSubscribedCreators(res.data || []);
+    };
+    fetchSubscribedCreators();
+  }, []);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedConversationId) return;
+      const res = await chatAPI.getMessages(selectedConversationId);
+      setMessages(res.data || []);
+      socketRef.current?.emit('joinRoom', { conversationId: selectedConversationId });
+    };
+    fetchMessages();
+  }, [selectedConversationId]);
 
   const handleSendMessage = () => {
-    if (newMessage.trim() && selectedCreator) {
-      // In a real app, this would send the message to the backend
-      console.log('Sending message:', newMessage, 'to creator:', selectedCreator);
-      setNewMessage('');
-    }
+    if (!newMessage.trim() || !selectedConversationId || !user) return;
+    socketRef.current?.emit('message', { conversationId: selectedConversationId, content: newMessage.trim() });
+    setNewMessage('');
+  };
+
+  const handleStartNewConversation = (creatorId: string) => {
+    setSelectedCreatorForNewChat(creatorId);
+    setShowNewConversation(true);
+  };
+
+  const handleSendNewConversation = () => {
+    if (!newMessageText.trim() || !selectedCreatorForNewChat || !user) return;
+    socketRef.current?.emit('newConversation', { 
+      creatorId: selectedCreatorForNewChat, 
+      firstMessage: newMessageText.trim() 
+    });
+    setNewMessageText('');
+    setShowNewConversation(false);
+    setSelectedCreatorForNewChat(null);
+  };
+
+  const handleCancelNewConversation = () => {
+    setShowNewConversation(false);
+    setSelectedCreatorForNewChat(null);
+    setNewMessageText('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -151,7 +175,7 @@ export default function MemberChat() {
       
       {/* Main Content */}
       <div className="flex-1 lg:ml-80 pt-16 lg:pt-0">
-        {!selectedCreator ? (
+        {!selectedConversationId ? (
           /* Creators List View */
           <div className="p-8">
             <div className="max-w-4xl mx-auto">
@@ -174,42 +198,82 @@ export default function MemberChat() {
                 </div>
               </div>
 
-              {/* Creators Grid */}
+              {/* Conversations List */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredCreators.map((creator) => (
-                  <div
-                    key={creator.id}
-                    onClick={() => setSelectedCreator(creator.id)}
-                    className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors"
-                  >
+                {conversations.filter(c => !searchQuery || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
+                  <div key={c.id} onClick={() => setSelectedConversationId(c.id)} className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors">
                     <div className="flex items-center space-x-4">
                       <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-lg font-semibold">{creator.avatar}</span>
+                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                          {c.otherUserProfilePhoto ? (
+                            <img src={c.otherUserProfilePhoto} alt={c.otherUserCreatorName || c.otherUserName || ''} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-lg font-semibold">{(c.otherUserCreatorName || c.otherUserName || 'C').slice(0, 2).toUpperCase()}</span>
+                          )}
                         </div>
-                        {creator.isOnline && (
-                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-800"></div>
-                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-lg truncate">{creator.name}</h3>
-                        <p className="text-sm text-gray-400 truncate">{creator.category}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {creator.isOnline ? 'Online now' : 'Offline'}
-                        </p>
+                        <h3 className="font-medium text-lg truncate">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                        <p className="text-sm text-gray-400 truncate">{c.lastMessageContent || 'No messages yet'}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {filteredCreators.length === 0 && (
+              {conversations.filter(c => !searchQuery || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">No creators found</h3>
-                  <p className="text-gray-400">Try adjusting your search terms</p>
+                  {conversations.length === 0 ? (
+                    <>
+                      <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
+                      <p className="text-gray-400 mb-6">Start a conversation with creators you're subscribed to</p>
+                      
+                      {subscribedCreators.length > 0 && (
+                        <div className="max-w-2xl mx-auto">
+                          <h4 className="text-md font-medium mb-4">Your Subscribed Creators</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {subscribedCreators.map((creator) => (
+                              <div
+                                key={creator.id}
+                                className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-750 transition-colors"
+                                onClick={() => handleStartNewConversation(creator.id)}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <span className="text-sm font-semibold">
+                                      {(creator.creatorName || creator.name || 'C').slice(0, 2).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h5 className="font-medium truncate">{creator.creatorName || creator.name}</h5>
+                                    <p className="text-sm text-gray-400 truncate">{creator.bio || 'Creator'}</p>
+                                  </div>
+                                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                                    Message
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {subscribedCreators.length === 0 && (
+                        <p className="text-gray-400">Subscribe to creators to start conversations</p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">No conversations found</h3>
+                      <p className="text-gray-400">Try adjusting your search terms</p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -223,22 +287,13 @@ export default function MemberChat() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedCreator(null)}
+                  onClick={() => setSelectedConversationId(null)}
                   className="text-gray-400 hover:text-white"
                 >
                   ← Back
                 </Button>
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold">{selectedCreatorData?.avatar}</span>
-                  </div>
-                  {selectedCreatorData?.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800"></div>
-                  )}
-                </div>
                 <div>
-                  <h3 className="font-medium">{selectedCreatorData?.name}</h3>
-                  <p className="text-sm text-gray-400">{selectedCreatorData?.category}</p>
+                  <h3 className="font-medium">Conversation</h3>
                 </div>
               </div>
             </div>
@@ -248,21 +303,12 @@ export default function MemberChat() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'member' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.sender === 'member'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700 text-white'
-                    }`}
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.senderId === user?.id ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'}`}
                   >
                     <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.sender === 'member' ? 'text-blue-100' : 'text-gray-400'
-                    }`}>
-                      {message.timestamp}
-                    </p>
                   </div>
                 </div>
               ))}
@@ -290,6 +336,43 @@ export default function MemberChat() {
           </div>
         )}
       </div>
+
+      {/* New Conversation Modal */}
+      {showNewConversation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Start New Conversation</h3>
+            <p className="text-gray-400 mb-4">
+              Send your first message to {subscribedCreators.find(c => c.id === selectedCreatorForNewChat)?.creatorName || 'this creator'}
+            </p>
+            <div className="space-y-4">
+              <textarea
+                value={newMessageText}
+                onChange={(e) => setNewMessageText(e.target.value)}
+                placeholder="Type your message..."
+                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none"
+                rows={4}
+              />
+              <div className="flex space-x-3">
+                <Button
+                  onClick={handleSendNewConversation}
+                  disabled={!newMessageText.trim()}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Send Message
+                </Button>
+                <Button
+                  onClick={handleCancelNewConversation}
+                  variant="outline"
+                  className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

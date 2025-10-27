@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Search, Menu, X } from 'lucide-react';
+import { chatAPI } from '@/lib/api';
+import { getSocket } from '@/lib/socket';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -22,92 +25,63 @@ interface Member {
 }
 
 export default function CreatorChat() {
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string }>>([]);
+  const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
 
-  // Mock members who have messaged the creator
-  const members: Member[] = [
-    {
-      id: '1',
-      name: 'Emma Thompson',
-      avatar: 'ET',
-      lastMessage: 'Thank you for the amazing content! When is the next video coming?',
-      timestamp: '5 min ago',
-      isOnline: true,
-      memberSince: 'Jan 2024'
-    },
-    {
-      id: '2',
-      name: 'David Kim',
-      avatar: 'DK',
-      lastMessage: 'Love your work! Keep it up 🔥',
-      timestamp: '1 hour ago',
-      isOnline: true,
-      memberSince: 'Dec 2023'
-    },
-    {
-      id: '3',
-      name: 'Sarah Johnson',
-      avatar: 'SJ',
-      lastMessage: 'Could you do a tutorial on that topic you mentioned?',
-      timestamp: '2 hours ago',
-      isOnline: false,
-      memberSince: 'Nov 2023'
-    },
-    {
-      id: '4',
-      name: 'Mike Rodriguez',
-      avatar: 'MR',
-      lastMessage: 'Thanks for the quick response!',
-      timestamp: '1 day ago',
-      isOnline: false,
-      memberSince: 'Oct 2023'
-    }
-  ];
+  useEffect(() => {
+    socketRef.current = getSocket();
+    const socket = socketRef.current;
+    if (!socket) return;
 
-  // Filter members based on search
-  const filteredMembers = members.filter(member =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    socket.on('message', ({ conversationId, message }) => {
+      if (conversationId === selectedConversationId) {
+        setMessages((prev) => [...prev, message]);
+      }
+      setConversations((prev) => prev.map((c) => c.id === conversationId ? { ...c, lastMessageContent: message.content, lastMessageAt: message.createdAt } : c));
+    });
 
-  // Mock messages for selected member
-  const messages: Message[] = selectedMember ? [
-    {
-      id: '1',
-      sender: 'member',
-      content: 'Hi! I just wanted to say thank you for all the amazing content you create. It really helps me stay motivated!',
-      timestamp: '2:30 PM'
-    },
-    {
-      id: '2',
-      sender: 'creator',
-      content: 'Thank you so much! That really means a lot to me. I\'m glad my content is helping you! 😊',
-      timestamp: '2:32 PM'
-    },
-    {
-      id: '3',
-      sender: 'member',
-      content: 'I was wondering if you could do a deep dive into productivity systems? I struggle with staying organized.',
-      timestamp: '2:35 PM'
-    },
-    {
-      id: '4',
-      sender: 'creator',
-      content: 'That\'s a great suggestion! I\'ve been planning something like that. I\'ll definitely prioritize it.',
-      timestamp: '2:37 PM'
-    }
-  ] : [];
+    socket.on('conversationCreated', ({ conversation }) => {
+      setConversations((prev) => {
+        const exists = prev.some((c) => c.id === conversation.id);
+        if (exists) return prev;
+        return [{ ...conversation, lastMessageContent: null, lastMessageAt: null }, ...prev];
+      });
+    });
 
-  const selectedMemberData = members.find(m => m.id === selectedMember);
+    return () => {
+      socket.off('message');
+      socket.off('conversationCreated');
+    };
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      const res = await chatAPI.getConversations();
+      setConversations(res.data || []);
+    };
+    fetchConversations();
+  }, []);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedConversationId) return;
+      const res = await chatAPI.getMessages(selectedConversationId);
+      setMessages(res.data || []);
+      socketRef.current?.emit('joinRoom', { conversationId: selectedConversationId });
+    };
+    fetchMessages();
+  }, [selectedConversationId]);
 
   const handleSendMessage = () => {
-    if (newMessage.trim() && selectedMember) {
-      // In a real app, this would send the message to the backend
-      console.log('Sending message:', newMessage, 'to member:', selectedMember);
-      setNewMessage('');
-    }
+    if (!newMessage.trim() || !selectedConversationId || !user) return;
+    socketRef.current?.emit('message', { conversationId: selectedConversationId, content: newMessage.trim() });
+    setNewMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -166,7 +140,7 @@ export default function CreatorChat() {
       
       {/* Main Content */}
       <div className="flex-1 lg:ml-80 pt-16 lg:pt-0">
-        {!selectedMember ? (
+        {!selectedConversationId ? (
           /* Members List View */
           <div className="p-8">
             <div className="max-w-4xl mx-auto">
@@ -189,36 +163,30 @@ export default function CreatorChat() {
                 </div>
               </div>
 
-              {/* Members Grid */}
+              {/* Conversations List */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    onClick={() => setSelectedMember(member.id)}
-                    className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors"
-                  >
+                {conversations.filter(c => !searchQuery || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
+                  <div key={c.id} onClick={() => setSelectedConversationId(c.id)} className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors">
                     <div className="flex items-center space-x-4">
                       <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-lg font-semibold">{member.avatar}</span>
+                        <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                          {c.otherUserProfilePhoto ? (
+                            <img src={c.otherUserProfilePhoto} alt={c.otherUserCreatorName || c.otherUserName || ''} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-lg font-semibold">{(c.otherUserCreatorName || c.otherUserName || 'C').slice(0, 2).toUpperCase()}</span>
+                          )}
                         </div>
-                        {member.isOnline && (
-                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-800"></div>
-                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-lg truncate">{member.name}</h3>
-                        <p className="text-sm text-gray-400 truncate">Member since {member.memberSince}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {member.isOnline ? 'Online now' : 'Offline'}
-                        </p>
+                        <h3 className="font-medium text-lg truncate">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                        <p className="text-sm text-gray-400 truncate">{c.lastMessageContent || 'No messages yet'}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {filteredMembers.length === 0 && (
+              {conversations.filter(c => !searchQuery || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-8 h-8 text-gray-400" />
@@ -238,22 +206,13 @@ export default function CreatorChat() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedMember(null)}
+                  onClick={() => setSelectedConversationId(null)}
                   className="text-gray-400 hover:text-white"
                 >
                   ← Back
                 </Button>
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold">{selectedMemberData?.avatar}</span>
-                  </div>
-                  {selectedMemberData?.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800"></div>
-                  )}
-                </div>
                 <div>
-                  <h3 className="font-medium">{selectedMemberData?.name}</h3>
-                  <p className="text-sm text-gray-400">Member since {selectedMemberData?.memberSince}</p>
+                  <h3 className="font-medium">Conversation</h3>
                 </div>
               </div>
             </div>
@@ -263,21 +222,12 @@ export default function CreatorChat() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'creator' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.sender === 'creator'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700 text-white'
-                    }`}
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.senderId === user?.id ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'}`}
                   >
                     <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.sender === 'creator' ? 'text-blue-100' : 'text-gray-400'
-                    }`}>
-                      {message.timestamp}
-                    </p>
                   </div>
                 </div>
               ))}

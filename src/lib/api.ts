@@ -320,6 +320,25 @@ class ApiService {
       method: 'GET',
     });
   }
+
+  // Chat endpoints
+  async getConversations() {
+    return await this.request('/user/chat/conversations', {
+      method: 'GET',
+    });
+  }
+
+  async getMessages(conversationId: string) {
+    return await this.request(`/user/chat/conversations/${conversationId}/messages`, {
+      method: 'GET',
+    });
+  }
+
+  async getSubscribedCreators() {
+    return await this.request('/user/chat/subscribed-creators', {
+      method: 'GET',
+    });
+  }
 }
 
 // Create API instances
@@ -398,6 +417,12 @@ export const membershipAPI = {
   getByCreator: (creatorId: string) => apiService.getCreatorMemberships(creatorId),
   subscribe: (membershipId: string) => apiService.subscribeMembership(membershipId),
   unsubscribe: (creatorId: string) => apiService.unsubscribeMembership(creatorId),
+};
+
+export const chatAPI = {
+  getConversations: () => apiService.getConversations(),
+  getMessages: (conversationId: string) => apiService.getMessages(conversationId),
+  getSubscribedCreators: () => apiService.getSubscribedCreators(),
 };
 
 // Types
