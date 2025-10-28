@@ -19,12 +19,15 @@ export function getSocket() {
   socket = io(baseURL, {
     path: '/socket.io',
     autoConnect: !!token,
-    transports: ['polling', 'websocket'], // Add polling as fallback
+    transports: ['websocket'], // Force WebSocket to debug the issue
+    upgrade: true, // Allow upgrade to WebSocket if possible
+    rememberUpgrade: false, // Don't remember failed upgrades
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     reconnectionAttempts: 5,
     timeout: 20000,
+    forceNew: true, // Force new connection
     auth: {
       token: token || '',
     },
