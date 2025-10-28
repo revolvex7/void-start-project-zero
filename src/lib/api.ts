@@ -334,6 +334,40 @@ class ApiService {
     });
   }
 
+  // Notification endpoints
+  async getNotifications(page: number = 1, limit: number = 20, type?: 'member' | 'creator') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (type) {
+      params.append('type', type);
+    }
+    
+    return await this.request(`/user/notifications?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  async markNotificationAsRead(notificationId: string) {
+    return await this.request(`/user/notifications/${notificationId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return await this.request('/user/notifications/mark-all-read', {
+      method: 'PUT',
+    });
+  }
+
+  async getUnreadNotificationCount() {
+    return await this.request('/user/notifications/unread-count', {
+      method: 'GET',
+    });
+  }
+
   async getSubscribedCreators() {
     return await this.request('/user/chat/subscribed-creators', {
       method: 'GET',
@@ -423,6 +457,13 @@ export const chatAPI = {
   getConversations: () => apiService.getConversations(),
   getMessages: (conversationId: string) => apiService.getMessages(conversationId),
   getSubscribedCreators: () => apiService.getSubscribedCreators(),
+};
+
+export const notificationAPI = {
+  getAll: (page?: number, limit?: number, type?: 'member' | 'creator') => apiService.getNotifications(page, limit, type),
+  markAsRead: (notificationId: string) => apiService.markNotificationAsRead(notificationId),
+  markAllAsRead: () => apiService.markAllNotificationsAsRead(),
+  getUnreadCount: () => apiService.getUnreadNotificationCount(),
 };
 
 // Types
@@ -585,6 +626,33 @@ export interface ToggleFollowResponse {
     action: 'followed' | 'unfollowed';
     isFollowing: boolean;
   };
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  redirectUrl: string;
+  fromUserId: string;
+  fromUserName?: string;
+  fromUserCreatorName?: string;
+  fromUserProfilePhoto?: string;
+  isRead: boolean;
+  type: 'member' | 'creator';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationResponse {
+  notifications: Notification[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number;
 }
 
 export default apiService;

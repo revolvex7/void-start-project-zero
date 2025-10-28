@@ -11,66 +11,59 @@ import {
   Check,
   Clock,
   Menu,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
-
-interface Notification {
-  id: string;
-  type: 'new_content' | 'message' | 'subscription' | 'like' | 'comment' | 'creator_live';
-  title: string;
-  description: string;
-  timestamp: string;
-  isRead: boolean;
-  creatorName?: string;
-  creatorAvatar?: string;
-}
+import { notificationAPI, Notification } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MemberNotifications() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'new_content',
-      title: 'New Video from Alex Johnson',
-      description: 'Alex just posted "10 Productivity Tips for Developers" - check it out!',
-      timestamp: '2 hours ago',
-      isRead: false,
-      creatorName: 'Alex Johnson',
-      creatorAvatar: 'AJ'
-    },
-    {
-      id: '2',
-      type: 'message',
-      title: 'New Message from Sarah Chen',
-      description: 'Sarah replied to your message about the art tutorial.',
-      timestamp: '4 hours ago',
-      isRead: false,
-      creatorName: 'Sarah Chen',
-      creatorAvatar: 'SC'
-    },
-    {
-      id: '3',
-      type: 'new_content',
-      title: 'New Podcast Episode',
-      description: 'David Kim released "The Future of AI" - Episode 42.',
-      timestamp: '1 day ago',
-      isRead: true,
-      creatorName: 'David Kim',
-      creatorAvatar: 'DK'
-    },
-    {
-      id: '4',
-      type: 'message',
-      title: 'New Message from Mike Rodriguez',
-      description: 'Mike sent you a message about fitness tips.',
-      timestamp: '2 days ago',
-      isRead: true,
-      creatorName: 'Mike Rodriguez',
-      creatorAvatar: 'MR'
-    }
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
+  // Fetch notifications
+  const fetchNotifications = async (pageNum: number = 1, reset: boolean = false) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await notificationAPI.getAll(pageNum, 20, 'member');
+      
+      if (reset) {
+        setNotifications(response.data.notifications);
+      } else {
+        setNotifications(prev => [...prev, ...response.data.notifications]);
+      }
+      
+      setHasMore(response.data.notifications.length === 20);
+      setPage(pageNum);
+    } catch (err) {
+      setError('Failed to load notifications');
+      console.error('Error fetching notifications:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load more notifications
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      fetchNotifications(page + 1, false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    if (user) {
+      fetchNotifications(1, true);
+    }
+  }, [user]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -84,43 +77,46 @@ export default function MemberNotifications() {
     }
   };
 
-  const handleNotificationClick = (notification: Notification) => {
-    // Mark as read
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === notification.id ? { ...notif, isRead: true } : notif
-      )
-    );
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark as read if not already read
+    if (!notification.isRead) {
+      try {
+        await notificationAPI.markAsRead(notification.id);
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notification.id ? { ...notif, isRead: true } : notif
+          )
+        );
+      } catch (err) {
+        console.error('Error marking notification as read:', err);
+      }
+    }
 
-    // Navigate based on notification type
-    switch (notification.type) {
-      case 'new_content':
-        // Navigate to a dummy post (you can change this to dynamic post ID later)
-        navigate('/post/1');
-        break;
-      case 'message':
-        // Navigate to member messages
-        navigate('/member/chat');
-        break;
-      case 'subscription':
-      case 'like':
-      case 'comment':
-        // Navigate to the specific post or creator page
-        navigate('/post/1');
-        break;
-      case 'creator_live':
-        // Navigate to creator profile or live page
-        navigate('/dashboard/explore');
-        break;
-      default:
-        break;
+    // Navigate based on redirectUrl or fallback to type-based navigation
+    if (notification.redirectUrl) {
+      navigate(notification.redirectUrl);
+    } else {
+      // Fallback navigation based on notification type
+      switch (notification.type) {
+        case 'member':
+          navigate('/member/chat');
+          break;
+        default:
+          navigate('/dashboard/explore');
+          break;
+      }
     }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, isRead: true }))
-    );
+  const markAllAsRead = async () => {
+    try {
+      await notificationAPI.markAllAsRead();
+      setNotifications(prev => 
+        prev.map(notif => ({ ...notif, isRead: true }))
+      );
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -198,57 +194,105 @@ export default function MemberNotifications() {
                 )}
               </div>
 
-              {/* Notifications List */}
-              <div className="space-y-4">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 rounded-lg border transition-colors cursor-pointer ${
-                      notification.isRead 
-                        ? 'bg-gray-800 border-gray-700' 
-                        : 'bg-gray-800/50 border-blue-600 shadow-lg'
-                    }`}
-                    onClick={() => handleNotificationClick(notification)}
+              {/* Loading State */}
+              {loading && notifications.length === 0 && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                  <span className="ml-2 text-gray-400">Loading notifications...</span>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="text-center py-12">
+                  <p className="text-red-400 mb-4">{error}</p>
+                  <Button 
+                    onClick={() => fetchNotifications(1, true)}
+                    variant="outline"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
                   >
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-shrink-0">
-                        {notification.creatorAvatar ? (
-                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-semibold">{notification.creatorAvatar}</span>
-                          </div>
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className={`font-medium ${!notification.isRead ? 'text-white' : 'text-gray-300'}`}>
-                            {notification.title}
-                          </h3>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-400 flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {notification.timestamp}
-                            </span>
-                            {!notification.isRead && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            )}
-                          </div>
+                    Try Again
+                  </Button>
+                </div>
+              )}
+
+              {/* Notifications List */}
+              {!loading && !error && (
+                <div className="space-y-4">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 rounded-lg border transition-colors cursor-pointer ${
+                        notification.isRead 
+                          ? 'bg-gray-800 border-gray-700' 
+                          : 'bg-gray-800/50 border-blue-600 shadow-lg'
+                      }`}
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          {notification.fromUserProfilePhoto ? (
+                            <img 
+                              src={notification.fromUserProfilePhoto} 
+                              alt={notification.fromUserName || 'User'}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-semibold">
+                                {notification.fromUserName?.charAt(0) || 'U'}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm text-gray-400 mt-1">{notification.description}</p>
-                        {notification.creatorName && (
-                          <p className="text-xs text-gray-500 mt-2">From {notification.creatorName}</p>
-                        )}
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className={`font-medium ${!notification.isRead ? 'text-white' : 'text-gray-300'}`}>
+                              {notification.title}
+                            </h3>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-400 flex items-center">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {new Date(notification.createdAt).toLocaleDateString()}
+                              </span>
+                              {!notification.isRead && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-400 mt-1">{notification.message}</p>
+                          {notification.fromUserName && (
+                            <p className="text-xs text-gray-500 mt-2">From {notification.fromUserName}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                  
+                  {/* Load More Button */}
+                  {hasMore && !loading && (
+                    <div className="text-center py-4">
+                      <Button 
+                        onClick={loadMore}
+                        variant="outline"
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        Load More
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Loading More */}
+                  {loading && notifications.length > 0 && (
+                    <div className="text-center py-4">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-400 mx-auto" />
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {notifications.length === 0 && (
+              {!loading && !error && notifications.length === 0 && (
                 <div className="text-center py-12">
                   <Bell className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-400 mb-2">No notifications yet</h3>
