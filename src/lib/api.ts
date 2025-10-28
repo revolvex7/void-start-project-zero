@@ -387,6 +387,39 @@ class ApiService {
       method: 'GET',
     });
   }
+
+  // Group Invites endpoints
+  async createGroupInvite(groupInviteData: { groupName: string; platform: string; link: string }) {
+    return await this.request('/user/group-invites', {
+      method: 'POST',
+      body: JSON.stringify(groupInviteData),
+    });
+  }
+
+  async getGroupInvites() {
+    return await this.request('/user/group-invites', {
+      method: 'GET',
+    });
+  }
+
+  async getGroupInviteById(id: string) {
+    return await this.request(`/user/group-invites/${id}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateGroupInvite(id: string, updateData: Partial<{ groupName: string; platform: string; link: string }>) {
+    return await this.request(`/user/group-invites/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  async deleteGroupInvite(id: string) {
+    return await this.request(`/user/group-invites/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Create API instances
@@ -669,6 +702,24 @@ export interface NotificationResponse {
 
 export interface UnreadCountResponse {
   unreadCount: number;
+}
+
+export interface GroupInvite {
+  id: string;
+  creatorId: string;
+  groupName: string;
+  platform: string;
+  link: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroupInviteResponse {
+  data: GroupInvite;
+}
+
+export interface GroupInvitesResponse {
+  data: GroupInvite[];
 }
 
 export default apiService;
