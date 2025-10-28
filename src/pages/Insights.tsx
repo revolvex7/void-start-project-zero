@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { useInsights } from '@/hooks/useApi';
-import { CreatorDashboardSkeleton } from '@/components/ui/content-skeletons';
+import { GridSkeleton } from '@/components/ui/content-skeletons';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -48,13 +48,13 @@ export default function Insights() {
       <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header - Hidden on mobile since it's in the fixed header */}
-          <div className="mb-8 hidden lg:block">
+          <div className="mb-8 hidden lg:block mt-7">
             <h1 className="text-3xl font-bold mb-2">Insights</h1>
             <p className="text-gray-400">Track your performance and growth</p>
           </div>
 
           {isLoading ? (
-            <CreatorDashboardSkeleton />
+            <GridSkeleton />
           ) : error ? (
             <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
               <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />

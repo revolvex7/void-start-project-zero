@@ -118,6 +118,20 @@ class ApiService {
     });
   }
 
+  async updateMemberProfile(profileData: { name?: string; bio?: string; profilePhoto?: string }) {
+    return await this.request('/user/member-profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async changePassword(oldPassword: string, newPassword: string) {
+    return await this.request('/user/change-password', {
+      method: 'PUT',
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+  }
+
   // Creator endpoints
   async getAllCreators() {
     return await this.request('/user/creators', {
@@ -413,6 +427,8 @@ export const authAPI = {
 export const userAPI = {
   getCurrentUser: () => apiService.getCurrentUser(),
   update: (userData: any) => apiService.updateUser(userData),
+  updateMemberProfile: (profileData: { name?: string; bio?: string; profilePhoto?: string }) => apiService.updateMemberProfile(profileData),
+  changePassword: (oldPassword: string, newPassword: string) => apiService.changePassword(oldPassword, newPassword),
   getInsights: () => apiService.getInsights(),
 };
 

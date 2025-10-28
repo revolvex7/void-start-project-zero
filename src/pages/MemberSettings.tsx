@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   CreditCard, 
   Calendar, 
@@ -15,8 +17,13 @@ import {
   Shield,
   Trash2,
   Menu,
-  X
+  X,
+  Loader2,
+  Upload,
+  Camera
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { userAPI } from '@/lib/api';
 
 interface Subscription {
   id: string;
@@ -44,8 +51,45 @@ interface PurchaseHistory {
 
 export default function MemberSettings() {
   const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'memberships' | 'history' | 'account'>('subscriptions');
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'account'>('subscriptions');
+  
+  // Edit Profile Modal
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: '',
+    bio: '',
+    profilePhoto: ''
+  });
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  
+  // Change Password Modal
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  
+  // Load user data - member profile only (not creator data)
+  useEffect(() => {
+    if (user) {
+      // Get member-specific profile data (not from creator object)
+      const memberBio = (user as any).bio || '';
+      const memberProfilePhoto = (user as any).memberProfilePhoto || '';
+      
+      setProfileData({
+        name: user.name || '',
+        bio: memberBio,
+        profilePhoto: memberProfilePhoto
+      });
+      setProfileImagePreview(memberProfilePhoto || null);
+    }
+  }, [user]);
 
   // Mock data
   const subscriptions: Subscription[] = [
@@ -252,6 +296,71 @@ export default function MemberSettings() {
     </div>
   );
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setProfileImagePreview(base64String);
+        setProfileData({ ...profileData, profilePhoto: base64String });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setIsUpdatingProfile(true);
+    try {
+      // Use member-specific profile update endpoint
+      const response = await userAPI.updateMemberProfile({
+        name: profileData.name,
+        bio: profileData.bio,
+        profilePhoto: profileData.profilePhoto
+      });
+      
+      if (response.data) {
+        // Update the user context with new member profile data
+        updateUser({
+          ...user,
+          name: response.data.name,
+          ...(response.data.bio && { bio: response.data.bio }),
+          ...(response.data.profilePhoto && { memberProfilePhoto: response.data.profilePhoto })
+        } as any);
+        setShowEditProfileModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError('');
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    try {
+      await userAPI.changePassword(passwordData.oldPassword, passwordData.newPassword);
+      setShowChangePasswordModal(false);
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error: any) {
+      setPasswordError(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   const renderAccountSettings = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Account Settings</h2>
@@ -265,7 +374,10 @@ export default function MemberSettings() {
                 <h4 className="font-medium">Update Profile</h4>
                 <p className="text-sm text-gray-400">Edit your profile information, avatar, and bio</p>
               </div>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button 
+                onClick={() => setShowEditProfileModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 <User className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
@@ -281,7 +393,11 @@ export default function MemberSettings() {
                 <h4 className="font-medium">Change Password</h4>
                 <p className="text-sm text-gray-400">Update your password to keep your account secure</p>
               </div>
-              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Button 
+                onClick={() => setShowChangePasswordModal(true)}
+                variant="outline" 
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
                 <Shield className="w-4 h-4 mr-2" />
                 Change Password
               </Button>
@@ -340,19 +456,6 @@ export default function MemberSettings() {
               <span className="hidden sm:inline">Subscriptions</span>
               <span className="sm:hidden">Subs</span>
             </Button>
-           
-            <Button
-              variant={activeTab === 'history' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('history')}
-              className={`px-4 sm:px-6 py-2 whitespace-nowrap flex-shrink-0 ${
-                activeTab === 'history' 
-                  ? 'bg-white text-black' 
-                  : 'text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              History
-            </Button>
             <Button
               variant={activeTab === 'account' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('account')}
@@ -370,11 +473,196 @@ export default function MemberSettings() {
           {/* Tab Content */}
           <div>
             {activeTab === 'subscriptions' && renderSubscriptions()}
-            {activeTab === 'history' && renderPurchaseHistory()}
             {activeTab === 'account' && renderAccountSettings()}
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Edit Profile</h2>
+              <button
+                onClick={() => setShowEditProfileModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Profile Image */}
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {profileImagePreview ? (
+                      <img src={profileImagePreview} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-white" />
+                    )}
+                  </div>
+                  <label className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700">
+                    <Camera className="w-4 h-4 text-white" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">Click camera icon to upload</p>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Name</label>
+                <Input
+                  value={profileData.name}
+                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                  placeholder="Your name"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Bio</label>
+                <Textarea
+                  value={profileData.bio}
+                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                  placeholder="Tell us about yourself..."
+                  className="bg-gray-700 border-gray-600 text-white min-h-[100px]"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditProfileModal(false)}
+                  disabled={isUpdatingProfile}
+                  className="bg-transparent border-gray-600 text-gray-300"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdateProfile}
+                  disabled={isUpdatingProfile || !profileData.name}
+                  className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 min-w-[100px]"
+                >
+                  {isUpdatingProfile ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePasswordModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Change Password</h2>
+              <button
+                onClick={() => {
+                  setShowChangePasswordModal(false);
+                  setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                  setPasswordError('');
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {passwordError && (
+                <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3 text-sm text-red-400">
+                  {passwordError}
+                </div>
+              )}
+
+              {/* Old Password */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Current Password</label>
+                <Input
+                  type="password"
+                  value={passwordData.oldPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                  placeholder="Enter current password"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+
+              {/* New Password */}
+              <div>
+                <label className="block text-sm font-medium mb-2">New Password</label>
+                <Input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  placeholder="Enter new password"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+                <p className="text-xs text-gray-400 mt-1">Must be at least 6 characters</p>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+                <Input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  placeholder="Confirm new password"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowChangePasswordModal(false);
+                    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                    setPasswordError('');
+                  }}
+                  disabled={isChangingPassword}
+                  className="bg-transparent border-gray-600 text-gray-300"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                  className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 min-w-[120px]"
+                >
+                  {isChangingPassword ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Changing...</span>
+                    </div>
+                  ) : (
+                    'Change Password'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

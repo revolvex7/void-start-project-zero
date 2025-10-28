@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { notificationAPI, Notification } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { ListItemSkeleton } from '@/components/ui/content-skeletons';
 
 export default function CreatorNotifications() {
   const navigate = useNavigate();
@@ -147,7 +148,7 @@ export default function CreatorNotifications() {
       <div className={`${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} w-64 sm:w-72 lg:w-80 bg-gray-800 flex flex-col fixed h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out`} id="mobile-sidebar-creator-notif">
         <UnifiedSidebar showMobileSidebar={showMobileSidebar} setShowMobileSidebar={setShowMobileSidebar} />
       </div>
-      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-8">
+      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-8 mt-7">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
@@ -174,9 +175,10 @@ export default function CreatorNotifications() {
 
               {/* Loading State */}
               {loading && notifications.length === 0 && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-green-400" />
-                  <span className="ml-2 text-gray-400">Loading notifications...</span>
+                <div className="space-y-4">
+                  <ListItemSkeleton />
+                  <ListItemSkeleton />
+                  <ListItemSkeleton />
                 </div>
               )}
 

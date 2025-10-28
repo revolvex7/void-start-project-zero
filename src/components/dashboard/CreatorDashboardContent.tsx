@@ -58,6 +58,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
     price: '',
     description: ''
   });
+  const [isCreatingTier, setIsCreatingTier] = useState(false);
 
   // Fetch memberships when component mounts
   React.useEffect(() => {
@@ -93,6 +94,8 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
   const handleAddTier = async () => {
     if (!newTier.name || !newTier.price || parseFloat(newTier.price) <= 0) return;
     
+    setIsCreatingTier(true);
+    
     try {
       if (editingTierId) {
         // Update existing tier
@@ -113,12 +116,17 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
         });
       }
       
+      // Refetch tiers to get updated data
+      await refetch();
+      
       setNewTier({ name: '', price: '', description: '' });
       setEditingTierId(null);
       setShowNewTierModal(false);
     } catch (error) {
       console.error('Failed to save tier:', error);
       // You can add error handling UI here if needed
+    } finally {
+      setIsCreatingTier(false);
     }
   };
 
@@ -326,7 +334,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                 <>
                   <h2 className="text-2xl font-bold mb-6">Build your paid membership</h2>
                   
-                  <div className="grid md:grid-cols-2 gap-8 items-center">
+                  <div className="max-w-2xl">
                     <div className="space-y-6">
                       <div className="flex items-start space-x-4">
                         <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -364,23 +372,6 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                       >
                         Get started
                       </Button>
-                    </div>
-                    
-                    <div className="bg-gray-700 rounded-lg p-6">
-                      <div className="bg-pink-100 rounded-lg p-4 mb-4">
-                        <img 
-                          src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=300&fit=crop&crop=face" 
-                          alt="Creator" 
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                      </div>
-                      <div className="text-center">
-                        <h4 className="font-semibold text-lg mb-2">Friend of the Show</h4>
-                        <p className="text-2xl font-bold mb-2">$5 <span className="text-sm font-normal text-gray-400">/ month</span></p>
-                        <Button className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2">
-                          Join now
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 </>
@@ -446,7 +437,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
 
       {/* New Tier Modal */}
       {showNewTierModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">{editingTierId ? 'Edit Subscription Tier' : 'Create Subscription Tier'}</h2>
@@ -517,17 +508,29 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                   <div className="flex justify-end space-x-3">
                     <Button 
                       variant="outline" 
-                      onClick={() => setShowNewTierModal(false)}
+                      onClick={() => {
+                        setShowNewTierModal(false);
+                        setNewTier({ name: '', price: '', description: '' });
+                        setEditingTierId(null);
+                      }}
+                      disabled={isCreatingTier}
                       className="bg-transparent border-gray-600 text-gray-300"
                     >
                       Cancel
                     </Button>
                     <Button 
                       onClick={handleAddTier}
-                      disabled={!newTier.name || !newTier.price || parseFloat(newTier.price) <= 0}
-                      className="bg-white text-black hover:bg-gray-100"
+                      disabled={!newTier.name || !newTier.price || parseFloat(newTier.price) <= 0 || isCreatingTier}
+                      className="bg-white text-black hover:bg-gray-100 disabled:opacity-50 min-w-[120px]"
                     >
-                      {editingTierId ? 'Update Tier' : 'Create Tier'}
+                      {isCreatingTier ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                          <span>Creating...</span>
+                        </div>
+                      ) : (
+                        editingTierId ? 'Update Tier' : 'Create Tier'
+                      )}
                     </Button>
                   </div>
                 </>

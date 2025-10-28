@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { notificationAPI, Notification } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { ListItemSkeleton } from '@/components/ui/content-skeletons';
 
 export default function MemberNotifications() {
   const navigate = useNavigate();
@@ -169,7 +170,7 @@ export default function MemberNotifications() {
       </div>
       
       {/* Main Content */}
-      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-8">
+      <div className="flex-1 lg:ml-80 pt-16 lg:pt-0 p-8 mt-7">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
@@ -196,9 +197,10 @@ export default function MemberNotifications() {
 
               {/* Loading State */}
               {loading && notifications.length === 0 && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-                  <span className="ml-2 text-gray-400">Loading notifications...</span>
+                <div className="space-y-4">
+                 <ListItemSkeleton />
+                 <ListItemSkeleton />
+                 <ListItemSkeleton />
                 </div>
               )}
 
