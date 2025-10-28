@@ -11,87 +11,83 @@ import {
   Menu,
   X
 } from 'lucide-react';
-
-interface VIPGroup {
-  id: string;
-  name: string;
-  platform: 'whatsapp' | 'telegram';
-  inviteLink: string;
-  memberCount: number;
-  tierRequired: string;
-  isActive: boolean;
-  createdDate: string;
-}
+import apiService, { GroupInvite } from '@/lib/api';
 
 export default function CreatorSettings() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupPlatform, setNewGroupPlatform] = useState<'whatsapp' | 'telegram'>('whatsapp');
   const [newGroupLink, setNewGroupLink] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data
-  const [vipGroups, setVipGroups] = useState<VIPGroup[]>([
-    {
-      id: '1',
-      name: 'Premium Fitness Community',
-      platform: 'whatsapp',
-      inviteLink: 'https://chat.whatsapp.com/premium-fitness-123',
-      memberCount: 45,
-      tierRequired: 'Premium',
-      isActive: true,
-      createdDate: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'VIP Workout Group',
-      platform: 'telegram',
-      inviteLink: 'https://t.me/vip-workout-group',
-      memberCount: 28,
-      tierRequired: 'VIP',
-      isActive: true,
-      createdDate: '2024-01-10'
-    },
-    {
-      id: '3',
-      name: 'Basic Support Group',
-      platform: 'whatsapp',
-      inviteLink: 'https://chat.whatsapp.com/basic-support-456',
-      memberCount: 120,
-      tierRequired: 'Basic',
-      isActive: false,
-      createdDate: '2023-12-20'
+  // Use GroupInvite from API instead of VIPGroup
+  const [groupInvites, setGroupInvites] = useState<GroupInvite[]>([]);
+
+  // Fetch group invites on component mount
+  useEffect(() => {
+    fetchGroupInvites();
+  }, []);
+
+  const fetchGroupInvites = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getGroupInvites();
+      setGroupInvites(response.data || []);
+    } catch (err) {
+      console.error('Failed to fetch group invites:', err);
+      setError('Failed to load group invites');
+    } finally {
+      setLoading(false);
     }
-  ]);
-
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     // You could add a toast notification here
   };
 
-  const addVIPGroup = () => {
+  const addGroupInvite = async () => {
     if (newGroupName && newGroupLink) {
-      const newGroup: VIPGroup = {
-        id: Date.now().toString(),
-        name: newGroupName,
-        platform: newGroupPlatform,
-        inviteLink: newGroupLink,
-        memberCount: 0,
-        tierRequired: 'Premium',
-        isActive: true,
-        createdDate: new Date().toISOString().split('T')[0]
-      };
-      setVipGroups([...vipGroups, newGroup]);
-      setNewGroupName('');
-      setNewGroupLink('');
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiService.createGroupInvite({
+          groupName: newGroupName,
+          platform: newGroupPlatform,
+          link: newGroupLink,
+        });
+        
+        // Add the new group invite to the list
+        setGroupInvites([response.data, ...groupInvites]);
+        
+        // Clear form
+        setNewGroupName('');
+        setNewGroupLink('');
+      } catch (err) {
+        console.error('Failed to create group invite:', err);
+        setError('Failed to create group invite');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-
-  const deleteVIPGroup = (groupId: string) => {
-    setVipGroups(vipGroups.filter(group => group.id !== groupId));
+  const deleteGroupInvite = async (groupId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await apiService.deleteGroupInvite(groupId);
+      
+      // Remove from local state
+      setGroupInvites(groupInvites.filter(group => group.id !== groupId));
+    } catch (err) {
+      console.error('Failed to delete group invite:', err);
+      setError('Failed to delete group invite');
+    } finally {
+      setLoading(false);
+    }
   };
-
 
   const renderVIPGroups = () => (
     <div className="space-y-6">
@@ -101,9 +97,16 @@ export default function CreatorSettings() {
           <p className="text-gray-400 text-sm mt-1">Send paying fans invite links to WhatsApp or Telegram groups</p>
         </div>
         <span className="text-sm text-gray-400">
-          {vipGroups.filter(g => g.isActive).length} active groups
+          {groupInvites.length} groups
         </span>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-900/20 border border-red-600 text-red-400 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Add New Group */}
       <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
@@ -116,6 +119,7 @@ export default function CreatorSettings() {
               onChange={(e) => setNewGroupName(e.target.value)}
               placeholder="e.g., Premium Fitness Community"
               className="bg-gray-700 border-gray-600 w-full"
+              disabled={loading}
             />
           </div>
           <div>
@@ -124,6 +128,7 @@ export default function CreatorSettings() {
               value={newGroupPlatform}
               onChange={(e) => setNewGroupPlatform(e.target.value as 'whatsapp' | 'telegram')}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              disabled={loading}
             >
               <option value="whatsapp">WhatsApp</option>
               <option value="telegram">Telegram</option>
@@ -136,20 +141,32 @@ export default function CreatorSettings() {
               onChange={(e) => setNewGroupLink(e.target.value)}
               placeholder="https://chat.whatsapp.com/your-group-link"
               className="bg-gray-700 border-gray-600 w-full"
+              disabled={loading}
             />
           </div>
           <div>
-            <Button onClick={addVIPGroup} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+            <Button 
+              onClick={addGroupInvite} 
+              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+              disabled={loading || !newGroupName || !newGroupLink}
+            >
               <Plus className="w-4 h-4 mr-2" />
-              Create Group
+              {loading ? 'Creating...' : 'Create Group'}
             </Button>
           </div>
         </div>
       </div>
 
+      {/* Loading state */}
+      {loading && groupInvites.length === 0 && (
+        <div className="text-center py-8">
+          <div className="text-gray-400">Loading group invites...</div>
+        </div>
+      )}
+
       {/* Existing Groups */}
       <div className="space-y-4">
-        {vipGroups.map((group) => (
+        {groupInvites.map((group) => (
           <div key={group.id} className="bg-gray-800 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
@@ -161,7 +178,7 @@ export default function CreatorSettings() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-medium">{group.name}</h3>
+                  <h3 className="font-medium">{group.groupName}</h3>
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
                     <span className="capitalize">{group.platform}</span>
                   </div>
@@ -172,13 +189,14 @@ export default function CreatorSettings() {
             <div className="bg-gray-700 rounded-lg p-3 mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <span className="text-sm text-gray-300 font-mono break-all flex-1">
-                  {group.inviteLink}
+                  {group.link}
                 </span>
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => copyToClipboard(group.inviteLink)}
+                  onClick={() => copyToClipboard(group.link)}
                   className="border-gray-600 text-gray-300 hover:bg-gray-600 self-start sm:self-auto"
+                  disabled={loading}
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -187,14 +205,15 @@ export default function CreatorSettings() {
 
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-400">
-                Created: {new Date(group.createdDate).toLocaleDateString()}
+                Created: {new Date(group.createdAt).toLocaleDateString()}
               </div>
               <div className="flex items-center space-x-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => deleteVIPGroup(group.id)}
+                  onClick={() => deleteGroupInvite(group.id)}
                   className="border-red-600 text-red-400 hover:bg-red-900/20"
+                  disabled={loading}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -203,6 +222,13 @@ export default function CreatorSettings() {
           </div>
         ))}
       </div>
+
+      {/* Empty state */}
+      {!loading && groupInvites.length === 0 && (
+        <div className="text-center py-8">
+          <div className="text-gray-400">No group invites created yet. Create your first one above!</div>
+        </div>
+      )}
     </div>
   );
 
