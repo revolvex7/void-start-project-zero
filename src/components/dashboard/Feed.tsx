@@ -511,17 +511,23 @@ export default function Feed() {
             ))
           )}
 
-          {/* Load More - Only show if there are more posts */}
-          {localPosts.length > 0 && pagination?.hasNextPage && (
+          {/* Load More - Only show if there are 10+ posts and more pages available */}
+          {!loading && localPosts.length >= 10 && pagination?.hasNextPage && (
             <div className="text-center py-8">
               <Button 
                 variant="outline" 
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-blue-500 transition-all px-8 py-6 text-base font-medium"
                 onClick={handleLoadMore}
-                disabled={loading}
               >
-                {loading ? 'Loading...' : 'Load More Posts'}
+                Load More Posts
               </Button>
+            </div>
+          )}
+          
+          {/* Loading More Indicator */}
+          {loading && currentPage > 1 && (
+            <div className="flex justify-center py-6">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
             </div>
           )}
         </div>

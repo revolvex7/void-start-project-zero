@@ -86,12 +86,13 @@ export const useCompleteCreatorProfile = () => {
 };
 
 // Creator Queries
-export const useCreators = () => {
+export const useCreators = (page: number = 1, limit: number = 10) => {
   return useQuery({
-    queryKey: queryKeys.creators.all,
+    queryKey: [...queryKeys.creators.all, page, limit],
     queryFn: async () => {
-      const response = await creatorAPI.getAllCreators();
-      return response.data;
+      const response = await creatorAPI.getAllCreators(page, limit);
+      // API returns data directly in response.data
+      return response.data || response;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes

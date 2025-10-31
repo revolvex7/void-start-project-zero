@@ -133,8 +133,8 @@ class ApiService {
   }
 
   // Creator endpoints
-  async getAllCreators() {
-    return await this.request('/user/creators', {
+  async getAllCreators(page: number = 1, limit: number = 10) {
+    return await this.request(`/user/creators?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
@@ -466,7 +466,7 @@ export const userAPI = {
 };
 
 export const creatorAPI = {
-  getAllCreators: () => apiService.getAllCreators(),
+  getAllCreators: (page?: number, limit?: number) => apiService.getAllCreators(page, limit),
   getCreatorById: (creatorId: string) => apiService.getCreatorById(creatorId),
   getCreatorByPageName: (pageName: string) => apiService.getCreatorByPageName(pageName),
   toggleFollow: (creatorId: string) => apiService.toggleFollowCreator(creatorId),
