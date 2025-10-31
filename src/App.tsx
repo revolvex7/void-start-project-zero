@@ -29,6 +29,7 @@ import CreatorNotifications from '@/pages/CreatorNotifications';
 import PostPreview from '@/pages/PostPreview';
 import MemberSettings from '@/pages/MemberSettings';
 import CreatorSettings from '@/pages/CreatorSettings';
+import Storefront from '@/pages/Storefront';
 
 // Creator pages
 import Podcasters from '@/pages/Podcasters';
@@ -292,6 +293,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreatorSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/storefront" 
+              element={
+                <ProtectedRoute>
+                  <Storefront />
                 </ProtectedRoute>
               } 
             />

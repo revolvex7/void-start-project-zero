@@ -22,6 +22,8 @@ const setupTasks = [
     completed: false,
     enabled: true
   },
+  
+  
   {
     id: 'first-post',
     icon: Edit,
@@ -247,40 +249,67 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
             {/* Setup Tasks */}
             <div className="mt-6 space-y-4">
               {setupTasks.map((task, index) => (
-                <div 
-                  key={index} 
-                  onClick={() => handleTaskClick(task)}
-                  className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
-                    task.enabled 
-                      ? 'bg-gray-700 hover:bg-gray-600 cursor-pointer' 
-                      : 'bg-gray-800 cursor-not-allowed opacity-50'
-                  } ${completedTasks.includes(task.id) ? 'ring-2 ring-green-500' : ''}`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
-                      <task.icon className={`w-5 h-5 ${task.enabled ? 'text-gray-300' : 'text-gray-600'}`} />
+                <React.Fragment key={index}>
+                  <div 
+                    onClick={() => handleTaskClick(task)}
+                    className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
+                      task.enabled 
+                        ? 'bg-gray-700 hover:bg-gray-600 cursor-pointer' 
+                        : 'bg-gray-800 cursor-not-allowed opacity-50'
+                    } ${completedTasks.includes(task.id) ? 'ring-2 ring-green-500' : ''}`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                        <task.icon className={`w-5 h-5 ${task.enabled ? 'text-gray-300' : 'text-gray-600'}`} />
+                      </div>
+                      <div>
+                        <h4 className={`font-medium ${task.enabled ? 'text-white' : 'text-gray-500'}`}>
+                          {task.title}
+                        </h4>
+                        <p className={`text-sm ${task.enabled ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {task.description}
+                        </p>
+                        {task.link && task.enabled && (
+                          <a href="#" className="text-xs text-blue-400 underline mt-1 block">
+                            {task.link}
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h4 className={`font-medium ${task.enabled ? 'text-white' : 'text-gray-500'}`}>
-                        {task.title}
-                      </h4>
-                      <p className={`text-sm ${task.enabled ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {task.description}
-                      </p>
-                      {task.link && task.enabled && (
-                        <a href="#" className="text-xs text-blue-400 underline mt-1 block">
-                          {task.link}
-                        </a>
-                      )}
-                    </div>
+                    {completedTasks.includes(task.id) && (
+                      <div className="w-5 h-5 text-green-500">✓</div>
+                    )}
+                    {!completedTasks.includes(task.id) && task.enabled && (
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    )}
                   </div>
-                  {completedTasks.includes(task.id) && (
-                    <div className="w-5 h-5 text-green-500">✓</div>
+                  
+                  {/* Show Storefront CTA after "Make your first post" task */}
+                  {task.id === 'first-post' && (
+                    <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-lg p-4 border border-purple-500/20">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <DollarSign className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-white mb-1">Want to sell your products?</h4>
+                            <p className="text-xs text-gray-300">
+                              Set up your digital storefront and start earning
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => navigate('/storefront')}
+                          size="sm"
+                          className="bg-purple-600 hover:bg-purple-700 text-white ml-3"
+                        >
+                          Set up store
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                  {!completedTasks.includes(task.id) && task.enabled && (
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  )}
-                </div>
+                </React.Fragment>
               ))}
             </div>
           </div>
