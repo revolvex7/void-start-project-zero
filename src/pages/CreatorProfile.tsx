@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MembershipModal } from '@/components/modals/MembershipModal';
 import { TipModal } from '@/components/modals/TipModal';
 import { SubscriptionRequiredModal } from '@/components/modals/SubscriptionRequiredModal';
+import { ProductPurchaseModal } from '@/components/modals/ProductPurchaseModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/contexts/UserRoleContext';
 import { useMembership } from '@/contexts/MembershipContext';
@@ -48,6 +49,8 @@ const CreatorProfile = () => {
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('home');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -175,6 +178,11 @@ const CreatorProfile = () => {
     } else {
       setShowSubscriptionModal(true);
     }
+  };
+
+  const handleProductClick = (product: any) => {
+    setSelectedProduct(product);
+    setShowProductModal(true);
   };
 
   // Show loading state
@@ -496,11 +504,20 @@ const CreatorProfile = () => {
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
                             {product.mediaUrl ? (
-                              <img 
-                                src={product.mediaUrl} 
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
+                              <>
+                                <img 
+                                  src={product.mediaUrl} 
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {/* Lock Overlay */}
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                                  <div className="text-center">
+                                    <Lock className="w-12 h-12 text-white mx-auto mb-2" />
+                                    <p className="text-white text-xs font-medium">Payment Required</p>
+                                  </div>
+                                </div>
+                              </>
                             ) : (
                               <div className="flex items-center justify-center w-full h-full bg-gray-700">
                                 <ShoppingBag className="w-12 h-12 text-gray-500" />
@@ -518,6 +535,7 @@ const CreatorProfile = () => {
                               </p>
                               <Button
                                 size="sm"
+                                onClick={() => handleProductClick(product)}
                                 className="text-white text-xs"
                                 style={{ 
                                   backgroundColor: themeColor,
@@ -526,6 +544,7 @@ const CreatorProfile = () => {
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = themeColorHover}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = themeColor}
                               >
+                                <Lock className="w-3 h-3 mr-1" />
                                 Buy Now
                               </Button>
                             </div>
@@ -764,6 +783,15 @@ const CreatorProfile = () => {
           onOpenChange={setShowSubscriptionModal}
           creatorName={creator.creatorName}
           onSubscribe={() => setShowMembershipModal(true)}
+        />
+
+        {/* Product Purchase Modal */}
+        <ProductPurchaseModal
+          open={showProductModal}
+          onOpenChange={setShowProductModal}
+          product={selectedProduct}
+          creatorName={creator.creatorName}
+          themeColor={creator.themeColor}
         />
       </div>
   );

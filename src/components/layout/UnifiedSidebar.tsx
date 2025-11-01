@@ -271,15 +271,25 @@ export function UnifiedSidebar({
               onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
               className="w-full flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                currentRole === 'creator' ? 'bg-pink-600' : 'bg-blue-600'
-              }`}>
-                <span className="text-white font-bold text-sm">
-                  {currentRole === 'creator' 
-                    ? (user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C')
-                    : (user?.name?.charAt(0)?.toUpperCase() || 'U')
-                  }
-                </span>
+              <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-700">
+                {(currentRole === 'creator' ? (user as any)?.creator?.profilePhoto : (user as any)?.profilePhoto) ? (
+                  <img 
+                    src={currentRole === 'creator' ? (user as any)?.creator?.profilePhoto : (user as any)?.profilePhoto}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center ${
+                    currentRole === 'creator' ? 'bg-pink-600' : 'bg-blue-600'
+                  }`}>
+                    <span className="text-white font-bold text-sm">
+                      {currentRole === 'creator' 
+                        ? (user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C')
+                        : (user?.name?.charAt(0)?.toUpperCase() || 'U')
+                      }
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex-1 text-left">
                 <div className="font-medium text-sm">
@@ -300,15 +310,25 @@ export function UnifiedSidebar({
                 <button
                   className="w-full flex items-center space-x-3 p-2 rounded bg-gray-600"
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    currentRole === 'creator' ? 'bg-pink-600' : 'bg-blue-600'
-                  }`}>
-                    <span className="text-white font-bold text-xs">
-                      {currentRole === 'creator' 
-                        ? (user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C')
-                        : (user?.name?.charAt(0)?.toUpperCase() || 'U')
-                      }
-                    </span>
+                  <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-700">
+                    {(currentRole === 'creator' ? (user as any)?.creator?.profilePhoto : (user as any)?.profilePhoto) ? (
+                      <img 
+                        src={currentRole === 'creator' ? (user as any)?.creator?.profilePhoto : (user as any)?.profilePhoto}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center ${
+                        currentRole === 'creator' ? 'bg-pink-600' : 'bg-blue-600'
+                      }`}>
+                        <span className="text-white font-bold text-xs">
+                          {currentRole === 'creator' 
+                            ? (user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C')
+                            : (user?.name?.charAt(0)?.toUpperCase() || 'U')
+                          }
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 text-left">
                     <div className="text-sm font-medium">
@@ -328,10 +348,20 @@ export function UnifiedSidebar({
                     onClick={() => handleRoleSwitch('creator')}
                     className="w-full flex items-center space-x-3 p-2 rounded hover:bg-gray-600"
                   >
-                    <div className="w-6 h-6 bg-pink-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">
-                        {user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C'}
-                      </span>
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-700">
+                      {(user as any)?.creator?.profilePhoto ? (
+                        <img 
+                          src={(user as any)?.creator?.profilePhoto}
+                          alt="Creator Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-pink-600 flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">
+                            {user?.creatorName?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'C'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 text-left">
                       <div className="text-sm font-medium">{user?.creatorName || user?.name || 'Creator'}</div>
@@ -343,10 +373,20 @@ export function UnifiedSidebar({
                     onClick={() => handleRoleSwitch('member')}
                     className="w-full flex items-center space-x-3 p-2 rounded hover:bg-gray-600"
                   >
-                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">
-                        {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                      </span>
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-700">
+                      {(user as any)?.profilePhoto ? (
+                        <img 
+                          src={(user as any)?.profilePhoto}
+                          alt="Member Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-blue-600 flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">
+                            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 text-left">
                       <div className="text-sm font-medium">{user?.name || 'User'}</div>
