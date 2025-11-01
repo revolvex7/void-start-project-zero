@@ -34,7 +34,8 @@ import {
   X,
   Eye,
   Plus,
-  Check
+  Check,
+  ShoppingBag
 } from 'lucide-react';
 
 const CreatorProfile = () => {
@@ -481,68 +482,60 @@ const CreatorProfile = () => {
                 </div>
 
                 
-                {/* Explore Other Section */}
+                {/* Products Section */}
                 <div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Explore other</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Products</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {creator.exploreOthers && creator.exploreOthers.length > 0 ? (
-                      creator.exploreOthers.map((post, index) => (
+                    {creator.products && creator.products.length > 0 ? (
+                      creator.products.map((product) => (
                         <div 
-                          key={post.id} 
-                          onClick={() => post.public ? handleFreePostClick(post.id) : handlePaidPostClick(post.id)}
-                          className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer"
+                          key={product.id} 
+                          className="bg-gray-800 rounded-lg overflow-hidden hover:ring-2 transition-all"
+                          style={{ '--hover-ring-color': themeColor } as React.CSSProperties}
+                          onMouseEnter={(e) => e.currentTarget.style.setProperty('--tw-ring-color', themeColor)}
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
-                            {post.mediaFiles && post.mediaFiles.length > 0 ? (
-                              <>
-                                <img 
-                                  src={post.mediaFiles[0]} 
-                                  alt={post.title}
-                                  className={`w-full h-full object-cover ${
-                                    !post.public && !isSubscribed ? 'blur-md' : ''
-                                  }`}
-                                />
-                                {!post.public && !isSubscribed && (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                    <Lock className="w-12 h-12 text-white" />
-                                  </div>
-                                )}
-                              </>
+                            {product.mediaUrl ? (
+                              <img 
+                                src={product.mediaUrl} 
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
-                              post.public ? (
-                                <Play className="w-6 h-6 text-white" />
-                              ) : (
-                                <Lock className="w-6 h-6 text-gray-400" />
-                              )
+                              <div className="flex items-center justify-center w-full h-full bg-gray-700">
+                                <ShoppingBag className="w-12 h-12 text-gray-500" />
+                              </div>
                             )}
-                            <div 
-                              className="absolute top-2 right-2 text-white text-xs px-2 py-1 rounded"
-                              style={{ backgroundColor: post.public ? '#16a34a' : themeColor }}
-                            >
-                              {post.public ? 'Free' : 'Members only'}
-                            </div>
                           </div>
                           <div className="p-3 sm:p-4">
-                            <h4 className="font-medium text-sm sm:text-base mb-1">{post.title}</h4>
-                            <p className="text-gray-400 text-xs sm:text-sm">
-                              {new Date(post.createdAt).toLocaleDateString()}
+                            <h4 className="font-medium text-sm sm:text-base mb-1 line-clamp-1">{product.name}</h4>
+                            <p className="text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2">
+                              {product.description || 'No description'}
                             </p>
-                            <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
-                              <button className="flex items-center space-x-1 hover:text-white">
-                                <Heart size={14} />
-                                <span>{post.totalLikes}</span>
-                              </button>
-                              <button className="flex items-center space-x-1 hover:text-white">
-                                <MessageCircle size={14} />
-                                <span>{post.totalComments}</span>
-                              </button>
+                            <div className="flex items-center justify-between mt-3">
+                              <p className="text-lg font-bold" style={{ color: themeColor }}>
+                                ₦{parseFloat(product.price || '0').toLocaleString()}
+                              </p>
+                              <Button
+                                size="sm"
+                                className="text-white text-xs"
+                                style={{ 
+                                  backgroundColor: themeColor,
+                                  '--hover-bg': themeColorHover 
+                                } as React.CSSProperties}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = themeColorHover}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = themeColor}
+                              >
+                                Buy Now
+                              </Button>
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
                       <div className="col-span-full text-center py-8">
-                        <p className="text-gray-400">No additional content available</p>
+                        <ShoppingBag className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                        <p className="text-gray-400">No products available</p>
                       </div>
                     )}
                   </div>
