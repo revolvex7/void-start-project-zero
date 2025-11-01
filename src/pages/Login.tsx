@@ -12,6 +12,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
   
   const { login, fetchUserProfile } = useAuth();
   const navigate = useNavigate();
@@ -20,11 +21,26 @@ const Login = () => {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setShowPasswordField(true);
+    setEmailError('');
+    
+    if (!email) {
+      setEmailError('Email is required');
+      return;
     }
+    
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+    
+    setShowPasswordField(true);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -84,10 +100,18 @@ const Login = () => {
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError('');
+              }}
               placeholder="Email address"
-              className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base rounded-lg focus:outline-none focus:border-gray-600"
+              className={`w-full bg-gray-800 text-white placeholder-gray-400 py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base rounded-lg focus:outline-none ${
+                emailError ? 'border-red-500 focus:border-red-500' : 'border-gray-700 focus:border-gray-600'
+              }`}
             />
+            {emailError && (
+              <p className="text-red-500 text-xs sm:text-sm mt-1">{emailError}</p>
+            )}
           </div>
 
           {showPasswordField && (

@@ -17,6 +17,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [emailError, setEmailError] = useState('');
   
   // Form data
   const [formData, setFormData] = useState({
@@ -77,6 +78,21 @@ const Signup = () => {
   const handleNext = async () => {
     if (isLoading) return;
     
+    // Validate email on step 1
+    if (currentStep === 1) {
+      setEmailError('');
+      
+      if (!formData.email) {
+        setEmailError('Email is required');
+        return;
+      }
+      
+      if (!validateEmail(formData.email)) {
+        setEmailError('Please enter a valid email address');
+        return;
+      }
+    }
+    
     setIsLoading(true);
     
     try {
@@ -118,8 +134,18 @@ const Signup = () => {
     }
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear email error when user types
+    if (field === 'email' && emailError) {
+      setEmailError('');
+    }
   };
 
   const isStepValid = () => {
@@ -146,13 +172,20 @@ const Signup = () => {
             </div>
 
             <div className="space-y-3 sm:space-y-4">
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="you@example.com"
-                className="w-full bg-gray-700 border-gray-600 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base"
-              />
+              <div>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="you@example.com"
+                  className={`w-full bg-gray-700 text-white placeholder-gray-400 py-2.5 sm:py-3 h-auto rounded-lg focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-base ${
+                    emailError ? 'border-red-500 focus-visible:border-red-500' : 'border-gray-600'
+                  }`}
+                />
+                {emailError && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">{emailError}</p>
+                )}
+              </div>
 
               <Button 
                 onClick={handleNext}
