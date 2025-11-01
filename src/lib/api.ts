@@ -348,6 +348,18 @@ class ApiService {
     });
   }
 
+  async markConversationAsRead(conversationId: string) {
+    return await this.request(`/user/chat/conversations/${conversationId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  async getUnreadMessageCount() {
+    return await this.request('/user/chat/conversations/unread-count', {
+      method: 'GET',
+    });
+  }
+
   // Notification endpoints
   async getNotifications(page: number = 1, limit: number = 20, type?: 'member' | 'creator') {
     const params = new URLSearchParams({
@@ -505,6 +517,8 @@ export const membershipAPI = {
 export const chatAPI = {
   getConversations: () => apiService.getConversations(),
   getMessages: (conversationId: string) => apiService.getMessages(conversationId),
+  markConversationAsRead: (conversationId: string) => apiService.markConversationAsRead(conversationId),
+  getUnreadMessageCount: () => apiService.getUnreadMessageCount(),
   getSubscribedCreators: () => apiService.getSubscribedCreators(),
 };
 

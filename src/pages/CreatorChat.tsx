@@ -30,10 +30,20 @@ export default function CreatorChat() {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null }>>([]);
+  const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null; unreadCount: number }>>([]);
   const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string; status?: 'sending' | 'sent' | 'delivered' | 'read' }>>([]);
   const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Refetch conversations function
+  const refetchConversations = async () => {
+    try {
+      const res = await chatAPI.getConversations();
+      setConversations(res.data || []);
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    }
+  };
 
   useEffect(() => {
     socketRef.current = getSocket();
@@ -68,10 +78,8 @@ export default function CreatorChat() {
 
     // Handle conversation list updates
     socket.on('conversationUpdated', ({ conversationId, lastMessageContent, lastMessageAt }) => {
-      setConversations(prev => prev.map(c => 
-        c.id === conversationId ? 
-          { ...c, lastMessageContent, lastMessageAt } : c
-      ));
+      // Refetch conversations to get accurate unread counts from backend
+      refetchConversations();
     });
 
     return () => {
@@ -80,12 +88,16 @@ export default function CreatorChat() {
       socket.off('messageSent');
       socket.off('conversationUpdated');
     };
-  }, [selectedConversationId]);
+  }, [selectedConversationId, user?.id]);
 
   useEffect(() => {
     const fetchConversations = async () => {
-      const res = await chatAPI.getConversations();
-      setConversations(res.data || []);
+      try {
+        const res = await chatAPI.getConversations();
+        setConversations(res.data || []);
+      } catch (error) {
+        console.error('Failed to fetch conversations:', error);
+      }
     };
     fetchConversations();
   }, []);
@@ -96,6 +108,29 @@ export default function CreatorChat() {
       const res = await chatAPI.getMessages(selectedConversationId);
       setMessages(res.data || []);
       socketRef.current?.emit('joinRoom', { conversationId: selectedConversationId });
+      // Mark conversation as read when opened
+      try {
+        await chatAPI.markConversationAsRead(selectedConversationId);
+        // Update local state to reflect unread count = 0
+        setConversations(prev => prev.map(c => {
+          if (c.id === selectedConversationId) {
+            return { ...c, unreadCount: 0 };
+          }
+          return c;
+        }));
+        // Fetch updated unread count to update sidebar badge
+        try {
+          const unreadRes = await chatAPI.getUnreadMessageCount();
+          const newTotal = unreadRes.data?.unreadCount || 0;
+          sessionStorage.setItem('unreadMessageCount', newTotal.toString());
+          // Dispatch custom event to update sidebar (if needed)
+          window.dispatchEvent(new CustomEvent('unreadCountUpdated', { detail: { count: newTotal } }));
+        } catch (unreadError) {
+          console.error('Failed to fetch updated unread count:', unreadError);
+        }
+      } catch (error) {
+        console.error('Failed to mark conversation as read:', error);
+      }
     };
     fetchMessages();
   }, [selectedConversationId]);
@@ -205,8 +240,12 @@ export default function CreatorChat() {
 
               {/* Conversations List */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {conversations.filter(c => !searchQuery || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
-                  <div key={c.id} onClick={() => setSelectedConversationId(c.id)} className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors">
+                {conversations.filter(c => !searchQuery || (c.otherUserCreatorName || c.otherUserName || '').toLowerCase().includes(searchQuery.toLowerCase()) || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
+                  <div 
+                    key={c.id} 
+                    onClick={() => setSelectedConversationId(c.id)} 
+                    className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors"
+                  >
                     <div className="flex items-center space-x-4">
                       <div className="relative">
                         <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center overflow-hidden">
@@ -216,9 +255,19 @@ export default function CreatorChat() {
                             <span className="text-lg font-semibold">{(c.otherUserCreatorName || c.otherUserName || 'C').slice(0, 2).toUpperCase()}</span>
                           )}
                         </div>
+                        {c.unreadCount > 0 && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-gray-800">
+                            <span className="text-xs font-bold text-white">{c.unreadCount > 9 ? '9+' : c.unreadCount}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-lg truncate">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-lg truncate">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                          {c.unreadCount > 0 && (
+                            <div className="w-2 h-2 bg-red-500 rounded-full ml-2 flex-shrink-0"></div>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-400 truncate">{c.lastMessageContent || 'No messages yet'}</p>
                       </div>
                     </div>
@@ -226,7 +275,7 @@ export default function CreatorChat() {
                 ))}
               </div>
 
-              {conversations.filter(c => !searchQuery || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+              {conversations.filter(c => !searchQuery || (c.otherUserCreatorName || c.otherUserName || '').toLowerCase().includes(searchQuery.toLowerCase()) || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-8 h-8 text-gray-400" />
@@ -246,7 +295,11 @@ export default function CreatorChat() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedConversationId(null)}
+                  onClick={() => {
+                    setSelectedConversationId(null);
+                    // Refetch conversations when going back to ensure fresh data
+                    refetchConversations();
+                  }}
                   className="text-gray-400 hover:text-white"
                 >
                   ← Back
