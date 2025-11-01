@@ -400,6 +400,39 @@ class ApiService {
     });
   }
 
+  // Product endpoints
+  async createProduct(productData: { name: string; description?: string; mediaUrl?: string; price: string }) {
+    return await this.request('/user/products', {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async getProducts() {
+    return await this.request('/user/products', {
+      method: 'GET',
+    });
+  }
+
+  async getProductById(productId: string) {
+    return await this.request(`/user/products/${productId}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateProduct(productId: string, productData: { name?: string; description?: string; mediaUrl?: string; price?: string }) {
+    return await this.request(`/user/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async deleteProduct(productId: string) {
+    return await this.request(`/user/products/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Group Invites endpoints
   async createGroupInvite(groupInviteData: { groupName: string; platform: string; link: string }) {
     return await this.request('/user/group-invites', {
@@ -527,6 +560,14 @@ export const notificationAPI = {
   markAsRead: (notificationId: string) => apiService.markNotificationAsRead(notificationId),
   markAllAsRead: () => apiService.markAllNotificationsAsRead(),
   getUnreadCount: () => apiService.getUnreadNotificationCount(),
+};
+
+export const productAPI = {
+  create: (productData: { name: string; description?: string; mediaUrl?: string; price: string }) => apiService.createProduct(productData),
+  getAll: () => apiService.getProducts(),
+  getById: (productId: string) => apiService.getProductById(productId),
+  update: (productId: string, productData: { name?: string; description?: string; mediaUrl?: string; price?: string }) => apiService.updateProduct(productId, productData),
+  delete: (productId: string) => apiService.deleteProduct(productId),
 };
 
 // Types
