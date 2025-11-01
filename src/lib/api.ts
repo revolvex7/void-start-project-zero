@@ -97,10 +97,10 @@ class ApiService {
     });
   }
 
-  async resetPassword(token: string, newPassword: string) {
+  async resetPassword(data: { email: string; otp: string; password: string }) {
     return await this.request('/auth/reset-password', {
       method: 'POST',
-      body: JSON.stringify({ token, newPassword }),
+      body: JSON.stringify(data),
     });
   }
 
@@ -430,7 +430,7 @@ export const authAPI = {
   register: (userData: { name: string; email: string; password: string }) => apiService.register(userData),
   logout: () => apiService.logout(),
   forgotPassword: (email: string) => apiService.forgotPassword(email),
-  resetPassword: (token: string, newPassword: string) => apiService.resetPassword(token, newPassword),
+  resetPassword: (data: { email: string; otp: string; password: string }) => apiService.resetPassword(data),
   completeCreatorProfile: async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const response = await apiService.updateUser(profileData);
     console.log('Raw API response from updateUser:', response);

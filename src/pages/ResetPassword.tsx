@@ -7,11 +7,12 @@ import { useResetPassword } from '@/hooks/useApi';
 import { Eye, EyeOff } from 'lucide-react';
 
 const ResetPassword = () => {
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
   
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -19,23 +20,36 @@ const ResetPassword = () => {
   const resetPasswordMutation = useResetPassword();
 
   useEffect(() => {
-    // Get token from URL query parameters
-    const tokenFromUrl = searchParams.get('token');
-    if (tokenFromUrl) {
-      setToken(tokenFromUrl);
-    } else {
-      toast({
-        title: "Invalid reset link",
-        description: "The password reset link is invalid or has expired.",
-        variant: "destructive",
-      });
-      navigate('/login');
+    // Get email from URL query parameters
+    const emailFromUrl = searchParams.get('email');
+    if (emailFromUrl) {
+      setEmail(emailFromUrl);
     }
-  }, [searchParams, navigate, toast]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (resetPasswordMutation.isPending) return;
+    
+    // Validate email
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please provide your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate OTP
+    if (otp.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "OTP must be 6 digits.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -47,7 +61,7 @@ const ResetPassword = () => {
       return;
     }
 
-    // Validate password strength (optional - add your own criteria)
+    // Validate password strength
     if (password.length < 8) {
       toast({
         title: "Password too short",
@@ -56,18 +70,9 @@ const ResetPassword = () => {
       });
       return;
     }
-
-    if (!token) {
-      toast({
-        title: "Invalid reset link",
-        description: "The password reset link is invalid or has expired.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     try {
-      await resetPasswordMutation.mutateAsync({ token, newPassword: password });
+      await resetPasswordMutation.mutateAsync({ email, otp, password });
       
       toast({
         title: "Password reset successful!",
@@ -81,7 +86,7 @@ const ResetPassword = () => {
     } catch (error: any) {
       toast({
         title: "Failed to reset password",
-        description: error.message || "Please try again or request a new reset link.",
+        description: error.message || "Please check your OTP and try again.",
         variant: "destructive",
       });
     }
@@ -101,12 +106,39 @@ const ResetPassword = () => {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">Reset Password</h1>
           <p className="mt-2 text-sm sm:text-base text-gray-400">
-            Enter your new password
+            Enter the OTP code sent to your email and your new password
           </p>
         </div>
 
         {/* Reset Password Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base rounded-lg focus:outline-none focus:border-gray-600"
+            />
+          </div>
+
+          <div>
+            <Input
+              id="otp"
+              name="otp"
+              type="text"
+              required
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              placeholder="6-digit OTP code"
+              className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base rounded-lg focus:outline-none focus:border-gray-600 tracking-widest text-center text-xl"
+            />
+          </div>
+
           <div className="relative">
             <Input
               id="password"
@@ -149,7 +181,7 @@ const ResetPassword = () => {
 
           <Button
             type="submit"
-            disabled={resetPasswordMutation.isPending || !password || !confirmPassword}
+            disabled={resetPasswordMutation.isPending || !email || !otp || !password || !confirmPassword}
             className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg"
           >
             {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}

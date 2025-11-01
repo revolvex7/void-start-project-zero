@@ -276,8 +276,8 @@ export const useForgotPassword = () => {
 
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) => 
-      authAPI.resetPassword(token, newPassword),
+    mutationFn: (data: { email: string; otp: string; password: string }) => 
+      authAPI.resetPassword(data),
     retry: false, // Don't retry - show error immediately
   });
 };

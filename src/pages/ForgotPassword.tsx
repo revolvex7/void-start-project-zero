@@ -19,17 +19,17 @@ const ForgotPassword = () => {
       await forgotPasswordMutation.mutateAsync(email);
       
       toast({
-        title: "Email sent!",
-        description: "Please check your email for the reset password link.",
+        title: "OTP sent!",
+        description: "Please check your email for the 6-digit OTP code.",
       });
       
-      // Optionally navigate back to login after a short delay
+      // Navigate to reset password page with email
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate(`/reset-password?email=${encodeURIComponent(email)}`);
+      }, 1500);
     } catch (error: any) {
       toast({
-        title: "Failed to send email",
+        title: "Failed to send OTP",
         description: error.message || "Please try again later.",
         variant: "destructive",
       });
@@ -50,7 +50,7 @@ const ForgotPassword = () => {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">Forgot Password</h1>
           <p className="mt-2 text-sm sm:text-base text-gray-400">
-            Enter your email and we'll send you a link to reset your password
+            Enter your email and we'll send you a 6-digit OTP code
           </p>
         </div>
 
@@ -74,7 +74,7 @@ const ForgotPassword = () => {
             disabled={forgotPasswordMutation.isPending || !email}
             className="w-full bg-white text-black hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-lg"
           >
-            {forgotPasswordMutation.isPending ? 'Sending...' : 'Send Reset Link'}
+            {forgotPasswordMutation.isPending ? 'Sending...' : 'Send OTP Code'}
           </Button>
         </form>
 
