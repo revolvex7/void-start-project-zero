@@ -8,6 +8,8 @@ import { StartBasicsModal } from './StartBasicsModal';
 import { EmailVerificationModal } from '../modals/EmailVerificationModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMembership } from '@/contexts/MembershipContext';
+import { authAPI } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreatorDashboardContentProps {
   creatorName: string;
@@ -48,6 +50,7 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
   const { tiers, addTier, updateTier, hasTiers, refetch } = useMembership();
   const navigate = useNavigate();
   const { creatorUrl } = useParams();
+  const { toast } = useToast();
   const [showBasicsModal, setShowBasicsModal] = useState(false);
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
@@ -83,11 +86,24 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
 
   const handleVerifyEmail = async () => {
     setIsVerifyingEmail(true);
-    // Simulate loading for 3 seconds
-    setTimeout(() => {
-      setIsVerifyingEmail(false);
+    try {
+      await authAPI.sendVerificationEmail();
       setShowEmailVerificationModal(true);
-    }, 3000);
+      toast({
+        title: "Verification email sent",
+        description: "Please check your inbox for the verification email.",
+        variant: "success",
+      });
+    } catch (error: any) {
+      console.error('Failed to send verification email:', error);
+      toast({
+        title: "Failed to send email",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifyingEmail(false);
+    }
   };
   const handleEditPage = () => {
     navigate('/customize');
@@ -167,19 +183,21 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
   };
   return (
     <div className="flex-1 bg-gray-900 text-white">
-      {/* Top banner */}
-      <div className="bg-gray-800 px-6 py-3 flex items-center justify-between border-b border-gray-700">
-        <span className="text-sm text-gray-300">You need to verify your email before you can launch your page.</span>
-        <Button 
-          onClick={handleVerifyEmail}
-          variant="outline" 
-          size="sm" 
-          disabled={isVerifyingEmail}
-          className="bg-white text-black border-white hover:bg-gray-100 disabled:opacity-50"
-        >
-          {isVerifyingEmail ? 'Verifying...' : 'Verify email'}
-        </Button>
-      </div>
+      {/* Top banner - Only show if email is not verified */}
+      {!user?.isVerified && (
+        <div className="bg-gray-800 px-6 py-3 flex items-center justify-between border-b border-gray-700">
+          <span className="text-sm text-gray-300">You need to verify your email before you can launch your page.</span>
+          <Button 
+            onClick={handleVerifyEmail}
+            variant="outline" 
+            size="sm" 
+            disabled={isVerifyingEmail}
+            className="bg-white text-black border-white hover:bg-gray-100 disabled:opacity-50"
+          >
+            {isVerifyingEmail ? 'Verifying...' : 'Verify email'}
+          </Button>
+        </div>
+      )}
 
       {/* Creator Name Header */}
       <div className="px-6 py-6 border-b border-gray-700">

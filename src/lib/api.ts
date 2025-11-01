@@ -433,6 +433,20 @@ class ApiService {
     });
   }
 
+  // Email verification
+  async sendVerificationEmail() {
+    return await this.request('/user/send-verification-email', {
+      method: 'POST',
+    });
+  }
+
+  async verifyEmail(token: string) {
+    return await this.request('/user/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
   // Group Invites endpoints
   async createGroupInvite(groupInviteData: { groupName: string; platform: string; link: string }) {
     return await this.request('/user/group-invites', {
@@ -476,6 +490,8 @@ export const authAPI = {
   logout: () => apiService.logout(),
   forgotPassword: (email: string) => apiService.forgotPassword(email),
   resetPassword: (data: { email: string; otp: string; password: string }) => apiService.resetPassword(data),
+  sendVerificationEmail: () => apiService.sendVerificationEmail(),
+  verifyEmail: (token: string) => apiService.verifyEmail(token),
   completeCreatorProfile: async (profileData: { creatorName: string; pageName: string; is18Plus?: boolean }) => {
     const response = await apiService.updateUser(profileData);
     console.log('Raw API response from updateUser:', response);

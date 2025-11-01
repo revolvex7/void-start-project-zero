@@ -1,6 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface EmailVerificationModalProps {
   open: boolean;
@@ -8,76 +15,37 @@ interface EmailVerificationModalProps {
   email?: string;
 }
 
-export function EmailVerificationModal({ open, onOpenChange, email = "zunebebanu@mailinator.com" }: EmailVerificationModalProps) {
-  if (!open) return null;
-
-  const handleResend = () => {
-    // Handle resend logic here
-    console.log('Resending verification email...');
-  };
-
-  const handleChangeEmail = () => {
-    // Handle change email logic here
-    console.log('Changing email address...');
-  };
-
+export function EmailVerificationModal({ open, onOpenChange, email }: EmailVerificationModalProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md relative">
-        {/* Close Button */}
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white"
-        >
-          <X size={20} />
-        </button>
-
-        {/* Content */}
-        <div className="pr-8">
-          <h2 className="text-xl font-bold text-white mb-4">Check your inbox</h2>
-          
-          <div className="space-y-4 text-gray-300">
-            <p>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-xl sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold mb-2">Check your inbox</DialogTitle>
+          <DialogDescription className="text-gray-300 space-y-4">
+            <p className="text-base">
               We sent a verification email to{' '}
-              <span className="text-white font-medium">{email}</span>.
+              <span className="text-white font-medium">{email || 'your email'}</span>.
             </p>
             
-            <p>
-              Not seeing a verification email from no-reply@patreon.com? Double-check your spam 
+            <p className="text-base">
+              Not seeing a verification email from info@truefans.ng? Double-check your spam 
               folder and review your{' '}
               <button className="text-blue-400 hover:text-blue-300 underline">
                 email filters
               </button>.
             </p>
-            
-            <p>
-              If you still don't see an email after several minutes, you can{' '}
-              <button 
-                onClick={handleResend}
-                className="text-blue-400 hover:text-blue-300 underline"
-              >
-                resend
-              </button>{' '}
-              the verification link or{' '}
-              <button 
-                onClick={handleChangeEmail}
-                className="text-blue-400 hover:text-blue-300 underline"
-              >
-                change your email address
-              </button>.
-            </p>
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <Button 
-              onClick={() => onOpenChange(false)}
-              className="bg-white text-black hover:bg-gray-100 px-6"
-            >
-              Okay
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+          </DialogDescription>
+        </DialogHeader>
+        
+        <DialogFooter className="mt-6">
+          <Button 
+            onClick={() => onOpenChange(false)}
+            className="bg-white text-black hover:bg-gray-100 px-8 py-2"
+          >
+            Okay
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

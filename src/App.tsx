@@ -30,6 +30,7 @@ import PostPreview from '@/pages/PostPreview';
 import MemberSettings from '@/pages/MemberSettings';
 import CreatorSettings from '@/pages/CreatorSettings';
 import Storefront from '@/pages/Storefront';
+import VerifyEmail from '@/pages/VerifyEmail';
 
 // Creator pages
 import Podcasters from '@/pages/Podcasters';
@@ -141,6 +142,10 @@ function App() {
                   <ResetPassword />
                 </PublicRoute>
               } 
+            />
+            <Route 
+              path="/verify" 
+              element={<VerifyEmail />} 
             />
 
             {/* Protected Routes - Only accessible when logged in */}
