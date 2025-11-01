@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Home, 
   Search, 
@@ -21,6 +21,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/contexts/UserRoleContext";
 import { Button } from "@/components/ui/button";
+import { chatAPI } from "@/lib/api";
 
 interface UnifiedSidebarProps {
   onPageChange?: (page: string) => void;
@@ -40,14 +41,65 @@ export function UnifiedSidebar({
   const navigate = useNavigate();
   const { creatorUrl } = useParams();
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
+  // Initialize from sessionStorage to persist across remounts - prevents flashing to 0
+  const [unreadMessageCount, setUnreadMessageCount] = useState(() => {
+    const stored = sessionStorage.getItem('unreadMessageCount');
+    return stored ? parseInt(stored, 10) : 0;
+  });
 
   const handleLogout = () => {
     logout();
     // Clear role context from sessionStorage
     sessionStorage.removeItem('userRoleContext');
+    sessionStorage.removeItem('unreadMessageCount');
     // Use window.location for a clean redirect and full page reload
     window.location.href = '/';
   };
+
+  // Fetch unread message count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await chatAPI.getUnreadMessageCount();
+        const newCount = res.data?.unreadCount || 0;
+        // Update state and persist to sessionStorage
+        setUnreadMessageCount(prev => {
+          // Always update to new value when we get a response
+          sessionStorage.setItem('unreadMessageCount', newCount.toString());
+          return newCount;
+        });
+      } catch (error) {
+        console.error('Failed to fetch unread message count:', error);
+        // Don't update state on error - keep previous value from sessionStorage
+      }
+    };
+
+    if (user) {
+      // Always fetch on mount and when user changes
+      // The state persists from sessionStorage during navigation, so no flash to 0
+      fetchUnreadCount();
+      // Refresh every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      
+      // Listen for custom events when conversations are marked as read
+      const handleUnreadCountUpdate = (event: CustomEvent) => {
+        const newCount = event.detail?.count ?? 0;
+        setUnreadMessageCount(newCount);
+        sessionStorage.setItem('unreadMessageCount', newCount.toString());
+      };
+      
+      window.addEventListener('unreadCountUpdated', handleUnreadCountUpdate as EventListener);
+      
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('unreadCountUpdated', handleUnreadCountUpdate as EventListener);
+      };
+    } else {
+      // Only reset to 0 if user logs out
+      setUnreadMessageCount(0);
+      sessionStorage.removeItem('unreadMessageCount');
+    }
+  }, [user]);
 
   const handleRoleSwitch = (newRole: 'member' | 'creator') => {
     switchRole(newRole);
@@ -64,7 +116,7 @@ export function UnifiedSidebar({
   const memberMenuItems = [
     { title: "Home", url: "/dashboard?view=fan", icon: Home, page: "home", badge: undefined },
     { title: "Explore", url: "/dashboard/explore", icon: Search, page: "explore", badge: undefined },
-    { title: "Messages", url: "/member/chat", icon: MessageSquare, page: "chat", badge: undefined },
+    { title: "Messages", url: "/member/chat", icon: MessageSquare, page: "chat", badge: unreadMessageCount > 0 ? unreadMessageCount.toString() : undefined },
     { title: "Notifications", url: "/dashboard/notifications", icon: Bell, page: "notifications", badge: undefined },
     { title: "Settings", url: "/member-settings", icon: Settings, page: "settings", badge: undefined },
   ];
@@ -74,7 +126,7 @@ export function UnifiedSidebar({
     { title: "Dashboard", url: "/dashboard?view=creator", icon: Home, page: "dashboard", badge: undefined },
     { title: "Library", url: "/library", icon: BookOpen, page: "library", badge: undefined },
     { title: "Insights", url: "/insights", icon: BarChart3, page: "insights", badge: undefined },
-    { title: "Messages", url: "/creator/chat", icon: MessageSquare, page: "chat", badge: undefined },
+    { title: "Messages", url: "/creator/chat", icon: MessageSquare, page: "chat", badge: unreadMessageCount > 0 ? unreadMessageCount.toString() : undefined },
     { title: "Payouts", url: "/payouts", icon: DollarSign, page: "payouts", badge: undefined },
     { title: "Notifications", url: "/notifications", icon: Bell, page: "notifications", badge: undefined },
     { title: "Settings", url: "/creator-settings", icon: Settings, badge: undefined },
@@ -161,6 +213,11 @@ export function UnifiedSidebar({
                   >
                     <item.icon className={`w-5 h-5 mr-3 ${isActive(item) ? 'text-white' : 'text-gray-400'}`} />
                     <span className="flex-1">{item.title}</span>
+                    {item.badge && (
+                      <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                        {parseInt(item.badge) > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
                   </button>
                 ) : (
                   <NavLink 
@@ -179,6 +236,11 @@ export function UnifiedSidebar({
                       <>
                         <item.icon className={`w-5 h-5 mr-3 ${linkActive ? 'text-white' : 'text-gray-400'}`} />
                         <span className="flex-1">{item.title}</span>
+                        {item.badge && (
+                          <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                            {parseInt(item.badge) > 99 ? '99+' : item.badge}
+                          </span>
+                        )}
                       </>
                     )}
                   </NavLink>

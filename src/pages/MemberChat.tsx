@@ -29,7 +29,7 @@ export default function MemberChat() {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null }>>([]);
+  const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null; unreadCount: number }>>([]);
   const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string; status?: 'sending' | 'sent' | 'delivered' | 'read' }>>([]);
   const [subscribedCreators, setSubscribedCreators] = useState<Array<{ id: string; name: string; creatorName?: string; pageName?: string; profilePhoto?: string; bio?: string }>>([]);
   const [showNewConversation, setShowNewConversation] = useState(false);
@@ -60,6 +60,7 @@ export default function MemberChat() {
         }
       }
       // Conversation list updates are now handled by conversationUpdated event
+      // Note: unread count updates will come from conversationUpdated event
     });
 
     socket.on('conversationCreated', ({ conversation }) => {
@@ -82,10 +83,8 @@ export default function MemberChat() {
 
     // Handle conversation list updates
     socket.on('conversationUpdated', ({ conversationId, lastMessageContent, lastMessageAt }) => {
-      setConversations(prev => prev.map(c => 
-        c.id === conversationId ? 
-          { ...c, lastMessageContent, lastMessageAt } : c
-      ));
+      // Refetch conversations to get accurate unread counts from backend
+      refetchConversations();
     });
 
     return () => {
@@ -142,6 +141,29 @@ export default function MemberChat() {
       const res = await chatAPI.getMessages(selectedConversationId);
       setMessages(res.data || []);
       socketRef.current?.emit('joinRoom', { conversationId: selectedConversationId });
+      // Mark conversation as read when opened
+      try {
+        await chatAPI.markConversationAsRead(selectedConversationId);
+        // Update local state to reflect unread count = 0
+        setConversations(prev => prev.map(c => {
+          if (c.id === selectedConversationId) {
+            return { ...c, unreadCount: 0 };
+          }
+          return c;
+        }));
+        // Fetch updated unread count to update sidebar badge
+        try {
+          const unreadRes = await chatAPI.getUnreadMessageCount();
+          const newTotal = unreadRes.data?.unreadCount || 0;
+          sessionStorage.setItem('unreadMessageCount', newTotal.toString());
+          // Dispatch custom event to update sidebar (if needed)
+          window.dispatchEvent(new CustomEvent('unreadCountUpdated', { detail: { count: newTotal } }));
+        } catch (unreadError) {
+          console.error('Failed to fetch updated unread count:', unreadError);
+        }
+      } catch (error) {
+        console.error('Failed to mark conversation as read:', error);
+      }
     };
     fetchMessages();
   }, [selectedConversationId]);
@@ -320,9 +342,19 @@ export default function MemberChat() {
                                 <span className="text-lg font-semibold">{(c.otherUserCreatorName || c.otherUserName || 'C').slice(0, 2).toUpperCase()}</span>
                               )}
                             </div>
+                            {c.unreadCount > 0 && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-gray-800">
+                                <span className="text-xs font-bold text-white">{c.unreadCount > 9 ? '9+' : c.unreadCount}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base truncate group-hover:text-blue-300">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-base truncate group-hover:text-blue-300">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                              {c.unreadCount > 0 && (
+                                <div className="w-2 h-2 bg-red-500 rounded-full ml-2 flex-shrink-0"></div>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-400 truncate">{c.lastMessageContent || 'No messages yet'}</p>
                           </div>
                         </div>
