@@ -142,10 +142,23 @@ const CreatorProfile = () => {
     if (!creator) return;
     
     try {
-      await toggleFollowMutation.mutateAsync(creator.id);
-      // The mutation will handle updating the cache and UI
-      // Update local state as well for immediate feedback
-      setIsFollowing(!isFollowing);
+      const response = await toggleFollowMutation.mutateAsync(creator.id);
+      
+      // Update local state for immediate feedback
+      const newFollowingState = response.data.isFollowing;
+      setIsFollowing(newFollowingState);
+      
+      // Update creator's followers count
+      setCreator(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          isFollowing: newFollowingState,
+          followersCount: newFollowingState 
+            ? prev.followersCount + 1 
+            : Math.max(0, prev.followersCount - 1)
+        };
+      });
     } catch (err) {
       console.error('Error toggling follow:', err);
     }

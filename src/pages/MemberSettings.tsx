@@ -315,28 +315,26 @@ export default function MemberSettings() {
     setIsUpdatingProfile(true);
     try {
       // Update user profile with bio and profilePhoto at root level
-      const response = await userAPI.updateMemberProfile({
+      await userAPI.updateMemberProfile({
         name: profileData.name,
         bio: profileData.bio,
         profilePhoto: profileImagePreview || profileData.profilePhoto
       });
       
-      if (response.data) {
-        // Update the user context with new profile data
-        updateUser({
-          ...user,
-          name: response.data.name,
-          bio: response.data.bio || '',
-          profilePhoto: response.data.profilePhoto || ''
-        } as any);
-        
-        toast({
-          title: "Profile updated!",
-          description: "Your profile has been updated successfully.",
-        });
-        
-        setShowEditProfileModal(false);
+      // Fetch fresh user data from API
+      const freshUserData = await userAPI.getCurrentUser();
+      
+      // Update the user context with fresh data
+      if (freshUserData.data) {
+        updateUser(freshUserData.data as any);
       }
+      
+      toast({
+        title: "Profile updated!",
+        description: "Your profile has been updated successfully.",
+      });
+      
+      setShowEditProfileModal(false);
     } catch (error: any) {
       console.error('Failed to update profile:', error);
       toast({

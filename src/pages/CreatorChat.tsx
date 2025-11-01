@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Send, Search, Menu, X } from 'lucide-react';
 import { chatAPI } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
@@ -32,6 +33,7 @@ export default function CreatorChat() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [conversations, setConversations] = useState<Array<{ id: string; memberId: string; creatorId: string; lastMessageContent: string | null; lastMessageAt: string | null; otherUserId: string; otherUserName: string | null; otherUserCreatorName: string | null; otherUserProfilePhoto: string | null; unreadCount: number }>>([]);
   const [messages, setMessages] = useState<Array<{ id: string; senderId: string; content: string; createdAt: string; status?: 'sending' | 'sent' | 'delivered' | 'read' }>>([]);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const socketRef = useRef<ReturnType<typeof getSocket> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +44,8 @@ export default function CreatorChat() {
       setConversations(res.data || []);
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
+    } finally {
+      setIsLoadingConversations(false);
     }
   };
 
@@ -93,10 +97,13 @@ export default function CreatorChat() {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
+        setIsLoadingConversations(true);
         const res = await chatAPI.getConversations();
         setConversations(res.data || []);
       } catch (error) {
         console.error('Failed to fetch conversations:', error);
+      } finally {
+        setIsLoadingConversations(false);
       }
     };
     fetchConversations();
@@ -239,49 +246,72 @@ export default function CreatorChat() {
               </div>
 
               {/* Conversations List */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {conversations.filter(c => !searchQuery || (c.otherUserCreatorName || c.otherUserName || '').toLowerCase().includes(searchQuery.toLowerCase()) || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
-                  <div 
-                    key={c.id} 
-                    onClick={() => setSelectedConversationId(c.id)} 
-                    className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center overflow-hidden">
-                          {c.otherUserProfilePhoto ? (
-                            <img src={c.otherUserProfilePhoto} alt={c.otherUserCreatorName || c.otherUserName || ''} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-lg font-semibold">{(c.otherUserCreatorName || c.otherUserName || 'C').slice(0, 2).toUpperCase()}</span>
-                          )}
+              {isLoadingConversations ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="bg-gray-800 rounded-lg p-6">
+                      <div className="flex items-center space-x-4">
+                        <Skeleton className="w-16 h-16 rounded-full bg-gray-700" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-5 w-32 bg-gray-700" />
+                          <Skeleton className="h-4 w-48 bg-gray-700" />
                         </div>
-                        {c.unreadCount > 0 && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-gray-800">
-                            <span className="text-xs font-bold text-white">{c.unreadCount > 9 ? '9+' : c.unreadCount}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-lg truncate">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
-                          {c.unreadCount > 0 && (
-                            <div className="w-2 h-2 bg-red-500 rounded-full ml-2 flex-shrink-0"></div>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-400 truncate">{c.lastMessageContent || 'No messages yet'}</p>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {conversations.filter(c => !searchQuery || (c.otherUserCreatorName || c.otherUserName || '').toLowerCase().includes(searchQuery.toLowerCase()) || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                  ))}
+                </div>
+              ) : conversations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {conversations.filter(c => !searchQuery || (c.otherUserCreatorName || c.otherUserName || '').toLowerCase().includes(searchQuery.toLowerCase()) || (c.lastMessageContent || '').toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
+                    <div 
+                      key={c.id} 
+                      onClick={() => setSelectedConversationId(c.id)} 
+                      className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-750 transition-colors"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="relative">
+                          <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                            {c.otherUserProfilePhoto ? (
+                              <img src={c.otherUserProfilePhoto} alt={c.otherUserCreatorName || c.otherUserName || ''} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-lg font-semibold">{(c.otherUserCreatorName || c.otherUserName || 'C').slice(0, 2).toUpperCase()}</span>
+                            )}
+                          </div>
+                          {c.unreadCount > 0 && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-gray-800">
+                              <span className="text-xs font-bold text-white">{c.unreadCount > 9 ? '9+' : c.unreadCount}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium text-lg truncate">{c.otherUserCreatorName || c.otherUserName || 'Conversation'}</h3>
+                            {c.unreadCount > 0 && (
+                              <div className="w-2 h-2 bg-red-500 rounded-full ml-2 flex-shrink-0"></div>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-400 truncate">{c.lastMessageContent || 'No messages yet'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-medium mb-2">No fans found</h3>
-                  <p className="text-gray-400">Try adjusting your search terms</p>
+                  {searchQuery ? (
+                    <>
+                      <h3 className="text-lg font-medium mb-2">No fans found</h3>
+                      <p className="text-gray-400">Try adjusting your search terms</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
+                      <p className="text-gray-400">Your fan messages will appear here</p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
