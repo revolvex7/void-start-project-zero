@@ -119,7 +119,7 @@ class ApiService {
   }
 
   async updateMemberProfile(profileData: { name?: string; bio?: string; profilePhoto?: string }) {
-    return await this.request('/user/member-profile', {
+    return await this.request('/user', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });

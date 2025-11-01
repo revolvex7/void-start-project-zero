@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface Subscription {
   id: string;
@@ -52,6 +53,7 @@ interface PurchaseHistory {
 export default function MemberSettings() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  const { toast } = useToast();
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState<'subscriptions' | 'account'>('subscriptions');
   
@@ -75,19 +77,19 @@ export default function MemberSettings() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   
-  // Load user data - member profile only (not creator data)
+  // Load user data - use bio and profilePhoto from root level
   useEffect(() => {
     if (user) {
-      // Get member-specific profile data (not from creator object)
-      const memberBio = (user as any).bio || '';
-      const memberProfilePhoto = (user as any).memberProfilePhoto || '';
+      // Get profile data from root level of user object
+      const userBio = (user as any).bio || '';
+      const userProfilePhoto = (user as any).profilePhoto || '';
       
       setProfileData({
         name: user.name || '',
-        bio: memberBio,
-        profilePhoto: memberProfilePhoto
+        bio: userBio,
+        profilePhoto: userProfilePhoto
       });
-      setProfileImagePreview(memberProfilePhoto || null);
+      setProfileImagePreview(userProfilePhoto || null);
     }
   }, [user]);
 
@@ -312,25 +314,36 @@ export default function MemberSettings() {
   const handleUpdateProfile = async () => {
     setIsUpdatingProfile(true);
     try {
-      // Use member-specific profile update endpoint
+      // Update user profile with bio and profilePhoto at root level
       const response = await userAPI.updateMemberProfile({
         name: profileData.name,
         bio: profileData.bio,
-        profilePhoto: profileData.profilePhoto
+        profilePhoto: profileImagePreview || profileData.profilePhoto
       });
       
       if (response.data) {
-        // Update the user context with new member profile data
+        // Update the user context with new profile data
         updateUser({
           ...user,
           name: response.data.name,
-          ...(response.data.bio && { bio: response.data.bio }),
-          ...(response.data.profilePhoto && { memberProfilePhoto: response.data.profilePhoto })
+          bio: response.data.bio || '',
+          profilePhoto: response.data.profilePhoto || ''
         } as any);
+        
+        toast({
+          title: "Profile updated!",
+          description: "Your profile has been updated successfully.",
+        });
+        
         setShowEditProfileModal(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update profile:', error);
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -339,23 +352,48 @@ export default function MemberSettings() {
   const handleChangePassword = async () => {
     setPasswordError('');
     
+    // Validate old password
+    if (!passwordData.oldPassword) {
+      setPasswordError('Old password is required');
+      return;
+    }
+    
+    // Validate new password
+    if (!passwordData.newPassword) {
+      setPasswordError('New password is required');
+      return;
+    }
+    
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError('New passwords do not match');
       return;
     }
     
-    if (passwordData.newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
       return;
     }
     
     setIsChangingPassword(true);
     try {
       await userAPI.changePassword(passwordData.oldPassword, passwordData.newPassword);
+      
+      toast({
+        title: "Password changed!",
+        description: "Your password has been changed successfully.",
+      });
+      
       setShowChangePasswordModal(false);
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error: any) {
-      setPasswordError(error.response?.data?.message || 'Failed to change password');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to change password';
+      setPasswordError(errorMessage);
+      
+      toast({
+        title: "Password change failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsChangingPassword(false);
     }
