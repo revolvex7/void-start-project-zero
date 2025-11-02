@@ -9,10 +9,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/contexts/UserRoleContext';
 import { useMembership } from '@/contexts/MembershipContext';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
-import { creatorAPI, Creator } from '@/lib/api';
-import { staticEvents } from '@/data/staticEvents';
-import { Event } from '@/types/event';
+import { creatorAPI, eventAPI, Creator } from '@/lib/api';
 import { useToggleFollow, useSubscribeMembership, useUnsubscribeMembership } from '@/hooks/useApi';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ProfileSkeleton } from '@/components/ui/content-skeletons';
 import { 
   MoreHorizontal, 
@@ -38,7 +45,9 @@ import {
   Eye,
   Plus,
   Check,
-  ShoppingBag
+  ShoppingBag,
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 
 const CreatorProfile = () => {
@@ -53,7 +62,6 @@ const CreatorProfile = () => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [eventInterests, setEventInterests] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState('home');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -61,9 +69,17 @@ const CreatorProfile = () => {
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [togglingInterest, setTogglingInterest] = useState<string | null>(null);
+  
+  // Event detail dialog state
+  const [eventDetailDialogOpen, setEventDetailDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [loadingEventDetail, setLoadingEventDetail] = useState(false);
+  
   const toggleFollowMutation = useToggleFollow();
   const subscribeMutation = useSubscribeMembership();
   const unsubscribeMutation = useUnsubscribeMembership();
+  const { toast } = useToast();
 
   // Helper function to darken color for hover state
   const darkenColor = (color: string, percent: number = 15) => {
@@ -188,11 +204,108 @@ const CreatorProfile = () => {
     setShowProductModal(true);
   };
 
-  const handleEventInterest = (eventId: string, interested: boolean) => {
-    setEventInterests(prev => ({
-      ...prev,
-      [eventId]: interested
-    }));
+  const handleEventClick = async (eventId: string) => {
+    try {
+      setLoadingEventDetail(true);
+      const response = await eventAPI.getById(eventId);
+      setSelectedEvent(response.data);
+      setEventDetailDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch event details:', error);
+      toast({
+        title: "Failed to load event",
+        description: "Could not fetch event details. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingEventDetail(false);
+    }
+  };
+
+  const handleToggleEventInterest = async (eventId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
+    setTogglingInterest(eventId);
+    
+    // Find the current event in creator's events
+    const currentEvent = creator?.events?.find((e: any) => e.id === eventId);
+    if (!currentEvent) {
+      setTogglingInterest(null);
+      return;
+    }
+    
+    const wasInterested = currentEvent.isInterested;
+    
+    // Optimistic update
+    if (creator) {
+      setCreator({
+        ...creator,
+        events: creator.events?.map((e: any) => 
+          e.id === eventId 
+            ? { 
+                ...e, 
+                isInterested: !e.isInterested
+              }
+            : e
+        ) || []
+      });
+    }
+    
+    try {
+      await eventAPI.toggleInterest(eventId);
+      // Refresh creator data to get updated interest status
+      await fetchCreatorData();
+    } catch (error) {
+      console.error('Failed to toggle interest:', error);
+      // Revert optimistic update
+      if (creator) {
+        setCreator({
+          ...creator,
+          events: creator.events?.map((e: any) => 
+            e.id === eventId 
+              ? { 
+                  ...e, 
+                  isInterested: wasInterested
+                }
+              : e
+          ) || []
+        });
+      }
+      toast({
+        title: "Failed to update interest",
+        description: "Could not update interest. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setTogglingInterest(null);
+    }
+  };
+
+  const formatEventDate = (dateString?: string) => {
+    if (!dateString) return 'Date TBA';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatEventDateFull = (dateString?: string) => {
+    if (!dateString) return 'Date TBA';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      month: 'long', 
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   // Show loading state
@@ -503,11 +616,12 @@ const CreatorProfile = () => {
                 <div>
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">Events</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {staticEvents.length > 0 ? (
-                      staticEvents.map((event) => (
+                    {creator.events && creator.events.length > 0 ? (
+                      creator.events.map((event: any) => (
                         <div 
-                          key={event.id} 
-                          className="bg-gray-800 rounded-lg overflow-hidden hover:ring-2 transition-all"
+                          key={event.id}
+                          onClick={() => handleEventClick(event.id)}
+                          className="bg-gray-800 rounded-lg overflow-hidden hover:ring-2 transition-all cursor-pointer"
                           style={{ '--hover-ring-color': themeColor } as React.CSSProperties}
                           onMouseEnter={(e) => e.currentTarget.style.setProperty('--tw-ring-color', themeColor)}
                         >
@@ -532,46 +646,36 @@ const CreatorProfile = () => {
                             {event.eventDate && (
                               <div className="flex items-center text-xs mb-3" style={{ color: themeColor }}>
                                 <Calendar className="w-3 h-3 mr-1" />
-                                {new Date(event.eventDate).toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
+                                {formatEventDate(event.eventDate)}
                               </div>
                             )}
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleEventInterest(event.id, true)}
-                                className={`flex-1 text-xs ${
-                                  eventInterests[event.id] === true
-                                    ? 'bg-white text-black hover:bg-gray-200'
-                                    : 'bg-gray-700 text-white hover:bg-gray-600'
-                                }`}
-                              >
-                                {eventInterests[event.id] === true ? (
-                                  <>
-                                    <Check className="w-3 h-3 mr-1" />
-                                    Interested
-                                  </>
-                                ) : (
-                                  'Interested'
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleEventInterest(event.id, false)}
-                                className={`flex-1 text-xs ${
-                                  eventInterests[event.id] === false
-                                    ? 'bg-gray-600 text-white'
-                                    : 'bg-gray-700 text-white hover:bg-gray-600'
-                                }`}
-                              >
-                                {eventInterests[event.id] === false ? 'Not Interested' : 'Not Interested'}
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              onClick={(e) => handleToggleEventInterest(event.id, e)}
+                              disabled={togglingInterest === event.id}
+                              className={`w-full text-xs ${
+                                event.isInterested
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {togglingInterest === event.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />
+                                  <span>...</span>
+                                </>
+                              ) : event.isInterested ? (
+                                <>
+                                  <CheckCircle2 className="w-3 h-3 mr-1 inline" />
+                                  Interested
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-3 h-3 mr-1 opacity-50 inline" />
+                                  Interest
+                                </>
+                              )}
+                            </Button>
                           </div>
                         </div>
                       ))
@@ -887,6 +991,164 @@ const CreatorProfile = () => {
           creatorName={creator.creatorName}
           themeColor={creator.themeColor}
         />
+
+        {/* Event Detail Dialog */}
+        <Dialog open={eventDetailDialogOpen} onOpenChange={setEventDetailDialogOpen}>
+          <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+            {loadingEventDetail ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+              </div>
+            ) : selectedEvent ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">{selectedEvent.name}</DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Event Details
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 mt-4">
+                  {/* Creator Info */}
+                  {selectedEvent.creatorName && (
+                    <div className="flex items-center space-x-3 pb-4 border-b border-gray-700">
+                      {selectedEvent.creatorProfilePhoto ? (
+                        <img 
+                          src={selectedEvent.creatorProfilePhoto} 
+                          alt={selectedEvent.creatorName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {selectedEvent.creatorName?.charAt(0)?.toUpperCase() || 'C'}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-semibold">{selectedEvent.creatorName}</h3>
+                        {selectedEvent.creatorPageName && (
+                          <p className="text-sm text-gray-400">@{selectedEvent.creatorPageName}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Event Image */}
+                  {selectedEvent.mediaUrl && (
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden">
+                      <img 
+                        src={selectedEvent.mediaUrl} 
+                        alt={selectedEvent.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Event Description */}
+                  {selectedEvent.description && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Description</h4>
+                      <p className="text-gray-300 leading-relaxed">{selectedEvent.description}</p>
+                    </div>
+                  )}
+
+                  {/* Event Date */}
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="font-semibold">Event Date & Time</p>
+                      <p className="text-gray-300">{formatEventDateFull(selectedEvent.eventDate)}</p>
+                    </div>
+                  </div>
+
+                  {/* Interest Count */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                    <div>
+                      <p className="text-sm text-gray-400">Total Interested</p>
+                      <p className="text-xl font-bold text-blue-400">{selectedEvent.interestedCount || 0}</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        const wasInterested = selectedEvent.isInterested;
+                        
+                        // Optimistic update
+                        setSelectedEvent({
+                          ...selectedEvent,
+                          isInterested: !selectedEvent.isInterested,
+                          interestedCount: selectedEvent.isInterested ? (selectedEvent.interestedCount || 0) - 1 : (selectedEvent.interestedCount || 0) + 1
+                        });
+                        
+                        setTogglingInterest(selectedEvent.id);
+                        
+                        try {
+                          await eventAPI.toggleInterest(selectedEvent.id);
+                          // Refresh event details
+                          const response = await eventAPI.getById(selectedEvent.id);
+                          setSelectedEvent(response.data);
+                          // Refresh creator data
+                          await fetchCreatorData();
+                        } catch (error) {
+                          console.error('Failed to toggle interest:', error);
+                          // Revert optimistic update
+                          setSelectedEvent({
+                            ...selectedEvent,
+                            isInterested: wasInterested,
+                            interestedCount: wasInterested ? (selectedEvent.interestedCount || 0) + 1 : (selectedEvent.interestedCount || 0) - 1
+                          });
+                          toast({
+                            title: "Failed to update interest",
+                            description: "Could not update interest. Please try again.",
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setTogglingInterest(null);
+                        }
+                      }}
+                      disabled={togglingInterest === selectedEvent.id}
+                      className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
+                        selectedEvent.isInterested
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {togglingInterest === selectedEvent.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>...</span>
+                        </>
+                      ) : selectedEvent.isInterested ? (
+                        <>
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span>Interested</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-5 h-5 opacity-50" />
+                          <span>Interest</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <DialogFooter className="mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setEventDetailDialogOpen(false)}
+                    className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Close
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-400">Event not found</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
   );
 };

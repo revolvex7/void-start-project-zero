@@ -787,6 +787,7 @@ export interface Creator {
   memberships: Membership[];
   recentPosts: Post[];
   products?: Product[];
+  events?: Event[];
   isFollowing?: boolean;
   isSubscribed?: boolean;
 }

@@ -5,6 +5,15 @@ import { usePosts } from '@/hooks/useApi';
 import { creatorAPI, postAPI, eventAPI } from '@/lib/api';
 import type { Event } from '@/lib/api';
 import { DashboardSkeleton } from '@/components/ui/content-skeletons';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Bell, 
   Heart, 
@@ -64,6 +73,13 @@ export default function Feed() {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
   const [togglingInterest, setTogglingInterest] = useState<string | null>(null);
+  
+  // Event detail dialog state
+  const [eventDetailDialogOpen, setEventDetailDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [loadingEventDetail, setLoadingEventDetail] = useState(false);
+  
+  const { toast } = useToast();
   
   // Extract posts and pagination from response
   const posts = postsData?.posts || [];
@@ -333,6 +349,92 @@ export default function Feed() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatEventDateFull = (dateString?: string) => {
+    if (!dateString) return 'Date TBA';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      month: 'long', 
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Handle event card click to open dialog
+  const handleEventClick = async (eventId: string) => {
+    try {
+      setLoadingEventDetail(true);
+      const response = await eventAPI.getById(eventId);
+      setSelectedEvent(response.data);
+      setEventDetailDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch event details:', error);
+      toast({
+        title: "Failed to load event",
+        description: "Could not fetch event details. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingEventDetail(false);
+    }
+  };
+
+  // Handle toggle interest from dialog
+  const handleDialogToggleInterest = async (eventId: string) => {
+    if (!selectedEvent) return;
+    
+    setTogglingInterest(eventId);
+    const wasInterested = selectedEvent.isInterested;
+    
+    // Optimistic update
+    setSelectedEvent({
+      ...selectedEvent,
+      isInterested: !selectedEvent.isInterested,
+      interestedCount: selectedEvent.isInterested ? (selectedEvent.interestedCount || 0) - 1 : (selectedEvent.interestedCount || 0) + 1
+    });
+    
+    try {
+      await eventAPI.toggleInterest(eventId);
+      // Refresh event details
+      const response = await eventAPI.getById(eventId);
+      setSelectedEvent(response.data);
+      
+      // Also update in the events list
+      const eventsRes = await eventAPI.getAllEvents();
+      const events = eventsRes.data || [];
+      const transformedEvents: Event[] = events.map((event: any) => ({
+        id: event.id,
+        creatorId: event.creatorId,
+        name: event.name,
+        description: event.description,
+        mediaUrl: event.mediaUrl,
+        eventDate: event.eventDate,
+        createdAt: event.createdAt,
+        updatedAt: event.updatedAt,
+        interestedCount: event.interestedCount || 0,
+        isInterested: event.isInterested !== undefined ? event.isInterested : (event.alreadyInterested || false)
+      }));
+      setAllEvents(transformedEvents);
+    } catch (error) {
+      console.error('Failed to toggle interest:', error);
+      // Revert optimistic update
+      setSelectedEvent({
+        ...selectedEvent,
+        isInterested: wasInterested,
+        interestedCount: wasInterested ? (selectedEvent.interestedCount || 0) + 1 : (selectedEvent.interestedCount || 0) - 1
+      });
+      toast({
+        title: "Failed to update interest",
+        description: "Could not update interest. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setTogglingInterest(null);
+    }
   };
 
 
@@ -756,8 +858,9 @@ export default function Feed() {
                     const isPast = event.eventDate ? new Date(event.eventDate) < new Date() : false;
                     return (
                       <div 
-                        key={event.id} 
-                        className="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-lg overflow-hidden hover:from-gray-700 hover:to-gray-800 transition-all duration-200 border border-gray-700/50 hover:border-blue-500/50 group"
+                        key={event.id}
+                        onClick={() => handleEventClick(event.id)}
+                        className="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-lg overflow-hidden hover:from-gray-700 hover:to-gray-800 transition-all duration-200 border border-gray-700/50 hover:border-blue-500/50 group cursor-pointer"
                       >
                         {/* Event Image */}
                         {event.mediaUrl && (
@@ -799,7 +902,10 @@ export default function Feed() {
                             </div>
                             
                             <button
-                              onClick={(e) => handleToggleEventInterest(event.id, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleEventInterest(event.id, e);
+                              }}
                               disabled={togglingInterest === event.id}
                               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 text-xs font-medium ${
                                 event.isInterested
@@ -842,6 +948,129 @@ export default function Feed() {
 
         </div>
       </div>
+
+      {/* Event Detail Dialog */}
+      <Dialog open={eventDetailDialogOpen} onOpenChange={setEventDetailDialogOpen}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          {loadingEventDetail ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+            </div>
+          ) : selectedEvent ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedEvent.name}</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  Event Details
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6 mt-4">
+                {/* Creator Info */}
+                {selectedEvent.creatorName && (
+                  <div className="flex items-center space-x-3 pb-4 border-b border-gray-700">
+                    {selectedEvent.creatorProfilePhoto ? (
+                      <img 
+                        src={selectedEvent.creatorProfilePhoto} 
+                        alt={selectedEvent.creatorName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                        <span className="text-white font-semibold">
+                          {selectedEvent.creatorName?.charAt(0)?.toUpperCase() || 'C'}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold">{selectedEvent.creatorName}</h3>
+                      {selectedEvent.creatorPageName && (
+                        <p className="text-sm text-gray-400">@{selectedEvent.creatorPageName}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Event Image */}
+                {selectedEvent.mediaUrl && (
+                  <div className="relative w-full h-64 rounded-lg overflow-hidden">
+                    <img 
+                      src={selectedEvent.mediaUrl} 
+                      alt={selectedEvent.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Event Description */}
+                {selectedEvent.description && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Description</h4>
+                    <p className="text-gray-300 leading-relaxed">{selectedEvent.description}</p>
+                  </div>
+                )}
+
+                {/* Event Date */}
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <p className="font-semibold">Event Date & Time</p>
+                    <p className="text-gray-300">{formatEventDateFull(selectedEvent.eventDate)}</p>
+                  </div>
+                </div>
+
+                {/* Interest Count */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                  <div>
+                    <p className="text-sm text-gray-400">Total Interested</p>
+                    <p className="text-xl font-bold text-blue-400">{selectedEvent.interestedCount || 0}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDialogToggleInterest(selectedEvent.id)}
+                    disabled={togglingInterest === selectedEvent.id}
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
+                      selectedEvent.isInterested
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {togglingInterest === selectedEvent.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>...</span>
+                      </>
+                    ) : selectedEvent.isInterested ? (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span>Interested</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5 opacity-50" />
+                        <span>Interest</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <DialogFooter className="mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setEventDetailDialogOpen(false)}
+                  className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-400">Event not found</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
