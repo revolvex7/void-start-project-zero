@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { usePosts } from '@/hooks/useApi';
-import { creatorAPI, postAPI } from '@/lib/api';
+import { creatorAPI, postAPI, eventAPI } from '@/lib/api';
+import type { Event } from '@/lib/api';
 import { DashboardSkeleton } from '@/components/ui/content-skeletons';
 import { 
   Bell, 
@@ -18,7 +19,8 @@ import {
   FileText,
   Calendar,
   User,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 
 interface Post {
@@ -56,6 +58,12 @@ export default function Feed() {
   const [suggestedCreators, setSuggestedCreators] = useState<Creator[]>([]);
   const [loadingSuggested, setLoadingSuggested] = useState(false);
   const [suggestedError, setSuggestedError] = useState<string | null>(null);
+  
+  // Events state
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+  const [togglingInterest, setTogglingInterest] = useState<string | null>(null);
   
   // Extract posts and pagination from response
   const posts = postsData?.posts || [];
@@ -210,6 +218,122 @@ export default function Feed() {
 
     fetchSuggestedCreators();
   }, []);
+
+  // Fetch all events from API
+  useEffect(() => {
+    const fetchAllEvents = async () => {
+      try {
+        setLoadingEvents(true);
+        setEventsError(null);
+        const response = await eventAPI.getAllEvents();
+        const events = response.data || [];
+        
+        // Transform events to ensure they have the right structure
+        // Handle both alreadyInterested and isInterested fields from backend
+        const transformedEvents: Event[] = events.map((event: any) => ({
+          id: event.id,
+          creatorId: event.creatorId,
+          name: event.name,
+          description: event.description,
+          mediaUrl: event.mediaUrl,
+          eventDate: event.eventDate,
+          createdAt: event.createdAt,
+          updatedAt: event.updatedAt,
+          interestedCount: event.interestedCount || 0,
+          isInterested: event.isInterested !== undefined ? event.isInterested : (event.alreadyInterested || false)
+        }));
+        
+        setAllEvents(transformedEvents);
+      } catch (err) {
+        console.error('Failed to fetch events:', err);
+        setEventsError(err instanceof Error ? err.message : 'Failed to load events');
+        setAllEvents([]);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchAllEvents();
+  }, []);
+
+  // Handle toggle interest for events
+  const handleToggleEventInterest = async (eventId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    setTogglingInterest(eventId);
+    
+    // Find the current event
+    const currentEvent = allEvents.find(event => event.id === eventId);
+    if (!currentEvent) {
+      setTogglingInterest(null);
+      return;
+    }
+    
+    const wasInterested = currentEvent.isInterested;
+    
+    // Optimistic update
+    setAllEvents(allEvents.map(event => 
+      event.id === eventId 
+        ? { 
+            ...event, 
+            isInterested: !event.isInterested,
+            interestedCount: event.isInterested ? (event.interestedCount || 0) - 1 : (event.interestedCount || 0) + 1
+          }
+        : event
+    ));
+    
+    try {
+      await eventAPI.toggleInterest(eventId);
+      // Refresh events to get updated data
+      const response = await eventAPI.getAllEvents();
+      const events = response.data || [];
+      const transformedEvents: Event[] = events.map((event: any) => ({
+        id: event.id,
+        creatorId: event.creatorId,
+        name: event.name,
+        description: event.description,
+        mediaUrl: event.mediaUrl,
+        eventDate: event.eventDate,
+        createdAt: event.createdAt,
+        updatedAt: event.updatedAt,
+        interestedCount: event.interestedCount || 0,
+        isInterested: event.isInterested !== undefined ? event.isInterested : (event.alreadyInterested || false)
+      }));
+      setAllEvents(transformedEvents);
+    } catch (error) {
+      console.error('Failed to toggle interest:', error);
+      // Revert optimistic update on error
+      setAllEvents(allEvents.map(event => 
+        event.id === eventId 
+          ? { 
+              ...event, 
+              isInterested: wasInterested,
+              interestedCount: wasInterested ? (event.interestedCount || 0) + 1 : (event.interestedCount || 0) - 1
+            }
+          : event
+      ));
+    } finally {
+      setTogglingInterest(null);
+    }
+  };
+
+  const formatEventDate = (dateString?: string) => {
+    if (!dateString) return 'Date TBA';
+    const date = new Date(dateString);
+    const now = new Date();
+    const isPast = date < now;
+    
+    if (isPast) {
+      return `Past - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
 
   const getPostIcon = (attachedMedia: string[]) => {
@@ -597,6 +721,120 @@ export default function Feed() {
                   ))
                 ) : (
                   <p className="text-gray-400 text-sm py-2">No suggested creators available</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* All Events Section */}
+          <div className="bg-gray-800 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Upcoming Events</h3>
+              <Calendar className="w-5 h-5 text-blue-400" />
+            </div>
+            
+            {/* Loading State */}
+            {loadingEvents && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                <span className="ml-2 text-gray-400 text-sm">Loading events...</span>
+              </div>
+            )}
+            
+            {/* Error State */}
+            {eventsError && (
+              <div className="text-red-400 text-sm py-2">
+                {eventsError}
+              </div>
+            )}
+            
+            {/* Events List */}
+            {!loadingEvents && !eventsError && (
+              <div className="space-y-4">
+                {allEvents.length > 0 ? (
+                  allEvents.slice(0, 5).map((event) => {
+                    const isPast = event.eventDate ? new Date(event.eventDate) < new Date() : false;
+                    return (
+                      <div 
+                        key={event.id} 
+                        className="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-lg overflow-hidden hover:from-gray-700 hover:to-gray-800 transition-all duration-200 border border-gray-700/50 hover:border-blue-500/50 group"
+                      >
+                        {/* Event Image */}
+                        {event.mediaUrl && (
+                          <div className="relative h-32 w-full overflow-hidden">
+                            <img 
+                              src={event.mediaUrl} 
+                              alt={event.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                            {isPast && (
+                              <div className="absolute top-2 right-2 bg-gray-900/80 text-gray-300 text-xs px-2 py-1 rounded-full">
+                                Past
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent" />
+                          </div>
+                        )}
+                        
+                        {/* Event Content */}
+                        <div className="p-4">
+                          <h4 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-blue-400 transition-colors">
+                            {event.name}
+                          </h4>
+                          
+                          {event.description && (
+                            <p className="text-xs text-gray-400 line-clamp-2 mb-2">
+                              {event.description}
+                            </p>
+                          )}
+                          
+                          {/* Date and Interest */}
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700/50">
+                            <div className="flex items-center space-x-1 text-xs text-gray-400">
+                              <Calendar className="w-3 h-3" />
+                              <span>{formatEventDate(event.eventDate)}</span>
+                            </div>
+                            
+                            <button
+                              onClick={(e) => handleToggleEventInterest(event.id, e)}
+                              disabled={togglingInterest === event.id}
+                              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 text-xs font-medium ${
+                                event.isInterested
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-600/50'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {togglingInterest === event.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>...</span>
+                                </>
+                              ) : event.isInterested ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Interested</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5 opacity-50" />
+                                  <span>Interest</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-6">
+                    <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 text-sm">No upcoming events</p>
+                    <p className="text-gray-500 text-xs mt-1">Check back later for new events</p>
+                  </div>
                 )}
               </div>
             )}

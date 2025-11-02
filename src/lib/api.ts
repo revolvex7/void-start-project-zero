@@ -433,6 +433,51 @@ class ApiService {
     });
   }
 
+  // Event endpoints
+  async createEvent(eventData: { name: string; description?: string; mediaUrl?: string; eventDate?: string }) {
+    return await this.request('/user/events', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async getEvents() {
+    return await this.request('/user/events', {
+      method: 'GET',
+    });
+  }
+
+  async getAllEvents() {
+    return await this.request('/user/all-events', {
+      method: 'GET',
+    });
+  }
+
+  async getEventById(eventId: string) {
+    return await this.request(`/user/events/${eventId}`, {
+      method: 'GET',
+    });
+  }
+
+  async updateEvent(eventId: string, eventData: { name?: string; description?: string; mediaUrl?: string; eventDate?: string }) {
+    return await this.request(`/user/events/${eventId}`, {
+      method: 'PUT',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async deleteEvent(eventId: string) {
+    return await this.request(`/user/events/${eventId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async toggleEventInterest(eventId: string) {
+    return await this.request(`/user/events/${eventId}/interest`, {
+      method: 'POST',
+    });
+  }
+
   // Email verification
   async sendVerificationEmail() {
     return await this.request('/user/send-verification-email', {
@@ -584,6 +629,16 @@ export const productAPI = {
   getById: (productId: string) => apiService.getProductById(productId),
   update: (productId: string, productData: { name?: string; description?: string; mediaUrl?: string; price?: string }) => apiService.updateProduct(productId, productData),
   delete: (productId: string) => apiService.deleteProduct(productId),
+};
+
+export const eventAPI = {
+  create: (eventData: { name: string; description?: string; mediaUrl?: string; eventDate?: string }) => apiService.createEvent(eventData),
+  getAll: () => apiService.getEvents(),
+  getAllEvents: () => apiService.getAllEvents(),
+  getById: (eventId: string) => apiService.getEventById(eventId),
+  update: (eventId: string, eventData: { name?: string; description?: string; mediaUrl?: string; eventDate?: string }) => apiService.updateEvent(eventId, eventData),
+  delete: (eventId: string) => apiService.deleteEvent(eventId),
+  toggleInterest: (eventId: string) => apiService.toggleEventInterest(eventId),
 };
 
 // Types
@@ -745,6 +800,19 @@ export interface Product {
   price: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Event {
+  id: string;
+  creatorId: string;
+  name: string;
+  description?: string;
+  mediaUrl?: string;
+  eventDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  interestedCount?: number;
+  isInterested?: boolean;
 }
 
 export interface CreatorProfileResponse {
