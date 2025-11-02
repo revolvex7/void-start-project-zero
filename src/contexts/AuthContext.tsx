@@ -26,6 +26,7 @@ interface Creator {
 }
 
 interface User {
+  isVerified: any;
   id: string;
   name: string;
   email: string;
@@ -144,7 +145,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       email: credentials.email,
       creator: null,
       createdAt: '',
-      updatedAt: ''
+      updatedAt: '',
+      isVerified: undefined
     };
     setUser(basicUser);
     localStorage.setItem('user', JSON.stringify(basicUser));
@@ -160,7 +162,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       email: userData.email,
       creator: null,
       createdAt: '',
-      updatedAt: ''
+      updatedAt: '',
+      isVerified: undefined
     };
     setUser(basicUser);
     localStorage.setItem('user', JSON.stringify(basicUser));
