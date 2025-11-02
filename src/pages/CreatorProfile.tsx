@@ -10,6 +10,8 @@ import { useUserRole } from '@/contexts/UserRoleContext';
 import { useMembership } from '@/contexts/MembershipContext';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { creatorAPI, Creator } from '@/lib/api';
+import { staticEvents } from '@/data/staticEvents';
+import { Event } from '@/types/event';
 import { useToggleFollow, useSubscribeMembership, useUnsubscribeMembership } from '@/hooks/useApi';
 import { ProfileSkeleton } from '@/components/ui/content-skeletons';
 import { 
@@ -51,6 +53,7 @@ const CreatorProfile = () => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [eventInterests, setEventInterests] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState('home');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -183,6 +186,13 @@ const CreatorProfile = () => {
   const handleProductClick = (product: any) => {
     setSelectedProduct(product);
     setShowProductModal(true);
+  };
+
+  const handleEventInterest = (eventId: string, interested: boolean) => {
+    setEventInterests(prev => ({
+      ...prev,
+      [eventId]: interested
+    }));
   };
 
   // Show loading state
@@ -489,6 +499,90 @@ const CreatorProfile = () => {
                   </div>
                 </div>
 
+                {/* Events Section */}
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-4">Events</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {staticEvents.length > 0 ? (
+                      staticEvents.map((event) => (
+                        <div 
+                          key={event.id} 
+                          className="bg-gray-800 rounded-lg overflow-hidden hover:ring-2 transition-all"
+                          style={{ '--hover-ring-color': themeColor } as React.CSSProperties}
+                          onMouseEnter={(e) => e.currentTarget.style.setProperty('--tw-ring-color', themeColor)}
+                        >
+                          <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
+                            {event.mediaUrl ? (
+                              <img 
+                                src={event.mediaUrl} 
+                                alt={event.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center w-full h-full bg-gray-700">
+                                <Calendar className="w-12 h-12 text-gray-500" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-3 sm:p-4">
+                            <h4 className="font-medium text-sm sm:text-base mb-1 line-clamp-1">{event.name}</h4>
+                            <p className="text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2">
+                              {event.description || 'No description'}
+                            </p>
+                            {event.eventDate && (
+                              <div className="flex items-center text-xs mb-3" style={{ color: themeColor }}>
+                                <Calendar className="w-3 h-3 mr-1" />
+                                {new Date(event.eventDate).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleEventInterest(event.id, true)}
+                                className={`flex-1 text-xs ${
+                                  eventInterests[event.id] === true
+                                    ? 'bg-white text-black hover:bg-gray-200'
+                                    : 'bg-gray-700 text-white hover:bg-gray-600'
+                                }`}
+                              >
+                                {eventInterests[event.id] === true ? (
+                                  <>
+                                    <Check className="w-3 h-3 mr-1" />
+                                    Interested
+                                  </>
+                                ) : (
+                                  'Interested'
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleEventInterest(event.id, false)}
+                                className={`flex-1 text-xs ${
+                                  eventInterests[event.id] === false
+                                    ? 'bg-gray-600 text-white'
+                                    : 'bg-gray-700 text-white hover:bg-gray-600'
+                                }`}
+                              >
+                                {eventInterests[event.id] === false ? 'Not Interested' : 'Not Interested'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-8">
+                        <Calendar className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                        <p className="text-gray-400">No events available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 
                 {/* Products Section */}
                 <div>

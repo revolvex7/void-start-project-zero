@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, Settings, Users, BarChart3, DollarSign, Edit, Eye, Megaphone, Plus, X } from 'lucide-react';
+import { ChevronRight, Settings, Users, BarChart3, DollarSign, Edit, Eye, Megaphone, Plus, X, Calendar } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { StartBasicsModal } from './StartBasicsModal';
 import { EmailVerificationModal } from '../modals/EmailVerificationModal';
@@ -302,30 +302,57 @@ export function CreatorDashboardContent({ creatorName }: CreatorDashboardContent
                     )}
                   </div>
                   
-                  {/* Show Storefront CTA after "Make your first post" task */}
+                  {/* Show Events and Storefront CTAs after "Make your first post" task */}
                   {task.id === 'first-post' && (
-                    <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-lg p-4 border border-purple-500/20">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 flex-1">
-                          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <DollarSign className="w-5 h-5 text-white" />
+                    <>
+                      {/* Events CTA */}
+                      <div className="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 rounded-lg p-4 border border-blue-500/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Calendar className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-white mb-1">Host events for your fans</h4>
+                              <p className="text-xs text-gray-300">
+                                Create events and engage with your community
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-white mb-1">Want to sell your products?</h4>
-                            <p className="text-xs text-gray-300">
-                              Set up your digital storefront and start earning
-                            </p>
-                          </div>
+                          <Button 
+                            onClick={() => navigate('/events')}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white ml-3"
+                          >
+                            Manage events
+                          </Button>
                         </div>
-                        <Button 
-                          onClick={() => navigate('/storefront')}
-                          size="sm"
-                          className="bg-purple-600 hover:bg-purple-700 text-white ml-3"
-                        >
-                          Set up store
-                        </Button>
                       </div>
-                    </div>
+
+                      {/* Storefront CTA */}
+                      <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-lg p-4 border border-purple-500/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <DollarSign className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-white mb-1">Want to sell your products?</h4>
+                              <p className="text-xs text-gray-300">
+                                Set up your digital storefront and start earning
+                              </p>
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={() => navigate('/storefront')}
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-white ml-3"
+                          >
+                            Set up store
+                          </Button>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </React.Fragment>
               ))}

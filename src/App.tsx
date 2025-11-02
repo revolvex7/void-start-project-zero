@@ -30,6 +30,7 @@ import PostPreview from '@/pages/PostPreview';
 import MemberSettings from '@/pages/MemberSettings';
 import CreatorSettings from '@/pages/CreatorSettings';
 import Storefront from '@/pages/Storefront';
+import Events from '@/pages/Events';
 import VerifyEmail from '@/pages/VerifyEmail';
 
 // Creator pages
@@ -306,6 +307,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Storefront />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/events" 
+              element={
+                <ProtectedRoute>
+                  <Events />
                 </ProtectedRoute>
               } 
             />
