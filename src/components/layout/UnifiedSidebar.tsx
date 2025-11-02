@@ -15,7 +15,8 @@ import {
   Star,
   ArrowRight,
   Smartphone,
-  Plus
+  Plus,
+  Calendar
 } from "lucide-react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -125,6 +126,7 @@ export function UnifiedSidebar({
   const creatorMenuItems = [
     { title: "Dashboard", url: "/dashboard?view=creator", icon: Home, page: "dashboard", badge: undefined },
     { title: "Library", url: "/library", icon: BookOpen, page: "library", badge: undefined },
+    { title: "Events", url: "/events", icon: Calendar, page: "events", badge: undefined },
     { title: "Insights", url: "/insights", icon: BarChart3, page: "insights", badge: undefined },
     { title: "Messages", url: "/creator/chat", icon: MessageSquare, page: "chat", badge: unreadMessageCount > 0 ? unreadMessageCount.toString() : undefined },
     { title: "Payouts", url: "/payouts", icon: DollarSign, page: "payouts", badge: undefined },
