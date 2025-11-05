@@ -29,7 +29,10 @@ import {
   Calendar,
   User,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  ExternalLink,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 interface Post {
@@ -365,21 +368,18 @@ export default function Feed() {
   };
 
   // Handle event card click to open dialog
-  const handleEventClick = async (eventId: string) => {
+  const handleEventClick = async (event: Event) => {
+    // Open dialog immediately with existing data
+    setSelectedEvent(event);
+    setEventDetailDialogOpen(true);
+    
+    // Fetch fresh data in the background
     try {
-      setLoadingEventDetail(true);
-      const response = await eventAPI.getById(eventId);
+      const response = await eventAPI.getById(event.id);
       setSelectedEvent(response.data);
-      setEventDetailDialogOpen(true);
     } catch (error) {
       console.error('Failed to fetch event details:', error);
-      toast({
-        title: "Failed to load event",
-        description: "Could not fetch event details. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingEventDetail(false);
+      // Dialog is already open with cached data, so we don't show error toast
     }
   };
 
@@ -859,7 +859,7 @@ export default function Feed() {
                     return (
                       <div 
                         key={event.id}
-                        onClick={() => handleEventClick(event.id)}
+                        onClick={() => handleEventClick(event)}
                         className="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-lg overflow-hidden hover:from-gray-700 hover:to-gray-800 transition-all duration-200 border border-gray-700/50 hover:border-blue-500/50 group cursor-pointer"
                       >
                         {/* Event Image */}
@@ -952,11 +952,7 @@ export default function Feed() {
       {/* Event Detail Dialog */}
       <Dialog open={eventDetailDialogOpen} onOpenChange={setEventDetailDialogOpen}>
         <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-          {loadingEventDetail ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-            </div>
-          ) : selectedEvent ? (
+          {selectedEvent ? (
             <>
               <DialogHeader>
                 <DialogTitle className="text-2xl">{selectedEvent.name}</DialogTitle>
@@ -1017,6 +1013,52 @@ export default function Feed() {
                     <p className="font-semibold">Event Date & Time</p>
                     <p className="text-gray-300">{formatEventDateFull(selectedEvent.eventDate)}</p>
                   </div>
+                </div>
+
+                {/* Live Stream Link */}
+                {selectedEvent.liveStreamLink && (
+                  <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Video className="w-5 h-5 text-blue-400" />
+                        <div>
+                          <p className="font-semibold text-blue-400">Live Stream Available</p>
+                          <p className="text-sm text-gray-300">Join the event online</p>
+                        </div>
+                      </div>
+                      <a
+                        href={selectedEvent.liveStreamLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="text-sm font-medium">Join Stream</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Access Level */}
+                <div className="flex items-center space-x-2">
+                  {selectedEvent.isFree ? (
+                    <>
+                      <Unlock className="w-5 h-5 text-green-400" />
+                      <div>
+                        <p className="font-semibold text-green-400">Free Event</p>
+                        <p className="text-sm text-gray-300">Open to everyone</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5 text-purple-400" />
+                      <div>
+                        <p className="font-semibold text-purple-400">Members Only</p>
+                        <p className="text-sm text-gray-300">Exclusive to subscribed members</p>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Interest Count */}

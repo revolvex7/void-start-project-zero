@@ -28,8 +28,9 @@ import {
   Heart,
   Clock
 } from 'lucide-react';
-import { eventAPI, commonAPI } from '@/lib/api';
+import { eventAPI, commonAPI, membershipAPI } from '@/lib/api';
 import type { Event } from '@/lib/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Events() {
   const navigate = useNavigate();
@@ -44,11 +45,15 @@ export default function Events() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [memberships, setMemberships] = useState<any[]>([]);
 
   const [newEvent, setNewEvent] = useState({
     name: '',
     description: '',
-    eventDate: ''
+    eventDate: '',
+    liveStreamLink: '',
+    memberShipId: '',
+    isFree: true
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -68,17 +73,21 @@ export default function Events() {
   });
   const totalInterested = events.reduce((sum, event) => sum + (event.interestedCount || 0), 0);
 
-  // Fetch events on mount
+  // Fetch events and memberships on mount
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const res = await eventAPI.getAll();
-        setEvents(res.data || []);
+        const [eventsRes, membershipsRes] = await Promise.all([
+          eventAPI.getAll(),
+          membershipAPI.getAll()
+        ]);
+        setEvents(eventsRes.data || []);
+        setMemberships(membershipsRes.data || []);
       } catch (error) {
-        console.error('Failed to fetch events:', error);
+        console.error('Failed to fetch data:', error);
         toast({
-          title: "Failed to load events",
+          title: "Failed to load data",
           description: "Could not fetch your events. Please try again.",
           variant: "destructive",
         });
@@ -86,7 +95,7 @@ export default function Events() {
         setIsLoading(false);
       }
     };
-    fetchEvents();
+    fetchData();
   }, []);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +195,9 @@ export default function Events() {
         description: newEvent.description || undefined,
         eventDate: newEvent.eventDate || undefined,
         mediaUrl: uploadedImageUrl || undefined,
+        liveStreamLink: newEvent.liveStreamLink || undefined,
+        isFree: newEvent.memberShipId === '' || newEvent.memberShipId === 'free' ? true : false,
+        memberShipId: (newEvent.memberShipId === '' || newEvent.memberShipId === 'free') ? undefined : newEvent.memberShipId,
       };
 
       await eventAPI.create(eventData);
@@ -201,7 +213,7 @@ export default function Events() {
       });
 
       // Reset form
-      setNewEvent({ name: '', description: '', eventDate: '' });
+      setNewEvent({ name: '', description: '', eventDate: '', liveStreamLink: '', memberShipId: '', isFree: true });
       setImageFile(null);
       setImagePreview(null);
       setUploadedImageUrl(null);
@@ -223,7 +235,10 @@ export default function Events() {
     setNewEvent({
       name: event.name,
       description: event.description || '',
-      eventDate: event.eventDate ? new Date(event.eventDate).toISOString().slice(0, 16) : ''
+      eventDate: event.eventDate ? new Date(event.eventDate).toISOString().slice(0, 16) : '',
+      liveStreamLink: event.liveStreamLink || '',
+      memberShipId: event.memberShipId || 'free',
+      isFree: event.isFree !== undefined ? event.isFree : true
     });
     setImagePreview(event.mediaUrl || null);
     setImageFile(null);
@@ -244,6 +259,9 @@ export default function Events() {
         description: newEvent.description || undefined,
         eventDate: newEvent.eventDate || undefined,
         mediaUrl: mediaUrl || undefined,
+        liveStreamLink: newEvent.liveStreamLink || undefined,
+        isFree: newEvent.memberShipId === '' || newEvent.memberShipId === 'free' ? true : false,
+        memberShipId: (newEvent.memberShipId === '' || newEvent.memberShipId === 'free') ? undefined : newEvent.memberShipId,
       };
 
       await eventAPI.update(editingEvent.id, eventData);
@@ -260,7 +278,7 @@ export default function Events() {
 
       // Reset form
       setEditingEvent(null);
-      setNewEvent({ name: '', description: '', eventDate: '' });
+      setNewEvent({ name: '', description: '', eventDate: '', liveStreamLink: '', memberShipId: '', isFree: true });
       setImageFile(null);
       setImagePreview(null);
       setUploadedImageUrl(null);
@@ -331,7 +349,7 @@ export default function Events() {
     setShowCreateModal(false);
     setShowEditModal(false);
     setEditingEvent(null);
-    setNewEvent({ name: '', description: '', eventDate: '' });
+    setNewEvent({ name: '', description: '', eventDate: '', liveStreamLink: '', memberShipId: '', isFree: true });
     setImageFile(null);
     setImagePreview(null);
     setUploadedImageUrl(null);
@@ -474,6 +492,8 @@ export default function Events() {
                   onClick={() => {
                     setShowCreateModal(true);
                     setShowEditModal(false);
+                    setEditingEvent(null);
+                    setNewEvent({ name: '', description: '', eventDate: '', liveStreamLink: '', memberShipId: '', isFree: true });
                   }}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
@@ -582,6 +602,49 @@ export default function Events() {
                   onChange={(e) => setNewEvent({ ...newEvent, eventDate: e.target.value })}
                   className="bg-gray-700 border-gray-600 text-white"
                 />
+              </div>
+
+              {/* Live Stream Link */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Live Stream Link (Optional)</label>
+                <Input
+                  value={newEvent.liveStreamLink}
+                  onChange={(e) => setNewEvent({ ...newEvent, liveStreamLink: e.target.value })}
+                  placeholder="e.g., https://youtube.com/live/..."
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+
+              {/* Membership Selector */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Access Level</label>
+                <Select
+                  value={newEvent.memberShipId || 'free'}
+                  onValueChange={(value) => setNewEvent({ ...newEvent, memberShipId: value })}
+                >
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Select access level" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectItem value="free" className="text-white hover:bg-gray-600">
+                      Free - Everyone can attend
+                    </SelectItem>
+                    {memberships.map((membership) => (
+                      <SelectItem 
+                        key={membership.id} 
+                        value={membership.id}
+                        className="text-white hover:bg-gray-600"
+                      >
+                        {membership.name} - {membership.currency} {membership.price}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400 mt-2">
+                  {newEvent.memberShipId === 'free' || !newEvent.memberShipId
+                    ? 'This event is free for everyone'
+                    : 'Only members with this tier can access this event'}
+                </p>
               </div>
 
               {/* Image Upload */}

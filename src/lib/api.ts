@@ -434,7 +434,7 @@ class ApiService {
   }
 
   // Event endpoints
-  async createEvent(eventData: { name: string; description?: string; mediaUrl?: string; eventDate?: string }) {
+  async createEvent(eventData: { name: string; description?: string; mediaUrl?: string; eventDate?: string; liveStreamLink?: string; isFree?: boolean; memberShipId?: string }) {
     return await this.request('/user/events', {
       method: 'POST',
       body: JSON.stringify(eventData),
@@ -459,7 +459,7 @@ class ApiService {
     });
   }
 
-  async updateEvent(eventId: string, eventData: { name?: string; description?: string; mediaUrl?: string; eventDate?: string }) {
+  async updateEvent(eventId: string, eventData: { name?: string; description?: string; mediaUrl?: string; eventDate?: string; liveStreamLink?: string; isFree?: boolean; memberShipId?: string }) {
     return await this.request(`/user/events/${eventId}`, {
       method: 'PUT',
       body: JSON.stringify(eventData),
@@ -632,11 +632,11 @@ export const productAPI = {
 };
 
 export const eventAPI = {
-  create: (eventData: { name: string; description?: string; mediaUrl?: string; eventDate?: string }) => apiService.createEvent(eventData),
+  create: (eventData: { name: string; description?: string; mediaUrl?: string; eventDate?: string; liveStreamLink?: string; isFree?: boolean; memberShipId?: string }) => apiService.createEvent(eventData),
   getAll: () => apiService.getEvents(),
   getAllEvents: () => apiService.getAllEvents(),
   getById: (eventId: string) => apiService.getEventById(eventId),
-  update: (eventId: string, eventData: { name?: string; description?: string; mediaUrl?: string; eventDate?: string }) => apiService.updateEvent(eventId, eventData),
+  update: (eventId: string, eventData: { name?: string; description?: string; mediaUrl?: string; eventDate?: string; liveStreamLink?: string; isFree?: boolean; memberShipId?: string }) => apiService.updateEvent(eventId, eventData),
   delete: (eventId: string) => apiService.deleteEvent(eventId),
   toggleInterest: (eventId: string) => apiService.toggleEventInterest(eventId),
 };
@@ -814,6 +814,9 @@ export interface Event {
   updatedAt?: string;
   interestedCount?: number;
   isInterested?: boolean;
+  liveStreamLink?: string;
+  isFree?: boolean;
+  memberShipId?: string;
 }
 
 export interface CreatorProfileResponse {

@@ -6,6 +6,9 @@ export interface Event {
   eventDate?: string;
   creatorId: string;
   createdAt: string;
+  liveStreamLink?: string;
+  isFree?: boolean;
+  memberShipId?: string;
 }
 
 export interface EventInterest {

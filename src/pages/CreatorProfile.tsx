@@ -47,7 +47,10 @@ import {
   Check,
   ShoppingBag,
   CheckCircle2,
-  Loader2
+  Loader2,
+  ExternalLink,
+  Unlock,
+  Video
 } from 'lucide-react';
 
 const CreatorProfile = () => {
@@ -204,21 +207,18 @@ const CreatorProfile = () => {
     setShowProductModal(true);
   };
 
-  const handleEventClick = async (eventId: string) => {
+  const handleEventClick = async (event: any) => {
+    // Open dialog immediately with existing data
+    setSelectedEvent(event);
+    setEventDetailDialogOpen(true);
+    
+    // Fetch fresh data in the background
     try {
-      setLoadingEventDetail(true);
-      const response = await eventAPI.getById(eventId);
+      const response = await eventAPI.getById(event.id);
       setSelectedEvent(response.data);
-      setEventDetailDialogOpen(true);
     } catch (error) {
       console.error('Failed to fetch event details:', error);
-      toast({
-        title: "Failed to load event",
-        description: "Could not fetch event details. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingEventDetail(false);
+      // Dialog is already open with cached data, so we don't show error toast
     }
   };
 
@@ -617,24 +617,52 @@ const CreatorProfile = () => {
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">Events</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {creator.events && creator.events.length > 0 ? (
-                      creator.events.map((event: any) => (
+                      creator.events.map((event: any) => {
+                        const isPaidEvent = event.isFree === false;
+                        const isLocked = isPaidEvent && !isSubscribed;
+                        
+                        return (
                         <div 
                           key={event.id}
-                          onClick={() => handleEventClick(event.id)}
+                          onClick={() => {
+                            if (isLocked) {
+                              setShowSubscriptionModal(true);
+                            } else {
+                              handleEventClick(event);
+                            }
+                          }}
                           className="bg-gray-800 rounded-lg overflow-hidden hover:ring-2 transition-all cursor-pointer"
                           style={{ '--hover-ring-color': themeColor } as React.CSSProperties}
                           onMouseEnter={(e) => e.currentTarget.style.setProperty('--tw-ring-color', themeColor)}
                         >
                           <div className="aspect-video bg-gray-700 flex items-center justify-center relative overflow-hidden">
                             {event.mediaUrl ? (
-                              <img 
-                                src={event.mediaUrl} 
-                                alt={event.name}
-                                className="w-full h-full object-cover"
-                              />
+                              <>
+                                <img 
+                                  src={event.mediaUrl} 
+                                  alt={event.name}
+                                  className={`w-full h-full object-cover ${isLocked ? 'blur-sm' : ''}`}
+                                />
+                                {isLocked && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                                    <div className="text-center">
+                                      <Lock className="w-12 h-12 text-white mx-auto mb-2" />
+                                      <p className="text-white text-sm font-semibold">Subscribe to Unlock</p>
+                                      <p className="text-gray-300 text-xs mt-1">Members Only Event</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
                             ) : (
                               <div className="flex items-center justify-center w-full h-full bg-gray-700">
-                                <Calendar className="w-12 h-12 text-gray-500" />
+                                {isLocked ? (
+                                  <div className="text-center">
+                                    <Lock className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                                    <p className="text-gray-300 text-xs">Subscribe to Unlock</p>
+                                  </div>
+                                ) : (
+                                  <Calendar className="w-12 h-12 text-gray-500" />
+                                )}
                               </div>
                             )}
                           </div>
@@ -651,15 +679,29 @@ const CreatorProfile = () => {
                             )}
                             <Button
                               size="sm"
-                              onClick={(e) => handleToggleEventInterest(event.id, e)}
-                              disabled={togglingInterest === event.id}
+                              onClick={(e) => {
+                                if (isLocked) {
+                                  e.stopPropagation();
+                                  setShowSubscriptionModal(true);
+                                } else {
+                                  handleToggleEventInterest(event.id, e);
+                                }
+                              }}
+                              disabled={!isLocked && togglingInterest === event.id}
                               className={`w-full text-xs ${
-                                event.isInterested
-                                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                                isLocked
+                                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                                  : event.isInterested
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
                               } disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
-                              {togglingInterest === event.id ? (
+                              {isLocked ? (
+                                <>
+                                  <Lock className="w-3 h-3 mr-1 inline" />
+                                  Subscribe to Unlock
+                                </>
+                              ) : togglingInterest === event.id ? (
                                 <>
                                   <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />
                                   <span>...</span>
@@ -678,7 +720,8 @@ const CreatorProfile = () => {
                             </Button>
                           </div>
                         </div>
-                      ))
+                      );
+                      })
                     ) : (
                       <div className="col-span-full text-center py-8">
                         <Calendar className="w-12 h-12 text-gray-500 mx-auto mb-3" />
@@ -995,11 +1038,7 @@ const CreatorProfile = () => {
         {/* Event Detail Dialog */}
         <Dialog open={eventDetailDialogOpen} onOpenChange={setEventDetailDialogOpen}>
           <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-            {loadingEventDetail ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-              </div>
-            ) : selectedEvent ? (
+            {selectedEvent ? (
               <>
                 <DialogHeader>
                   <DialogTitle className="text-2xl">{selectedEvent.name}</DialogTitle>
@@ -1060,6 +1099,52 @@ const CreatorProfile = () => {
                       <p className="font-semibold">Event Date & Time</p>
                       <p className="text-gray-300">{formatEventDateFull(selectedEvent.eventDate)}</p>
                     </div>
+                  </div>
+
+                  {/* Live Stream Link */}
+                  {selectedEvent.liveStreamLink && (
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Video className="w-5 h-5 text-blue-400" />
+                          <div>
+                            <p className="font-semibold text-blue-400">Live Stream Available</p>
+                            <p className="text-sm text-gray-300">Join the event online</p>
+                          </div>
+                        </div>
+                        <a
+                          href={selectedEvent.liveStreamLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="text-sm font-medium">Join Stream</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Access Level */}
+                  <div className="flex items-center space-x-2">
+                    {selectedEvent.isFree ? (
+                      <>
+                        <Unlock className="w-5 h-5 text-green-400" />
+                        <div>
+                          <p className="font-semibold text-green-400">Free Event</p>
+                          <p className="text-sm text-gray-300">Open to everyone</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-5 h-5 text-purple-400" />
+                        <div>
+                          <p className="font-semibold text-purple-400">Members Only</p>
+                          <p className="text-sm text-gray-300">Exclusive to subscribed members</p>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Interest Count */}
